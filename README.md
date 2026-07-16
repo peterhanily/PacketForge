@@ -86,9 +86,8 @@ cross-validation: `crossval`, `transfer-proof`, `malware-transfer` (see
 [`docs/cross-validation.md`](docs/cross-validation.md)); realism validation: `realism-audit`,
 `realism-detection`, `blind-panel`, `realism-scorecard` (see
 [`docs/realism-scorecard.md`](docs/realism-scorecard.md)). `list-attacks` / `list-evasions` /
-`list-families` enumerate the libraries. A guided tour of seven annotated captures — each
-with its real Zeek logs and an answer key — lives in [`samples/`](samples/); more pre-built
-captures in [`examples/`](examples/).
+`list-families` enumerate the libraries. A guided tour of eight annotated captures — each
+with its real Zeek logs and an answer key — lives in [`samples/`](samples/).
 
 ## How it holds up on EvidenceForge data
 

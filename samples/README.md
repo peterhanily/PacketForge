@@ -14,6 +14,7 @@ commands in each folder's README.
 | [05-dns-tunnel-exfil](05-dns-tunnel-exfil/) | DNS tunnelling: a burst of long encoded subdomains under one parent |
 | [06-c2-beacon-ja3](06-c2-beacon-ja3/) | An inert C2 beacon with a stable JA3 fingerprint at a fixed cadence |
 | [07-ot-modbus-plant](07-ot-modbus-plant/) | An OT/ICS plant network — Modbus/TCP traffic in `modbus.log` |
+| [08-cloud-vpc-sll](08-cloud-vpc-sll/) | The 02 kill chain captured host-side in a cloud VPC — the Linux SLL (cooked-capture) link type |
 
 Everything here is synthetic and inert — fake traffic with true labels, no real hosts,
 credentials, malware, or documents.

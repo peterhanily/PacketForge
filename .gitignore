@@ -17,10 +17,6 @@ zeeklogs/
 
 # Keep the reference PoC capture (negation must be on its own line — no inline comment)
 !poc/beacon.pcap
-# Keep the committed example gallery captures
-!examples/*.pcap
-# Keep the committed example gallery reports
-!examples/*.html
 
 # Zeek log files from validation runs (project docs are .md, not matched)
 *.log

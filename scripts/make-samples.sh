@@ -62,6 +62,7 @@ scenario 04-ransomware-smb-theft office --volume normal --attack ransomware --se
 scenario 05-dns-tunnel-exfil    office --volume normal --attack dns-exfil --seed 3
 beacon_reference 06-c2-beacon-ja3
 scenario 07-ot-modbus-plant     ot --volume normal --seed 2
+scenario 08-cloud-vpc-sll       cloud --volume normal --texture realistic --attack phishing-intrusion --seed 8
 
 echo "samples regenerated:"
 for d in samples/0*/; do

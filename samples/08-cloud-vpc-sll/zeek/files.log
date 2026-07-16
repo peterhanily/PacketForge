@@ -1,0 +1,58 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2026-07-16-23-13-29
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+1700000005.718393	FLOktk2T9I2QpClLAj	C0xNIJjWhW7aosCoj	10.0.0.27	1028	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1379	1379	0	0	F	-	-	-	-	-	-	-
+1700000010.228707	FCY2In3SKDBoTRqUqa	CiVP9W1ALT2uSrDGTl	10.0.0.27	1037	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1948	1948	0	0	F	-	-	-	-	-	-	-
+1700000021.191442	FJ36dV1DcSTlSLpip	CGEyqB16aIXqr8H9L4	10.0.0.26	1057	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	961	961	0	0	F	-	-	-	-	-	-	-
+1700000023.149147	FXeFnA1oxsyAAp6YPl	CQ6j7k3d3tk64BOFKg	10.0.0.28	1062	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2898	2898	0	0	F	-	-	-	-	-	-	-
+1700000023.590604	FIIUjI3XOK3p4o7RT4	CO2pAx3daKkUlVRZa9	10.0.0.28	1064	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2532	2532	0	0	F	-	-	-	-	-	-	-
+1700000024.638642	FldaOQp2IcW4Zu1G5	CB8Tdc3vEWxBJ5kqw2	10.0.0.30	1067	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1811	1811	0	0	F	-	-	-	-	-	-	-
+1700000028.730868	FA49IVhrz384Odqld	ChIkXH37RQtry8K1h3	10.0.0.29	1074	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2087	2087	0	0	F	-	-	-	-	-	-	-
+1700000045.391608	FOqdrGfg31GTTiI0a	CJsktr20i2yvIbrmZj	10.0.0.26	1104	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	213	213	0	0	F	-	-	-	-	-	-	-
+1700000056.394152	FdNhc5BiqevajS7e4	C3Sx3z415y42BsywYd	10.0.0.23	1125	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1506	1506	0	0	F	-	-	-	-	-	-	-
+1700000061.663074	FEFnQS20miF029ykP6	CXhPKN39vbXOMvzVLb	10.0.0.23	1132	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1836	1836	0	0	F	-	-	-	-	-	-	-
+1700000099.458199	Fe34Oq4Bg3eSlzgvw7	CGYryh1pWcp72EBVdk	10.0.0.24	1158	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	291	291	0	0	F	-	-	-	-	-	-	-
+1700000099.968522	FeCwFXhlsdqVky57f	CIapdukPsc5ZNkD4	10.0.0.22	1159	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1145	1145	0	0	F	-	-	-	-	-	-	-
+1700000100.387567	F66PEBJj3GZWdCC93	CJteE21TKxqjgShZg8	198.51.100.44	40000	10.0.0.1	25	SMTP	1	(empty)	text/plain	-	0.000000	T	T	602	-	0	0	F	-	-	-	-	-	-	-
+1700000103.865087	FaRtSY293m3HGvpxxb	CKpkfW3BQisagMJSn9	10.0.0.28	1172	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1624	1624	0	0	F	-	-	-	-	-	-	-
+1700000183.641971	FcbZSkQTeMGO7HTfe	C7wRbKQ0Y9TFUWeHf	10.0.0.29	1206	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	569	569	0	0	F	-	-	-	-	-	-	-
+1700000188.043812	Ftbfl54WmUgjn5L94d	CjDKuIgq5wBEVyKrb	10.0.0.23	1211	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2968	2968	0	0	F	-	-	-	-	-	-	-
+1700000188.213082	F6urdE2ONTBTCaGtO	Cajcz31NpGXzntltXh	10.0.0.22	1212	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2888	2888	0	0	F	-	-	-	-	-	-	-
+1700000191.763026	FIx8Cb2J4yBHbDZn6	CWC2vBJrfKjlpgCB	10.0.0.25	1223	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2498	2498	0	0	F	-	-	-	-	-	-	-
+1700000193.079039	FBPnWj2bgxvRLJxQF2	C3FRWI3Js9XFLDl8J5	10.0.0.29	1225	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1651	1651	0	0	F	-	-	-	-	-	-	-
+1700000252.968762	Fsh9VZ38rUsjmUCPYb	CN3dI34Xr0h4onDOxj	10.0.0.25	1238	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1763	1763	0	0	F	-	-	-	-	-	-	-
+1700000254.218490	FrP5Sm1px77rxc1eU8	Cp9SjjyOBd9c9lMLd	10.0.0.23	1241	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1656	1656	0	0	F	-	-	-	-	-	-	-
+1700000292.811796	FRtDDE4xoddbE0vtGc	CHkImV3V3g722oRV37	10.0.0.31	1265	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2811	2811	0	0	F	-	-	-	-	-	-	-
+1700000305.256083	FITxzn1KYAbcXLHi58	C8KCWb4PdWydou87Mj	10.0.0.24	1282	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2885	2885	0	0	F	-	-	-	-	-	-	-
+1700000323.498439	FV51IN12x05ooY04J1	Cy26BB3jLM0NYZ5WNc	10.0.0.21	1285	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1998	1998	0	0	F	-	-	-	-	-	-	-
+1700000330.156843	F2TGSa1H26OQJf4yRi	CdhQlv1xUWvzQQI1vd	10.0.0.26	1296	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	511	511	0	0	F	-	-	-	-	-	-	-
+1700000332.067930	FIKgZ32aItnFxMrhg6	CUSJXw3MGXwK1afQxc	10.0.0.20	1301	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2382	2382	0	0	F	-	-	-	-	-	-	-
+1700000361.813267	FqfCSa3E5ebdjxMW08	CgbSBr1mctTKvubdoi	10.0.0.22	1309	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2422	2422	0	0	F	-	-	-	-	-	-	-
+1700000437.945924	F7S9qj4yEnryuBin9h	C0mKCm2IjqSE3dCq9l	10.0.0.30	1334	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2996	2996	0	0	F	-	-	-	-	-	-	-
+1700000447.964529	FWMHbQ1RxObV7v7py6	Cv1DZl13DZMtV1dst8	10.0.0.30	1356	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	102	102	0	0	F	-	-	-	-	-	-	-
+1700000459.534926	F5hWSN1pnDKn7S20A	CQZ4q43ONQFjrbZgS1	10.0.0.20	1372	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	842	842	0	0	F	-	-	-	-	-	-	-
+1700000509.673454	FLgHaz3IPyGouwqQu5	C86JGXIeAXanLSeA2	10.0.0.20	1427	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	146	146	0	0	F	-	-	-	-	-	-	-
+1700000510.734447	FKWVLOuwmXTWPPgok	CI7Q6z4EM04z8u5Ul	10.0.0.28	1433	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1590	1590	0	0	F	-	-	-	-	-	-	-
+1700000512.132364	FKttsB1WtqeBd2uLxh	CfAfuICt83JmuDyFa	10.0.0.30	1439	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1432	1432	0	0	F	-	-	-	-	-	-	-
+1700000514.298806	FBF3TETgtXDsw46ub	CzGZuj4rUFSoTMOSQ6	10.0.0.22	1447	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1639	1639	0	0	F	-	-	-	-	-	-	-
+1700000526.623209	FGAQEWOuEzodyYGy6	CUT5AL7rxvKhpaage	10.0.0.29	1468	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1074	1074	0	0	F	-	-	-	-	-	-	-
+1700000541.619035	FjGKdd3FZnvH8yhvt2	C7bRf53DZirfoUlFR4	10.0.0.22	1487	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	506	506	0	0	F	-	-	-	-	-	-	-
+1700000545.974750	FCvrbZ1e0xfO9c1vGj	Cr4iOq3AzbEFrKnkph	10.0.0.23	1494	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2961	2961	0	0	F	-	-	-	-	-	-	-
+1700000546.406257	FbTc0f2AWPMp1dTeoa	C25Bna1pKn6RJIRQzc	10.0.0.24	1497	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2371	2371	0	0	F	-	-	-	-	-	-	-
+1700000549.289598	FLya26n6omSviUFc	C2IAeY1Iax0j8Tnebc	10.0.0.26	1506	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2355	2355	0	0	F	-	-	-	-	-	-	-
+1700000552.754343	FBnnz74U1gaml0YoWb	CWNk4IFXoaGV7AoKh	10.0.0.30	1515	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2277	2277	0	0	F	-	-	-	-	-	-	-
+1700000559.879150	FUWUfl12AhWbnBtIAc	CtqWlg2NWP5RJ4d4gj	10.0.0.30	1531	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	615	615	0	0	F	-	-	-	-	-	-	-
+1700000560.196498	FRiF1XJUyUoYHybAg	CNm77y1nFflFPbk8mh	10.0.0.29	1533	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1044	1044	0	0	F	-	-	-	-	-	-	-
+1700000571.466575	FX6t2i4ofPRWd1I044	C3aRp04lnzcLcxVJQa	10.0.0.26	1559	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2584	2584	0	0	F	-	-	-	-	-	-	-
+1700000580.470730	Flzcj12bDxVOZtvVnb	CzU4Cm1WFisJXQjFQ4	10.0.0.29	1567	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	620	620	0	0	F	-	-	-	-	-	-	-
+1700000581.817380	F5dkdt2YDvMWG7T4gb	CMHT6BKQL4IeQirF7	10.0.0.20	1571	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1812	1812	0	0	F	-	-	-	-	-	-	-
+1700000586.296928	FHvNx815fbHmqkTt95	Ce5h1r2Yjj6P5Zqzlg	10.0.0.25	1598	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1569	1569	0	0	F	-	-	-	-	-	-	-
+1700000594.690973	FyuAW62TzhwBskRLw4	CnmTIw1rRqAJw80i5b	10.0.0.28	1623	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	540	540	0	0	F	-	-	-	-	-	-	-
+1700000775.037537	FyWN7x2WIK9UX3uEg	CBOunC4FXvQfMZtHD	10.0.0.40	40011	198.51.100.44	80	HTTP	0	(empty)	-	-	0.000000	T	T	45000	45000	0	0	F	-	-	-	-	-	-	-
+1700000775.057051	F5pLh4zRx0QwX6yne	CBOunC4FXvQfMZtHD	10.0.0.40	40011	198.51.100.44	80	HTTP	0	(empty)	text/plain	-	0.000000	T	F	20	20	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-16-23-13-30
