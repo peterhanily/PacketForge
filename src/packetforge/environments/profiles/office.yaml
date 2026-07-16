@@ -1,0 +1,22 @@
+name: office
+description: Corporate LAN with Active Directory, seen from a core SPAN port.
+link_type: ethernet
+subnet: 10.10.0.0/16
+gateway: 10.10.0.1
+dns_server: 10.10.0.10
+mac_oui: "00:50:56"          # VMware (common in virtualized corp fleets)
+default_client_os: windows_10
+default_server_os: windows_10
+sensor:
+  vantage: span
+  nat: none
+ambient:                     # what a core sensor sees all day in an AD shop
+  - {service: dns, weight: 30}
+  - {service: tls, weight: 22}
+  - {service: http, weight: 10}
+  - {service: kerberos, weight: 12}
+  - {service: smb, weight: 10}
+  - {service: ldap, weight: 6}
+  - {service: ntp, weight: 3}
+  - {service: dhcp, weight: 2}
+  - {service: ssh, weight: 2}

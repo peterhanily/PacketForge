@@ -1,0 +1,40 @@
+# A generic modern-browser-like TLS client fingerprint.
+# All values are numeric (IANA) so the emitted ClientHello and the computed JA3 agree
+# by construction. GREASE is emitted on the wire but excluded from JA3 (RFC 8701).
+profile: generic_browser
+grease: true               # lead cipher/group/extension lists with a GREASE value
+tls_version: 771           # 0x0303, the ClientHello legacy_version used for JA3
+ciphers:                    # advertised cipher suites, in order
+  - 49195   # ECDHE-ECDSA-AES128-GCM-SHA256
+  - 49199   # ECDHE-RSA-AES128-GCM-SHA256
+  - 49196   # ECDHE-ECDSA-AES256-GCM-SHA384
+  - 49200   # ECDHE-RSA-AES256-GCM-SHA384
+  - 52393   # ECDHE-ECDSA-CHACHA20-POLY1305
+  - 52392   # ECDHE-RSA-CHACHA20-POLY1305
+  - 158     # DHE-RSA-AES128-GCM-SHA256
+  - 159     # DHE-RSA-AES256-GCM-SHA384
+  - 47      # AES128-SHA
+  - 53      # AES256-SHA
+extensions:                 # extension types, in wire order
+  - 0       # server_name
+  - 23      # extended_master_secret
+  - 65281   # renegotiation_info
+  - 10      # supported_groups
+  - 11      # ec_point_formats
+  - 35      # session_ticket
+  - 13      # signature_algorithms
+curves:                     # supported_groups
+  - 29      # x25519
+  - 23      # secp256r1
+  - 24      # secp384r1
+point_formats:
+  - 0       # uncompressed
+signature_algorithms:
+  - 1027    # ecdsa_secp256r1_sha256
+  - 2052    # rsa_pss_rsae_sha256
+  - 1025    # rsa_pkcs1_sha256
+  - 1283    # ecdsa_secp384r1_sha384
+  - 2053    # rsa_pss_rsae_sha384
+  - 1281    # rsa_pkcs1_sha384
+# The single cipher the server negotiates (must be one the client offered).
+server_cipher: 49199        # 0xc02f TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256

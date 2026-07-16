@@ -1,0 +1,563 @@
+{
+  "title": "DNS-tunnel exfiltration in office",
+  "iocs": {
+    "exfil_domain": "exfil.evil.example",
+    "victim": "10.10.0.40"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Exfiltration",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)",
+      "flows": [
+        "atk-dnsx-000",
+        "atk-dnsx-001",
+        "atk-dnsx-002",
+        "atk-dnsx-003",
+        "atk-dnsx-004",
+        "atk-dnsx-005",
+        "atk-dnsx-006",
+        "atk-dnsx-007",
+        "atk-dnsx-008",
+        "atk-dnsx-009",
+        "atk-dnsx-010",
+        "atk-dnsx-011",
+        "atk-dnsx-012",
+        "atk-dnsx-013",
+        "atk-dnsx-014",
+        "atk-dnsx-015",
+        "atk-dnsx-016",
+        "atk-dnsx-017",
+        "atk-dnsx-018",
+        "atk-dnsx-019",
+        "atk-dnsx-020",
+        "atk-dnsx-021",
+        "atk-dnsx-022",
+        "atk-dnsx-023",
+        "atk-dnsx-024",
+        "atk-dnsx-025",
+        "atk-dnsx-026",
+        "atk-dnsx-027",
+        "atk-dnsx-028",
+        "atk-dnsx-029",
+        "atk-dnsx-030",
+        "atk-dnsx-031",
+        "atk-dnsx-032",
+        "atk-dnsx-033",
+        "atk-dnsx-034",
+        "atk-dnsx-035",
+        "atk-dnsx-036",
+        "atk-dnsx-037",
+        "atk-dnsx-038",
+        "atk-dnsx-039",
+        "atk-dnsx-040",
+        "atk-dnsx-041",
+        "atk-dnsx-042",
+        "atk-dnsx-043",
+        "atk-dnsx-044",
+        "atk-dnsx-045",
+        "atk-dnsx-046",
+        "atk-dnsx-047",
+        "atk-dnsx-048",
+        "atk-dnsx-049",
+        "atk-dnsx-050",
+        "atk-dnsx-051",
+        "atk-dnsx-052",
+        "atk-dnsx-053",
+        "atk-dnsx-054",
+        "atk-dnsx-055",
+        "atk-dnsx-056",
+        "atk-dnsx-057",
+        "atk-dnsx-058",
+        "atk-dnsx-059"
+      ],
+      "description": "60 DNS lookups with long encoded subdomains under exfil.evil.example \u2014 tunneling.",
+      "iocs": {
+        "exfil_domain": "exfil.evil.example",
+        "query_count": 60
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-dnsx-000",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-001",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-002",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-003",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-004",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-005",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-006",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-007",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-008",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-009",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-010",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-011",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-012",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-013",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-014",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-015",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-016",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-017",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-018",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-019",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-020",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-021",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-022",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-023",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-024",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-025",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-026",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-027",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-028",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-029",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-030",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-031",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-032",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-033",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-034",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-035",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-036",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-037",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-038",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-039",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-040",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-041",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-042",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-043",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-044",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-045",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-046",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-047",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-048",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-049",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-050",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-051",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-052",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-053",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-054",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-055",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-056",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-057",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-058",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    },
+    {
+      "flow_id": "atk-dnsx-059",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1048.003 Exfiltration Over Unencrypted Non-C2 (DNS)"
+    }
+  ]
+}

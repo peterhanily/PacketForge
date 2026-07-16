@@ -1,0 +1,19 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	kerberos
+#open	2026-07-16-17-51-32
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	request_type	client	service	success	error_msg	from	till	cipher	forwardable	renewable	client_cert_subject	client_cert_fuid	server_cert_subject	server_cert_fuid
+#types	time	string	addr	port	addr	port	string	string	string	bool	string	time	time	string	bool	bool	string	string	string	string
+1700000042.384665	C7KoscSZLqIDRqcfb	10.10.0.30	1043	10.10.0.10	88	AS	user43/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036042.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000044.184704	CkapOX2uRJy56j4mQj	10.10.0.28	1044	10.10.0.10	88	AS	user44/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036044.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000065.004188	CpfS2U26PC8qYoOVb7	10.10.0.20	1058	10.10.0.10	88	AS	user8/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036064.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000086.572683	C0Qve92zPlEirli3y8	10.10.0.20	1074	10.10.0.10	88	AS	user24/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036086.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000087.734427	CRuBTP3SRAmsnDCE64	10.10.0.31	1075	10.10.0.10	88	AS	user25/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036087.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000134.022589	CVLXvnoD3Y4omVtb	10.10.0.30	1096	10.10.0.10	88	AS	user46/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036133.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000221.147561	CiJ9qv2fFZtNF9jyD9	10.10.0.27	1107	10.10.0.10	88	TGS	user7/CORP.EXAMPLE	host/dc01.corp.example	T	-	-	1700036221.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000332.823450	CGDs6u3FBIr9oUbKG8	10.10.0.23	1108	10.10.0.10	88	AS	user8/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036332.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000343.839876	CRuAtF2k80Ny66EC3k	10.10.0.23	1112	10.10.0.10	88	AS	user12/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036343.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000360.198358	CLvf9O3oHeuE8hV9ic	10.10.0.29	1122	10.10.0.10	88	AS	user22/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036360.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+#close	2026-07-16-17-51-32

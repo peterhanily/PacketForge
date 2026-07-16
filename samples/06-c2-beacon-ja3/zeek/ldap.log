@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ldap
+#open	2026-07-16-17-51-32
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
+#types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
+1700000047.461339	CmO8Ax4xxH9s5EcxN5	10.10.0.22	1047	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000056.248178	Ct5XZWeAtshlFH7Ka	10.10.0.31	1051	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000057.881244	C6ny7t38UBQhOn4p37	10.10.0.27	1054	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000083.831550	CfBJ1I3n7d3R6X9QEg	10.10.0.26	1069	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000088.996116	CClq273d6Vwc3gccB7	10.10.0.31	1076	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000340.330589	CWo7Fs36fvXAZc2NBd	10.10.0.20	1111	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000356.172854	CacogX1KnRKcUgqLe3	10.10.0.31	1117	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+#close	2026-07-16-17-51-32

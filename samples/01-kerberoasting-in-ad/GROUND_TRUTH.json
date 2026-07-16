@@ -1,0 +1,109 @@
+{
+  "title": "Kerberoasting from 10.10.0.40 in office",
+  "iocs": {
+    "principal": "svc-analyst",
+    "victim": "10.10.0.40",
+    "dc": "10.10.0.10",
+    "enctype": "rc4-hmac"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Credential Access",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting",
+      "flows": [
+        "atk-krb-tgt",
+        "atk-krb-roast-00",
+        "atk-krb-roast-01",
+        "atk-krb-roast-02",
+        "atk-krb-roast-03",
+        "atk-krb-roast-04",
+        "atk-krb-roast-05",
+        "atk-krb-roast-06",
+        "atk-krb-roast-07"
+      ],
+      "description": "svc-analyst@10.10.0.40 requested 8 RC4 service tickets across distinct SPNs in a burst.",
+      "iocs": {
+        "principal": "svc-analyst",
+        "victim": "10.10.0.40",
+        "dc": "10.10.0.10",
+        "spn_count": 8,
+        "enctype": "rc4-hmac"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-krb-tgt",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-00",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-01",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-02",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-03",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-04",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-05",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-06",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    },
+    {
+      "flow_id": "atk-krb-roast-07",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 88,
+      "proto": "tcp",
+      "technique": "T1558.003 Steal or Forge Kerberos Tickets: Kerberoasting"
+    }
+  ]
+}

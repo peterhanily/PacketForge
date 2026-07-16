@@ -1,0 +1,10 @@
+# Modern Linux (kernel 5.x) default TCP/IP stack fingerprint (approximate).
+os: linux
+ttl: 64
+window: 64240
+tcp_timestamps: true   # Linux enables TCP Timestamps by default
+syn_options:
+  - [MSS, 1460]
+  - [SAckOK, ""]
+  - [NOP, null]
+  - [WScale, 7]

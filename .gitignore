@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# PacketForge generated output
+*.pcap
+*.html
+out/
+zeeklogs/
+.zeek/
+
+# Keep the reference PoC capture (negation must be on its own line — no inline comment)
+!poc/beacon.pcap
+# Keep the committed example gallery captures
+!examples/*.pcap
+# Keep the committed example gallery reports
+!examples/*.html
+
+# Zeek log files from validation runs (project docs are .md, not matched)
+*.log
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+
+# ET Open ruleset (fetched, not vendored — see docs)
+detection/etopen/
+
+# Keep the committed sample captures, their Zeek logs, and ground truth
+!samples/**

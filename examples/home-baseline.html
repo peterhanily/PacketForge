@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>home-baseline.pcap — PacketForge report</title><style>
+:root{--bg:#0f1113;--fg:#d7dbdf;--dim:#7f8890;--line:#23272b;--hot:#e8a33d;--ok:#5aa66a}
+@media (prefers-color-scheme:light){:root{--bg:#faf9f7;--fg:#1a1d1f;--dim:#6b7075;--line:#e4e2dd;--hot:#b5701a;--ok:#3f7d4e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+ font:14px/1.55 ui-monospace,"SF Mono",Menlo,Consolas,monospace;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto;padding:56px 28px 96px}
+h1{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);font-weight:600;margin:0 0 6px}
+.title{font-size:26px;font-weight:600;margin:0 0 28px}
+.rule{border:0;border-top:1px solid var(--line);margin:36px 0}
+.verdict{display:flex;gap:48px;flex-wrap:wrap;align-items:baseline}
+.big{font-size:44px;font-weight:600;line-height:1}
+.big small{font-size:16px;color:var(--dim);font-weight:400}
+.lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.hot{color:var(--hot)}
+h2{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);font-weight:600;margin:0 0 18px}
+.stage{display:grid;grid-template-columns:120px 1fr;gap:20px;padding:14px 0;border-top:1px solid var(--line)}
+.stage:first-of-type{border-top:0}
+.tech{color:var(--hot);font-weight:600}
+.tactic{color:var(--dim);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.desc{margin:2px 0 6px}
+.meta{color:var(--dim);font-size:12px;word-break:break-all}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:10px 14px;align-items:center}
+.svc{color:var(--fg)}.cnt{color:var(--dim);text-align:right}
+.bar{height:8px;background:var(--line)}.bar>span{display:block;height:100%;background:var(--fg);opacity:.55}
+.chk{display:grid;grid-template-columns:auto 1fr auto;gap:8px 14px;align-items:baseline}
+.chk .m{width:1.6em}.pass{color:var(--ok)}.fail{color:var(--hot)}
+.det{color:var(--dim)}
+.iocs{color:var(--dim)}.iocs b{color:var(--fg);font-weight:600}
+footer{color:var(--dim);font-size:12px;margin-top:40px}
+</style></head>
+<body><div class="wrap">
+<h1>PacketForge &middot; capture report</h1>
+<div class="title">home-baseline.pcap</div>
+<div class="verdict"><div><div class="lbl">Realism</div><div class="big hot">100<small>/100</small></div></div><div><div class="lbl">Intrusion</div><div class="big">0<small> ATT&amp;CK stages</small></div></div><div><div class="lbl">Capture</div><div class="big">0<small> flows &middot; 0s</small></div></div></div>
+
+<hr class="rule">
+<hr class="rule"><h2>Realism checks</h2><div class="chk"><div class="m pass">OK</div><div>parseability<div class="det">zeek weird/reporter=0, tshark errors/warnings=0</div></div><div class="cnt">30/30</div><div class="m pass">OK</div><div>mac_vendor<div class="det">1 distinct OUI(s), locally_administered=False</div></div><div class="cnt">15/15</div><div class="m pass">OK</div><div>ttl_plausibility<div class="det">observed TTLs=[64, 128]</div></div><div class="cnt">15/15</div></div>
+
+<footer>Every field verified by real Zeek over the synthetic capture. Deterministic; no LLM.</footer>
+</div></body></html>

@@ -1,0 +1,19 @@
+name: ot
+description: Flat OT/ICS segment with legacy hosts, seen from a cell TAP.
+link_type: ethernet
+subnet: 192.168.0.0/24
+gateway: 192.168.0.1
+dns_server: 192.168.0.1
+mac_oui: "00:1c:06"           # Siemens-style industrial NIC flavor
+default_client_os: windows_10  # engineering workstations are often legacy Windows
+default_server_os: linux
+sensor:
+  vantage: tap
+  nat: none                   # OT segments are typically not NATed to the internet
+ambient:                      # polling-heavy, little DNS, industrial protocols
+  - {service: modbus, weight: 30}   # port 502   (opaque until a faithful renderer lands)
+  - {service: s7, weight: 12}       # port 102
+  - {service: dnp3, weight: 10}     # port 20000
+  - {service: ntp, weight: 6}
+  - {service: dns, weight: 4}
+  - {service: http, weight: 4}      # HMI web UIs

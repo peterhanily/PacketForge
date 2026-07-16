@@ -1,0 +1,115 @@
+# Example FlowSet: a small "crime scene on the wire".
+#
+# The same shape EvidenceForge would emit from one canonical scenario. Compile it:
+#   packetforge compile flows/c2_beacon.yaml -o beacon.pcap
+# and validate that real Zeek agrees with what we rendered:
+#   packetforge validate flows/c2_beacon.yaml
+#
+# Story: a Windows host resolves a C2 domain, beacons over cleartext HTTP, moves
+# laterally to a file server over SMB (rendered as an honest opaque TCP shell), and
+# sweeps it with ICMP. DNS answer == HTTP destination, by construction.
+schema_version: "0.1"
+capture:
+  description: "C2 beacon + SMB lateral movement (PacketForge example)"
+
+flows:
+  - flow_id: dns_c2_lookup
+    transport: udp
+    src_ip: 10.20.30.40
+    dst_ip: 10.20.30.1
+    src_port: 51000
+    dst_port: 53
+    start_time: 1700000000.0
+    src_os: windows_10
+    dst_os: linux
+    l7:
+      kind: dns
+      qname: "cdn.telemetry-sync.example."
+      qtype: A
+      answers: ["203.0.113.66"]
+
+  - flow_id: http_beacon
+    transport: tcp
+    src_ip: 10.20.30.40
+    dst_ip: 203.0.113.66        # == the DNS answer above
+    src_port: 51514
+    dst_port: 80
+    start_time: 1700000000.6
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: http
+      method: GET
+      host: cdn.telemetry-sync.example
+      uri: /api/v2/health?id=8f3c1a
+      user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+      status: 200
+      response_body_len: 150
+    expect:
+      service: http
+      conn_state: SF
+
+  - flow_id: smb_lateral
+    transport: tcp
+    src_ip: 10.20.30.40
+    dst_ip: 10.20.30.9
+    src_port: 52000
+    dst_port: 445
+    start_time: 1700000002.0
+    src_os: windows_10
+    dst_os: windows_10
+    conn_state: SF
+    l7:
+      kind: opaque_tcp
+      service_hint: smb
+      orig_bytes: 800
+      resp_bytes: 3000
+      segments: 3
+
+  - flow_id: icmp_sweep
+    transport: icmp
+    src_ip: 10.20.30.40
+    dst_ip: 10.20.30.9
+    start_time: 1700000003.0
+    src_os: windows_10
+    dst_os: windows_10
+    l7:
+      kind: icmp
+      count: 3
+
+  - flow_id: https_c2         # encrypted C2 over TLS; JA3 is a controllable pivot
+    transport: tcp
+    src_ip: 10.20.30.40
+    dst_ip: 203.0.113.66
+    src_port: 51700
+    dst_port: 443
+    start_time: 1700000005.0
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: tls
+      server_name: secure.telemetry-sync.example
+      version: TLS1.2
+      client_profile: generic_browser
+      app_data_orig_bytes: 220
+      app_data_resp_bytes: 1400
+
+  - flow_id: phish_inbound    # the delivery email, on the wire
+    transport: tcp
+    src_ip: 198.51.100.7
+    dst_ip: 10.20.30.25
+    src_port: 40000
+    dst_port: 25
+    start_time: 1699999000.0
+    src_os: linux
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: smtp
+      helo: mail.evil.example
+      mail_from: hr-updates@evil.example
+      rcpt_to: ["victim@corp.example"]
+      subject: "Action required: password expiry"
+      body_len: 400

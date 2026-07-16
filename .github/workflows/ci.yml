@@ -1,0 +1,43 @@
+name: CI
+
+# The gate isn't just unit tests — it's real Zeek + tshark over freshly rendered
+# captures, so "consistent with the logs" is checked on every change.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install tshark + Zeek
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
+          echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' \
+            | sudo tee /etc/apt/sources.list.d/zeek.list
+          curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_22.04/Release.key \
+            | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/zeek.gpg >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y zeek
+          echo "/opt/zeek/bin" >> "$GITHUB_PATH"
+
+      - name: Install deps
+        run: pip install scapy pydantic pyyaml pytest ruff
+
+      - name: Lint
+        run: ruff check src/ tests/
+
+      - name: Tests (unit + real-Zeek round-trip)
+        run: PYTHONPATH=src python -m pytest -q
+
+      - name: Smoke — render, validate, score
+        run: |
+          PYTHONPATH=src python -m packetforge scenario --env office --attack -o /tmp/ci.pcap
+          PYTHONPATH=src python -m packetforge validate flows/c2_beacon.yaml
+          PYTHONPATH=src python -m packetforge eval /tmp/ci.pcap --min-score 90

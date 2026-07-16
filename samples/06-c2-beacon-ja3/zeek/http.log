@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http
+#open	2026-07-16-17-51-32
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1700000000.035579	CTYkKS2R0xOWHzti43	10.10.0.24	1032	151.101.1.140	80	1	GET	assets.example.co	/index.html	-	1.1	Mozilla/5.0	-	0	1381	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FnnDRC3a255h3yFQv8	-	text/html
+1700000000.031975	CtDx4F4CFZOk8DevE2	10.10.0.21	1031	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	748	200	OK	-	-	(empty)	-	-	-	-	-	-	FaMpqdmMQQUGtLhWe	-	text/html
+1700000071.312549	CGxv8T1E7gklbkj25l	10.10.0.20	1063	13.107.42.14	80	1	GET	portal.example.io	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1203	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FUJQ9z3ACdn2aAI8Eh	-	text/html
+1700000090.189770	CMgZgH3XWuf6yya9N9	10.10.0.29	1077	104.16.132.229	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000353.330153	CWWVAN39bL1ZMu40Kk	10.10.0.25	1114	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1230	200	OK	-	-	(empty)	-	-	-	-	-	-	FnO0Ni27fGVSRVTEVe	-	text/html
+1700000359.049345	CcB9XYSNoEN0I2d54	10.10.0.28	1121	140.82.121.4	80	1	GET	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	0	821	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FAYaU218YmnDJRATGc	-	text/html
+#close	2026-07-16-17-51-32

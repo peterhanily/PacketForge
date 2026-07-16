@@ -1,0 +1,11 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ldap_search
+#open	2026-07-16-17-52-12
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	scope	deref_aliases	base_object	result_count	result	diagnostic_message	filter	attributes
+#types	time	string	addr	port	addr	port	int	string	string	string	count	string	string	string	vector[string]
+1700000565.128067	CDIECt2BYLDdqjQrc5	10.10.0.40	40008	10.10.0.10	389	2	base	never	DC=corp,DC=local	0	success	-	(objectClass=*)	-
+1700000565.206733	CDIECt2BYLDdqjQrc5	10.10.0.40	40008	10.10.0.10	389	3	base	never	CN=Users,DC=corp,DC=local	0	success	-	(objectClass=*)	-
+#close	2026-07-16-17-52-12

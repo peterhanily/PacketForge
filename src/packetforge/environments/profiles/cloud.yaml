@@ -1,0 +1,18 @@
+name: cloud
+description: Cloud VPC subnet captured by a host-side agent (Linux SLL, no broadcast).
+link_type: linux_sll          # a per-instance tcpdump, not a SPAN
+subnet: 10.0.0.0/16
+gateway: 10.0.0.1
+dns_server: 10.0.0.2          # VPC resolver
+mac_oui: "02:42:ac"           # container/virtual NIC flavor
+default_client_os: linux
+default_server_os: linux
+sensor:
+  vantage: host
+  nat: source                 # egress via NAT gateway
+ambient:                      # mostly encrypted API/east-west, admin over SSH
+  - {service: tls, weight: 45}
+  - {service: dns, weight: 20}
+  - {service: http, weight: 12}
+  - {service: ssh, weight: 10}
+  - {service: ntp, weight: 3}

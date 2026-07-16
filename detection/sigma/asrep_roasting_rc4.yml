@@ -1,0 +1,19 @@
+title: AS-REP Roasting - RC4 AS Responses
+id: pf-asrep-rc4
+status: experimental
+description: >
+  Multiple RC4-HMAC AS exchanges from one source suggest AS-REP roasting against
+  accounts without Kerberos pre-authentication (the crackable AS-REP is RC4). Benign
+  AD auth is AES256, so RC4 AS activity stands out. Evaluated over Zeek kerberos.log.
+logsource:
+  product: zeek
+  service: kerberos
+tags:
+  - attack.credential_access
+  - attack.t1558.004
+detection:
+  selection:
+    request_type: 'AS'
+    cipher: 'rc4-hmac'
+  condition: selection | count() by id.orig_h > 2
+level: high

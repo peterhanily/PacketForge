@@ -1,0 +1,13 @@
+# macOS (recent) default TCP/IP stack fingerprint (approximate).
+os: macos
+ttl: 64
+window: 65535
+tcp_timestamps: true   # macOS enables TCP Timestamps by default
+syn_options:
+  - [MSS, 1460]
+  - [NOP, null]
+  - [WScale, 6]
+  - [NOP, null]
+  - [NOP, null]
+  - [SAckOK, ""]
+  - [EOL, null]

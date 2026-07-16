@@ -1,0 +1,21 @@
+name: home
+description: Consumer home LAN behind a router, mirrored off the gateway.
+link_type: ethernet
+subnet: 192.168.1.0/24
+gateway: 192.168.1.1
+dns_server: 192.168.1.1        # the router does DNS
+mac_oui: "b8:27:eb"            # Raspberry Pi / consumer IoT flavor
+default_client_os: windows_10
+default_server_os: linux
+sensor:
+  vantage: span
+  nat: source                 # home NAT to the internet
+ambient:                      # streaming, browsing, IoT chatter, no enterprise auth
+  - {service: dns, weight: 30}
+  - {service: tls, weight: 35}
+  - {service: http, weight: 12}
+  - {service: imap, weight: 5}
+  - {service: sip, weight: 3}
+  - {service: dhcp, weight: 4}
+  - {service: ntp, weight: 4}
+  - {service: icmp, weight: 3}

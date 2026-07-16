@@ -1,0 +1,19 @@
+title: Kerberoasting - RC4 Service Ticket Burst
+id: pf-krb-rc4-tgs-burst
+status: experimental
+description: >
+  One principal requesting many RC4-HMAC (etype 23) service tickets in a short window
+  is the classic Kerberoasting signature. Purely behavioral - no IOC, top of the
+  Pyramid of Pain. Evaluated over Zeek kerberos.log.
+logsource:
+  product: zeek
+  service: kerberos
+tags:
+  - attack.credential_access
+  - attack.t1558.003
+detection:
+  selection:
+    request_type: 'TGS'
+    cipher: 'rc4-hmac'
+  condition: selection | count() by id.orig_h > 5
+level: high

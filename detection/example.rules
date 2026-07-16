@@ -1,0 +1,25 @@
+# Example Suricata rules that catch PacketForge's built-in attacks.
+# Point `packetforge detect` at your OWN rules to test them; these just demonstrate
+# the caught/missed loop against the attack library's IOCs.
+
+alert tls any any -> any any (msg:"PF C2 beacon SNI (telemetry-sync)"; tls.sni; content:"telemetry-sync.example"; nocase; sid:9000001; rev:1;)
+alert http any any -> any any (msg:"PF exfil upload host"; http.host; content:"upload.evil.example"; nocase; sid:9000002; rev:1;)
+alert dns any any -> any any (msg:"PF DNS tunnel domain"; dns.query; content:"exfil.evil.example"; nocase; sid:9000003; rev:1;)
+alert tls any any -> any any (msg:"PF ransomware C2 SNI (update.evil)"; tls.sni; content:"update.evil.example"; nocase; sid:9000004; rev:1;)
+alert smtp any any -> any any (msg:"PF phishing sender"; content:"hr-updates@evil.example"; nocase; sid:9000005; rev:1;)
+alert http any any -> any any (msg:"PF exfil server host header (evil)"; http.host; content:".evil.example"; nocase; sid:9000006; rev:1;)
+
+# --- Active Directory / Kerberos (Phase A) ---
+# The RC4 downgrade both roasting attacks rely on. Fires on every RC4/DES ticket,
+# and stays silent on AES256 benign AD auth.
+alert krb5 any any -> any any (msg:"PF Kerberos weak encryption (RC4/DES ticket) — roasting"; app-layer-event:krb5.weak_encryption; sid:9000010; rev:1;)
+# Kerberoast target service classes seen in a TGS-REQ (SPN in the request).
+alert krb5 any any -> any any (msg:"PF Kerberoast SPN request (MSSQLSvc)"; krb5.sname; content:"MSSQLSvc"; nocase; sid:9000011; rev:1;)
+
+# --- Behavioral / threshold rules (Phase-C coverage) ---
+# These key on volume/rate, not IOCs, so they catch the network-shaped attacks
+# (scan / brute-force / flood) that content rules miss. Thresholds are the realistic
+# tradeoff: they can also fire on unusually busy benign hosts.
+alert tcp any any -> any any (msg:"PF port scan (SYN burst across ports)"; flags:S,12; threshold:type both,track by_src,count 15,seconds 6; sid:9000020; rev:1;)
+alert tcp any any -> any 22 (msg:"PF SSH brute force (repeated connections)"; flags:S,12; threshold:type both,track by_src,count 10,seconds 60; sid:9000021; rev:1;)
+alert tcp any any -> any any (msg:"PF SYN flood (half-open burst to one host)"; flags:S,12; threshold:type both,track by_dst,count 80,seconds 5; sid:9000022; rev:1;)

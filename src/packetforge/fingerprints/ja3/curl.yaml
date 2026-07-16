@@ -1,0 +1,35 @@
+# A curl/OpenSSL-like TLS client fingerprint: no GREASE, a different cipher order,
+# and a leaner extension set — so its JA3 differs cleanly from a browser's, making
+# JA3 a real discriminator in a capture.
+profile: curl
+grease: false
+tls_version: 771
+ciphers:
+  - 49200   # ECDHE-RSA-AES256-GCM-SHA384
+  - 49196   # ECDHE-ECDSA-AES256-GCM-SHA384
+  - 52393   # ECDHE-ECDSA-CHACHA20-POLY1305
+  - 52392   # ECDHE-RSA-CHACHA20-POLY1305
+  - 49199   # ECDHE-RSA-AES128-GCM-SHA256
+  - 49195   # ECDHE-ECDSA-AES128-GCM-SHA256
+  - 53      # AES256-SHA
+  - 47      # AES128-SHA
+extensions:
+  - 0       # server_name
+  - 11      # ec_point_formats
+  - 10      # supported_groups
+  - 13      # signature_algorithms
+  - 65281   # renegotiation_info
+curves:
+  - 29      # x25519
+  - 23      # secp256r1
+  - 24      # secp384r1
+  - 25      # secp521r1
+point_formats:
+  - 0
+signature_algorithms:
+  - 1027
+  - 1025
+  - 1283
+  - 1281
+  - 1537
+server_cipher: 49200        # 0xc030 TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384

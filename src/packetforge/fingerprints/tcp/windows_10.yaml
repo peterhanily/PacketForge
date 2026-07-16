@@ -1,0 +1,13 @@
+# Windows 10/11 default TCP/IP stack fingerprint (approximate; refine via blind panels).
+os: windows_10
+ttl: 128
+window: 64240
+# SYN options order is part of the OS signature (p0f-style). Timestamps are off by
+# default on Windows, so none is included here.
+syn_options:
+  - [MSS, 1460]
+  - [NOP, null]
+  - [WScale, 8]
+  - [NOP, null]
+  - [NOP, null]
+  - [SAckOK, ""]

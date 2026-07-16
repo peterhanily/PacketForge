@@ -1,0 +1,17 @@
+title: DNS Tunneling - Subdomain Query Burst
+id: pf-dns-tunnel-burst
+status: experimental
+description: >
+  A high volume of distinct subdomain lookups under one parent domain from a single
+  host indicates DNS tunneling / exfiltration. Evaluated over Zeek dns.log.
+logsource:
+  product: zeek
+  service: dns
+tags:
+  - attack.exfiltration
+  - attack.t1048.003
+detection:
+  selection:
+    query|endswith: '.evil.example'
+  condition: selection | count() by id.orig_h > 20
+level: high
