@@ -41,7 +41,7 @@ attacks use fictional indicators (`evil.example`, RFC-5737 IPs). Synthetic captu
 exercise **behavioral / TTP** detection and Sigma-over-Zeek — not IOC feeds. That is the
 point, not a bug.
 
-## 2. Sigma over Zeek logs — his logs, his rule language
+## 2. Sigma over Zeek logs — behavioral rules on the log layer
 
 `sigma/` holds behavioral Sigma rules evaluated against the Zeek logs a capture produces
 (a deliberately small Sigma subset: selections, `and`/`or`/`not`, and

@@ -1,58 +1,62 @@
-# Gate 2 — the realism audit
+# The realism audit (Gate 2)
 
-PacketForge has always had **Gate 1: validity** — real Zeek must reproduce a capture, or
-it's a bug. Gate 2 adds **realism, measured adversarially**: an independent classifier is
-trained to tell PacketForge flows from *real* ones, and its cross-validated AUC is the
-distinguishability statistic (a Classifier Two-Sample Test). 0.5 = indistinguishable to
-that adversary; 1.0 = trivially told apart. Alongside the number, per-feature distances
-and permutation importance **name the tell to fix** — because the point is a deterministic
-fix → re-measure loop, exactly like the consistency gate.
+PacketForge validates a capture at two levels. **Gate 1 (validity)** requires real Zeek to
+reproduce the capture: if Zeek's logs disagree with what was rendered, that is a bug.
+**Gate 2 (realism)** measures a harder property adversarially. An independent classifier is
+trained to separate PacketForge flows from real ones, and its cross-validated AUC is the
+distinguishability score — a Classifier Two-Sample Test (C2ST). An AUC of 0.5 means the
+adversary cannot tell the two apart; 1.0 means they are trivially separable.
 
-The classifier only *measures and guides*; it never generates. Every fix stays
-hand-authored and deterministic, preserving the no-ML-at-generation contract.
+The audit reports that number alongside the features that produced it: per-feature distances
+and permutation importance, so each iteration has a concrete tell to remove. The classifier
+only measures and ranks; it never generates. Every fix stays hand-authored and deterministic,
+preserving the no-ML-at-generation-time contract.
 
-## Run it
+## Running it
 
 ```bash
 pip install 'packetforge[realism]'          # scikit-learn, scipy, numpy
-# a real reference is anything benign & multi-protocol, e.g. tcpreplay's smallFlows.pcap
+# a real reference is any benign, multi-protocol capture, e.g. tcpreplay's smallFlows.pcap
 packetforge scenario --env home --flows 700 --texture realistic -o synth.pcap
 packetforge realism-audit --real smallFlows.pcap --synthetic synth.pcap
 ```
 
-Output: the C2ST AUC, a kernel-MMD distance, per-service AUC (mix-invariant), and the
-ranked tell list (feature, KS distance, permutation importance).
+The report gives the C2ST AUC, a kernel-MMD distance, per-service AUC (mix-invariant), and
+the ranked tells (feature, KS distance, permutation importance).
 
-## What makes it rigorous (not junk)
+## Method
 
-- **Same pipeline both sides** — features come from Zeek `conn.log` for real *and*
-  synthetic, so nothing separates on capture tooling.
-- **Mix-invariance** — per-service AUC compares http-to-http, tls-to-tls, so the adversary
-  can't cheat by counting "which set has more DNS."
-- **Calibration is tested** — two captures from the *same* generator score ~0.5
-  (`test_c2st_is_calibrated`: observed 0.49), and clearly different distributions score
-  high (~0.96). A metric that always cried "distinguishable" would be worthless.
-- **Scoped honestly** — the result is "indistinguishable *to a flow-feature gradient-boosted
-  adversary on these features*", never an unqualified claim. The stronger, packet-bit
-  adversary (nPrint + CNN) is the next rung once flow-level tells are driven out.
+- **One feature pipeline, both sides.** Features are derived from Zeek `conn.log` for the real
+  and synthetic captures alike, so nothing separates on capture tooling.
+- **Mix-invariance.** Per-service AUC compares HTTP to HTTP and TLS to TLS, so the adversary
+  cannot win by counting which set has more DNS.
+- **Tested calibration.** Two captures from the same generator score about 0.5; clearly
+  different distributions score near 0.96. A metric that always reported "distinguishable"
+  would carry no information.
+- **Held-out second learner.** A separate classifier scores the same task alongside the
+  primary one, so an improvement has to convince a model the fix was not tuned against.
+- **Precise scope.** "Indistinguishable" applies to a flow-feature, gradient-boosted adversary
+  on these features — never as an unqualified claim. A stronger packet-bit adversary (nPrint
+  with a CNN) is the next step once flow-level tells are removed.
 
-## The loop, demonstrated
+## The measure-and-fix loop
 
-First honest measurement against `smallFlows.pcap`:
+The audit drives a deterministic loop: measure, read the top tell, correct it in the renderer,
+re-measure. The first run against `smallFlows.pcap` shows one turn of the loop.
 
 | | C2ST AUC | duration KS | duration importance |
 |---|--:|--:|--:|
-| **before** | 0.998 | 0.459 | 0.117 (#1 tell) |
-| **after the fix** | 0.997 | **0.268** | **0.017** (retired) |
+| before | 0.998 | 0.459 | 0.117 (#1 tell) |
+| after the fix | 0.997 | 0.268 | 0.017 (retired) |
 
-The #1 tell was **flow duration**: real HTTP has a heavy tail (median 6.9s, max 192s);
-ours were uniformly ~0.2s because the renderer packs the conversation tightly. Fix: a
-deterministic heavy-tailed *linger* (idle keepalive before teardown) in the `realistic`
-texture. That retired the duration tell — and the audit immediately surfaced the **next**
-one (`l_orig_bytes`, the byte-size distribution). That is the ratchet: each fix retires a
-tell and reveals the next, and you drive the AUC down over many iterations.
+The top tell was flow duration. Real HTTP has a heavy tail (median 6.9 s, maximum 192 s),
+while the renderer packed each conversation tightly at roughly 0.2 s. The fix was a
+deterministic, heavy-tailed linger — an idle keepalive before teardown — in the `realistic`
+texture. That retired the duration tell, and the next one surfaced immediately: the byte-size
+distribution.
 
-The overall AUC is still high (many tells remain) — honestly so. The value is the process:
-a measured number and a named, fixable tell, every step. Remaining known tells, worst
-first: byte-size distributions, connection-state diversity (real traffic has
-S1/SH/RSTO/etc.; ours is mostly SF), and packet-size shape.
+Each fix removes one tell and exposes the next, and the AUC falls over successive iterations.
+It remains high while several tells are still open, which the scorecard reports rather than
+hides. The known remaining tells, worst first, are byte-size distributions, connection-state
+diversity (real traffic carries S1, SH, RSTO, and others where PacketForge is mostly SF), and
+packet-size shape.
