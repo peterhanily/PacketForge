@@ -9,16 +9,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11"]   # 3.9 is the declared floor — test it, don't assume it
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install tshark + Zeek
+      - name: Install tshark + Zeek + Suricata
         run: |
           sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark suricata
           echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' \
             | sudo tee /etc/apt/sources.list.d/zeek.list
           curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_22.04/Release.key \
@@ -31,11 +35,12 @@ jobs:
         run: |
           zeek --version
           tshark --version | head -1
+          suricata --build-info | head -1
 
       - name: Install PacketForge + deps
         run: |
           python -m pip install --upgrade pip
-          pip install ".[dev]"
+          pip install ".[dev,realism]"
 
       - name: Lint
         run: ruff check src/ tests/

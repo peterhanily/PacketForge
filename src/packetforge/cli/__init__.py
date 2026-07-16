@@ -114,6 +114,39 @@ def _build_parser() -> argparse.ArgumentParser:
     tp.add_argument("--env", default="office")
     tp.add_argument("--seed", type=int, default=0)
 
+    ra = sub.add_parser("realism-audit",
+                        help="Gate 2: is the synthetic capture distinguishable from a real one? (C2ST)")
+    ra.add_argument("--real", required=True, help="a real reference capture (.pcap)")
+    ra.add_argument("--synthetic", required=True, help="the synthetic capture to audit (.pcap)")
+
+    rd = sub.add_parser("realism-detection",
+                        help="do detections behave the same on synthetic as on a real reference?")
+    rd.add_argument("--real", required=True, help="a real reference capture (.pcap)")
+    rd.add_argument("--env", default="home", help="environment for the matched synthetic analog")
+    rd.add_argument("--rules", default="detection/example.rules", help="Suricata ruleset")
+    rd.add_argument("--seed", type=int, default=0)
+
+    bp = sub.add_parser("blind-panel",
+                        help="generate a blind real-vs-synthetic quiz for a human analyst")
+    bp.add_argument("--real", required=True)
+    bp.add_argument("--synthetic", required=True)
+    bp.add_argument("--out", required=True, help="output dir (quiz.md, answers.json, guesses.txt)")
+    bp.add_argument("--n", type=int, default=12, help="flows per side")
+    bp.add_argument("--seed", type=int, default=0)
+
+    bs = sub.add_parser("blind-panel-score", help="score a filled-in blind panel (answers vs guesses)")
+    bs.add_argument("dir", help="the quiz dir containing answers.json + guesses.txt")
+
+    sc = sub.add_parser("realism-scorecard",
+                        help="Phase 4: one versioned scorecard across all gates; --check for CI regressions")
+    sc.add_argument("--real", required=True, help="a real reference capture (.pcap)")
+    sc.add_argument("--env", default="home", help="environment for the matched synthetic analog")
+    sc.add_argument("--rules", default=None, help="Suricata ruleset (enables the detection gate)")
+    sc.add_argument("--seed", type=int, default=1337)
+    sc.add_argument("--out", default=None, help="write the scorecard JSON here (default: stdout)")
+    sc.add_argument("--check", default=None, metavar="BASELINE.json",
+                    help="compare against a committed baseline and exit non-zero on regression")
+
     mt = sub.add_parser("malware-transfer",
                         help="does a JA3 detection transfer from a (real-fake) malware capture to its analog?")
     mt.add_argument("--family", default="shadowbeacon", help="inert malware family (see list-families)")
@@ -200,7 +233,17 @@ def _robustness(args) -> int:
 
 def main(argv: list | None = None) -> int:
     args = _build_parser().parse_args(argv)
+    try:
+        return _dispatch(args)
+    except (ValueError, FileNotFoundError) as exc:
+        # Expected user-input errors — unknown env/attack, a missing or malformed
+        # flow spec — get a clean message and exit 2. Genuine bugs (any other
+        # exception type) still surface as a traceback.
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
+
+def _dispatch(args) -> int:
     if args.cmd == "compile":
         fs = load_flowset(args.flowspec)
         result = write_pcap(fs, args.out, salt=args.salt)
@@ -329,6 +372,104 @@ def main(argv: list | None = None) -> int:
             print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
             return 2
         print(transfer_proof(args.real_pcap, load_environment(args.env), seed=args.seed).render())
+        return 0
+
+    if args.cmd == "realism-detection":
+        from packetforge.detect import suricata_available
+        from packetforge.environments import load_environment
+        if not (validators_available() and suricata_available()):
+            print("ERROR: need zeek + tshark + suricata on PATH", file=sys.stderr)
+            return 2
+        from packetforge.realism_detection import detection_outcome
+        print(detection_outcome(args.real, load_environment(args.env), args.rules,
+                                seed=args.seed).render())
+        return 0
+
+    if args.cmd == "blind-panel":
+        from packetforge.blind_panel import generate_quiz
+        if not validators_available():
+            print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
+            return 2
+        quiz = generate_quiz(args.real, args.synthetic, args.out, n=args.n, seed=args.seed)
+        print(f"wrote {quiz} (+ answers.json, guesses.txt) — fill in guesses.txt, then "
+              f"`packetforge blind-panel-score {args.out}`")
+        return 0
+
+    if args.cmd == "blind-panel-score":
+        from pathlib import Path
+
+        from packetforge.blind_panel import score_quiz
+        d = Path(args.dir)
+        print(score_quiz(d / "answers.json", d / "guesses.txt").render())
+        return 0
+
+    if args.cmd == "realism-scorecard":
+        import json
+        import subprocess
+        from pathlib import Path
+
+        from packetforge.environments import load_environment
+        if not validators_available():
+            print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
+            return 2
+        if args.rules:
+            from packetforge.detect import suricata_available
+            if not suricata_available():
+                print("ERROR: --rules needs suricata on PATH", file=sys.stderr)
+                return 2
+        try:
+            from packetforge.scorecard import (
+                compare_scorecards,
+                regressions,
+                render_comparison,
+                run_scorecard,
+            )
+        except ImportError:
+            print("ERROR: the scorecard needs the extra: pip install 'packetforge[realism]'",
+                  file=sys.stderr)
+            return 2
+        commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
+                                capture_output=True, text=True, check=False).stdout.strip() or None
+        card = run_scorecard(args.real, load_environment(args.env), rules=args.rules,
+                             seed=args.seed, git_commit=commit)
+        text = json.dumps(card, indent=2) + "\n"
+        if args.out:
+            Path(args.out).write_text(text, encoding="utf-8")
+            print(f"wrote {args.out}  (verdict: {card['verdict']})")
+        else:
+            print(text)
+        for gap in card["honest_gaps"]:
+            print(f"  gap: {gap}", file=sys.stderr)
+        if args.check:
+            baseline = json.loads(Path(args.check).read_text())
+            comparison = compare_scorecards(baseline, card)
+            print(render_comparison(comparison), file=sys.stderr)
+            return 1 if regressions(comparison) else 0
+        return 0
+
+    if args.cmd == "realism-audit":
+        import subprocess
+        import tempfile
+        from pathlib import Path
+        if not validators_available():
+            print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
+            return 2
+        try:
+            from packetforge.realism import audit
+        except ImportError:
+            print("ERROR: realism audit needs the extra: pip install 'packetforge[realism]'",
+                  file=sys.stderr)
+            return 2
+        base = Path(tempfile.mkdtemp(prefix="pf_realism_"))
+        wds = {}
+        for label, pcap in (("real", args.real), ("synthetic", args.synthetic)):
+            wd = base / label
+            wd.mkdir()
+            subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+                           cwd=str(wd), capture_output=True, text=True, check=False)
+            wds[label] = wd
+        print(audit(wds["real"], wds["synthetic"],
+                    real_pcap=args.real, synth_pcap=args.synthetic).render())
         return 0
 
     if args.cmd == "list-families":

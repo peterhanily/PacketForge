@@ -18,5 +18,5 @@ over HTTP, SMB, FTP, and TLS.
 
 **Reproduce**
 ```
-packetforge compile _extraction.yaml -o capture.pcap    # flowspec included in git history
+packetforge compile flows/extraction.yaml -o capture.pcap
 ```

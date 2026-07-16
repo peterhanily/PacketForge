@@ -25,3 +25,16 @@ def test_composed_capture_scores_high(tmp_path):
     # the specific tells the audits fixed must pass
     by = {f.check: f for f in report.findings}
     assert by["timing_burstiness"].ok and by["mac_vendor"].ok and by["parseability"].ok
+
+
+def test_empty_or_unparseable_capture_scores_zero_not_a_vacuous_hundred(tmp_path):
+    from packetforge.evaluate import EvalReport, evaluate_pcap
+
+    # a file that is not a capture at all must not score 100 for lack of complaints
+    garbage = tmp_path / "garbage.pcap"
+    garbage.write_bytes(b"\x00" * 64 + b"not a pcap")
+    report = evaluate_pcap(garbage)
+    assert report.score == 0
+    assert not report.findings[0].ok and "no packets" in report.findings[0].detail
+    # and a report with no findings is 0, not a free 100
+    assert EvalReport().score == 0

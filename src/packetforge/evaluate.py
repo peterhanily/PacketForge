@@ -41,7 +41,7 @@ class EvalReport:
     def score(self) -> int:
         w = sum(f.weight for f in self.findings)
         e = sum(f.earned for f in self.findings)
-        return round(100 * e / w) if w else 100
+        return round(100 * e / w) if w else 0
 
     def summary(self) -> str:
         lines = [f"Realism score: {self.score}/100"]
@@ -68,6 +68,15 @@ def evaluate_pcap(pcap: str | Path, keep_dir: str | None = None) -> EvalReport:
     _run_zeek(pcap, workdir)
     conn = _parse_zeek_log(workdir / "conn.log")
     report = EvalReport()
+
+    # 0) Sanity — an empty or unparseable capture has nothing to score. Without this
+    # guard the checks below (all conditional on having flows) simply don't fire and a
+    # non-pcap scores a vacuous 100/100. Absence of tells is not the same as realism.
+    if len(_tshark_field(pcap, "frame.number")) == 0:
+        report.findings.append(Finding(
+            "parseability", 30, 0,
+            f"no packets parsed from {pcap.name} — empty or not a valid capture"))
+        return report
 
     # 1) Parseability — Zeek + tshark must be clean (the base of any realism claim)
     weird = len(_parse_zeek_log(workdir / "weird.log")) + len(_parse_zeek_log(workdir / "reporter.log"))

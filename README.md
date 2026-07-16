@@ -51,12 +51,17 @@ conn.log dns.log http.log ssl.log x509.log smtp.log ldap.log kerberos.log smb_fi
   regression corpus.
 - **Multi-tool cross-validation** — every capture parsed by independent real tools
   (Zeek, Suricata, tshark, p0f, JA3/JA4) so "it's realistic" is checked, not asserted.
+- **Adversarial realism validation** — beyond "does it parse", it asks "can a classifier
+  tell it from real traffic?": a cross-validated **C2ST** audit, a **detection-outcome**
+  comparison (do detections behave the same on synthetic as on a real reference?), a human
+  **blind panel**, and a versioned **scorecard** that tracks realism over time — and
+  publishes the current gap honestly instead of hiding it.
 - **Deterministic** — same input → byte-identical PCAP, across runs and machines.
 
 ## Try it
 
 ```bash
-python -m venv .venv && .venv/bin/pip install scapy pydantic pyyaml cryptography
+python -m venv .venv && .venv/bin/pip install -e .        # needs Python 3.9+
 export PYTHONPATH=src
 # a full office intrusion + answer key:
 .venv/bin/python -m packetforge scenario --env office --attack -o incident.pcap
@@ -65,6 +70,9 @@ export PYTHONPATH=src
 # a visual forensic report:
 .venv/bin/python -m packetforge report incident.pcap -o incident.html
 ```
+
+The realism-validation suite (C2ST audit, scorecard) needs a few extra packages —
+`pip install -e ".[realism]"`; everything else runs on the base install.
 
 **The whole story in one run** (~25s; needs zeek+tshark, suricata for detection):
 
@@ -75,9 +83,12 @@ scripts/demo.sh
 Detection-lab commands: `detect`, `coverage`, `fp-benchmark`, `sigma`, `robustness`,
 `corpus-build`/`corpus-verify` (see [`detection/README.md`](detection/README.md));
 cross-validation: `crossval`, `transfer-proof`, `malware-transfer` (see
-[`docs/cross-validation.md`](docs/cross-validation.md)). `list-attacks` / `list-evasions` /
-`list-families` enumerate the libraries. Pre-built captures with ground truth live in
-[`examples/`](examples/).
+[`docs/cross-validation.md`](docs/cross-validation.md)); realism validation: `realism-audit`,
+`realism-detection`, `blind-panel`, `realism-scorecard` (see
+[`docs/realism-scorecard.md`](docs/realism-scorecard.md)). `list-attacks` / `list-evasions` /
+`list-families` enumerate the libraries. A guided tour of seven annotated captures — each
+with its real Zeek logs and an answer key — lives in [`samples/`](samples/); more pre-built
+captures in [`examples/`](examples/).
 
 ## How it holds up on EvidenceForge data
 
@@ -91,11 +102,13 @@ scenario (all ~6,500 flows): clean capture, proto/service ~100%, DNS/HTTP/TLS IO
 ## Scope & honesty
 
 This is a **network-layer** tool. Its strengths are consistency-by-construction,
-determinism, and validation against real tools. Its boundaries are stated plainly: the
-built-in realism score is a heuristic self-check (not a blind analyst panel); extractable
-files are valid *containers* with benign filler, not real documents; and the detection
-lab's value is testing **your** rules, not the toy rules it ships with. Full design and
-rationale in [`docs/DESIGN.md`](docs/DESIGN.md).
+determinism, and validation against real tools. Its boundaries are **measured, not glossed**:
+the realism scorecard reports that a classifier can still distinguish the synthetic from real
+reference traffic today — it reads *gap*, not *pass* — so closing that distance is tracked
+work, not a solved claim. Extractable files are valid *containers* with benign filler, not
+real documents; and the detection lab's value is testing **your** rules, not the toy rules it
+ships with. Full design and rationale in [`docs/DESIGN.md`](docs/DESIGN.md); the realism
+method and current numbers in [`docs/realism-scorecard.md`](docs/realism-scorecard.md).
 
 ## License
 

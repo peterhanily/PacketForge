@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-16-17-51-24
+#open	2026-07-16-22-18-58
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-1700000000.074779	c6e7d061f3806783f160eeb301b34c03edb0615ea3e134ac069f4d1505124e73	3	20F16B51	CN=portal.corp.example	CN=portal.corp.example	1697408000.000000	1728944000.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.corp.example	-	-	-	F	-	T	F
-#close	2026-07-16-17-51-24
+1700000012.068122	b90f15a5b650a79b8cff4a6e52ba7db20d99598ffb7247720c7d2ae0da36680e	3	2AD0E7E4	CN=portal.corp.example	CN=portal.corp.example	1697408012.000000	1728944012.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.corp.example	-	-	-	F	-	T	F
+#close	2026-07-16-22-18-58

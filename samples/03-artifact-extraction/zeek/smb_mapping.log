@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smb_mapping
-#open	2026-07-16-17-51-24
+#open	2026-07-16-22-18-58
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	path	service	native_file_system	share_type
 #types	time	string	addr	port	addr	port	string	string	string	string
-1700000045.224993	CaUHj72Frd2I0hd095	10.10.0.30	46004	10.10.0.20	445	-	-	-	unknown-0
-#close	2026-07-16-17-51-24
+1700000006.212006	CuHgsf4qWUlZc4Veok	10.10.0.30	50102	10.10.0.21	445	-	-	-	unknown-0
+#close	2026-07-16-22-18-58

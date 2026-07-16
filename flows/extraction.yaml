@@ -1,0 +1,96 @@
+# Example FlowSet: five real artifacts a forensic toolchain can carve straight off one
+# wire — a PE and a PDF over HTTP, an XLSX over SMB, a ZIP over FTP, and an X.509
+# certificate over TLS. Compile it:
+#   packetforge compile flows/extraction.yaml -o capture.pcap
+# then pull the objects back out:
+#   tshark -r capture.pcap --export-objects http,/tmp/http   # installer.exe (PE32), report.pdf
+#   tshark -r capture.pcap --export-objects smb,/tmp/smb      # salaries.xlsx (zip)
+# Every body is inert filler with valid magic bytes — real enough for extraction/scanning
+# tooling to recognise, not a real document, credential, or executable.
+schema_version: "0.1"
+capture:
+  description: "Forensic artifact extraction over HTTP/SMB/FTP/TLS (PacketForge example)"
+
+flows:
+  - flow_id: http_exe_download
+    transport: tcp
+    src_ip: 10.10.0.30
+    dst_ip: 10.10.0.20
+    src_port: 50100
+    dst_port: 80
+    start_time: 1700000000.0
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: http
+      method: GET
+      host: downloads.corp.example
+      uri: /software/installer.exe
+      status: 200
+      response_body_len: 24576
+
+  - flow_id: http_pdf_download
+    transport: tcp
+    src_ip: 10.10.0.30
+    dst_ip: 10.10.0.20
+    src_port: 50101
+    dst_port: 80
+    start_time: 1700000003.0
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: http
+      method: GET
+      host: downloads.corp.example
+      uri: /reports/report.pdf
+      status: 200
+      response_body_len: 16384
+
+  - flow_id: smb_xlsx_read
+    transport: tcp
+    src_ip: 10.10.0.30
+    dst_ip: 10.10.0.21
+    src_port: 50102
+    dst_port: 445
+    start_time: 1700000006.0
+    src_os: windows_10
+    dst_os: windows_10
+    conn_state: SF
+    l7:
+      kind: smb
+      share: "\\\\FILESRV\\Finance"
+      read_file: salaries.xlsx
+      file_bytes: 20480
+
+  - flow_id: ftp_zip_retrieve
+    transport: tcp
+    src_ip: 10.10.0.30
+    dst_ip: 10.10.0.22
+    src_port: 50103
+    dst_port: 21
+    start_time: 1700000009.0
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: ftp
+      user: backup
+      retrieve_file: database.zip
+      file_bytes: 28672
+
+  - flow_id: tls_cert_portal
+    transport: tcp
+    src_ip: 10.10.0.30
+    dst_ip: 10.10.0.23
+    src_port: 50104
+    dst_port: 443
+    start_time: 1700000012.0
+    src_os: windows_10
+    dst_os: linux
+    conn_state: SF
+    l7:
+      kind: tls
+      server_name: portal.corp.example
+      version: TLS1.2

@@ -10,3 +10,8 @@ distinct JA3** fingerprint. Fake traffic, true labels — no real malware.
   not any single IOC.
 - This is the reference used by `packetforge malware-transfer`: profile the JA3 off this
   capture, rebuild an analog, and a `ja3.hash` rule reaches the same verdict on both.
+
+**Reproduce**
+```
+scripts/make-samples.sh    # builds this malware-transfer reference: office noise + JA3 beacons
+```

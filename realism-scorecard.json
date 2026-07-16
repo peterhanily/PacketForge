@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0",
+  "reference": {
+    "name": "smallFlows.pcap",
+    "sha256": "77d06d3f33f1a95fb9f2610f20ead8ce978449077d6ba22d4945b85bd48f75d1",
+    "flows": 696,
+    "duration_s": 298.5
+  },
+  "generator": {
+    "packetforge_version": "0.0.1",
+    "git_commit": "6e77ec6",
+    "environment": "office",
+    "seed": 1337
+  },
+  "gates": {
+    "validity": {
+      "verdict": "pass",
+      "ok": true,
+      "matched_flows": 366,
+      "total_flows": 366,
+      "matched_ratio": 1.0,
+      "packet_count": 3862,
+      "zeek_weird": 0,
+      "tshark_errors": 0
+    },
+    "realism": {
+      "verdict": "gap",
+      "c2st_auc": 1.0,
+      "held_out_auc": 1.0,
+      "mmd": 0.35,
+      "n_real": 696,
+      "n_synth": 369,
+      "target_auc": 0.65,
+      "top_tells": [
+        "first_window",
+        "first_pkt_size",
+        "pkt_size_std",
+        "l_duration",
+        "resp_bpp"
+      ]
+    },
+    "detection": {
+      "verdict": "gap",
+      "real_fp_per_hr": 217.08,
+      "synth_fp_per_hr": 0.0,
+      "alert_js": 1.0,
+      "sig_coverage": 0.0,
+      "ruleset": "etopen-all.rules",
+      "target_js": 0.3
+    }
+  },
+  "honest_gaps": [
+    "Realism: a C2ST adversary separates synthetic from real at AUC 1.0 (target <= 0.65). Strongest tells: first_window, first_pkt_size, pkt_size_std, l_duration, resp_bpp.",
+    "Detection: alert-distribution JS is 1.0 (target <= 0.3); synthetic fires 0.0/hr false positives vs the reference's 217.08/hr. Synthetic under-reproduces the benign-app FP surface."
+  ],
+  "verdict": "gap"
+}

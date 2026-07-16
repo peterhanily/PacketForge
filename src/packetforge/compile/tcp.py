@@ -40,11 +40,14 @@ class Texture:
     jitter_frac: float = 0.0       # inter-packet gap jitter, as a fraction of RTT
     retransmit_prob: float = 0.0   # per data segment, chance it is retransmitted once
     dup_ack_prob: float = 0.0      # per ACK, chance a duplicate ACK follows
+    linger_scale: float = 0.0      # mean idle seconds before teardown (heavy-tailed);
+    #                                real flows keep connections open, ours don't
 
 
 TEXTURES = {
     "clean": Texture(),
-    "realistic": Texture(jitter_frac=0.45, retransmit_prob=0.03, dup_ack_prob=0.05),
+    "realistic": Texture(jitter_frac=0.45, retransmit_prob=0.03, dup_ack_prob=0.05,
+                         linger_scale=12.0),
 }
 
 # Capture-wide texture, set by the compiler around a render so renderers need no new
@@ -228,6 +231,11 @@ def build_tcp_flow(
                 emit(frame(rcv, "A", ack_seq, ack_num), "A", rcv)  # duplicate ACK
 
         # ----- teardown -----
+        # Real connections often stay open idle before closing, giving a heavy-tailed
+        # duration distribution; ours pack tightly. About half the flows linger for an
+        # exponential idle time (capped), reproducing that long tail.
+        if texture.linger_scale and rng.random() < 0.5:
+            clock["t"] += min(250.0, rng.expovariate(1.0 / texture.linger_scale))
         clock["t"] += jit(rng.uniform(0.02, 0.2))
         if conn_state == "SF":
             emit(frame(True, "FA", c_seq, s_seq), "F", True, half)

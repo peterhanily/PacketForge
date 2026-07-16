@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-16-17-52-23
+#open	2026-07-16-22-19-08
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000028.151227	7b22beb1a46ce8a3b33d73f716e353672fa67459bf14bce1444be88a73a8db0f	3	2163E674	CN=cdn.example.net	CN=cdn.example.net	1697408028.000000	1728944028.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
@@ -134,4 +134,4 @@
 1700000570.622740	c1af73015ea8d6a546f123ac4b79188f2fdf30fcf0cc457e1ea7dcd46ccf3e2e	3	1FAE4C6E	CN=api.github.com	CN=api.github.com	1697408570.000000	1728944570.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
 1700000571.553503	7d38864044d124512d47e61e8e7c64785bd17e378bc45e9b9325120ea504f28c	3	2D514458	CN=www.example.org	CN=www.example.org	1697408571.000000	1728944571.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
 1700000576.905077	4b180f49773485ec1e79981e94025cd0dbfa58f2268606662c3a79a1ef8019b0	3	182A17B9	CN=api.github.com	CN=api.github.com	1697408576.000000	1728944576.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-#close	2026-07-16-17-52-23
+#close	2026-07-16-22-19-08
