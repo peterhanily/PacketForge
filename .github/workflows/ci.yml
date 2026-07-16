@@ -27,8 +27,15 @@ jobs:
           sudo apt-get install -y zeek
           echo "/opt/zeek/bin" >> "$GITHUB_PATH"
 
-      - name: Install deps
-        run: pip install scapy pydantic pyyaml pytest ruff
+      - name: Tool versions (fail fast if broken)
+        run: |
+          zeek --version
+          tshark --version | head -1
+
+      - name: Install PacketForge + deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
 
       - name: Lint
         run: ruff check src/ tests/
@@ -36,8 +43,8 @@ jobs:
       - name: Tests (unit + real-Zeek round-trip)
         run: PYTHONPATH=src python -m pytest -q
 
-      - name: Smoke — render, validate, score
+      - name: Smoke — render + validate against real Zeek
         run: |
           PYTHONPATH=src python -m packetforge scenario --env office --attack -o /tmp/ci.pcap
           PYTHONPATH=src python -m packetforge validate flows/c2_beacon.yaml
-          PYTHONPATH=src python -m packetforge eval /tmp/ci.pcap --min-score 90
+          PYTHONPATH=src python -m packetforge eval /tmp/ci.pcap

@@ -12,6 +12,7 @@ keywords = ["pcap", "network", "forensics", "threat-hunting", "synthetic-data", 
 dependencies = [
     "scapy>=2.6",
     "pydantic>=2.0",   # typed Flow IR, matching EvidenceForge's modeling approach
+    "pyyaml>=6.0",     # FlowSet YAML loading
     "cryptography>=42", # deterministic X.509 certs presented in TLS handshakes
 ]
 
