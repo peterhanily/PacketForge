@@ -328,6 +328,10 @@ class Flow(BaseModel):
     conn_state: str = "SF"  # target Zeek conn_state for TCP flows
     l7: L7Spec
     expect: Optional[ExpectZeek] = None
+    # IDS signatures this flow is expected to trip. For benign flows this is the modeled
+    # false-positive surface (the ET rules real benign apps set off); it is ground truth a
+    # detection test can assert on, not just incidental noise.
+    expected_alert: list[int] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _check_transport_matches_l7(self) -> "Flow":

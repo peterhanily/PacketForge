@@ -7,6 +7,11 @@ dns_server: 10.10.0.10
 mac_oui: "00:50:56"          # VMware (common in virtualized corp fleets)
 default_client_os: windows_10
 default_server_os: windows_10
+client_os_mix:               # a real AD fleet is mostly Windows, with some Mac/Linux/legacy
+  windows_10: 52
+  windows_7: 12
+  macos: 22
+  linux: 14
 sensor:
   vantage: span
   nat: none

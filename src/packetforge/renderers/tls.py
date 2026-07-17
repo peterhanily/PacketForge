@@ -124,6 +124,17 @@ def _opaque_record(rtype: int, version: int, payload: bytes) -> bytes:
                   (len(payload) >> 8) & 0xFF, len(payload) & 0xFF]) + payload
 
 
+def _opaque_records(rtype: int, version: int, payload: bytes) -> bytes:
+    """One or more TLS records, each within the 2^14-byte record-size limit (RFC 8446),
+    so bulk application data fragments across records the way a real endpoint sends it.
+    """
+    max_rec = 16384
+    if len(payload) <= max_rec:
+        return _opaque_record(rtype, version, payload)
+    return b"".join(_opaque_record(rtype, version, payload[i:i + max_rec])
+                    for i in range(0, len(payload), max_rec))
+
+
 def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -> RenderResult:
     spec: TlsL7 = flow.l7
     # An explicit JA3 string (e.g. reproducing a malware fingerprint seen on the wire)
@@ -162,8 +173,8 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
     ch_rec = _msg_record(22, 0x0301, [client_hello])
     sh_rec = _msg_record(22, legacy, [server_hello])
     ccs = _msg_record(20, legacy, [TLSChangeCipherSpec()])
-    app_c = _opaque_record(23, legacy, filler_bytes(spec.app_data_orig_bytes, rng))
-    app_s = _opaque_record(23, legacy, filler_bytes(spec.app_data_resp_bytes, rng))
+    app_c = _opaque_records(23, legacy, filler_bytes(spec.app_data_orig_bytes, rng))
+    app_s = _opaque_records(23, legacy, filler_bytes(spec.app_data_resp_bytes, rng))
 
     if is13:
         # TLS 1.3: the server's {EncryptedExtensions..Finished} flight and the client

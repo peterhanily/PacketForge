@@ -1,0 +1,14 @@
+# Windows 7/8 TCP/IP stack fingerprint (still common on enterprise/OT segments).
+# Distinct from Windows 10 by its smaller default receive window (8192), which widens
+# the initial-window population a passive classifier sees.
+os: windows_7
+ttl: 128
+window: 8192
+# Timestamps off by default on Windows.
+syn_options:
+  - [MSS, 1460]
+  - [NOP, null]
+  - [WScale, 8]
+  - [NOP, null]
+  - [NOP, null]
+  - [SAckOK, ""]

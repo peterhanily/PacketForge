@@ -104,10 +104,16 @@ def _honest_gaps(gates: dict) -> list:
         )
     dt = gates.get("detection")
     if dt and dt["verdict"] != "pass":
+        if dt["synth_fp_per_hr"] < 0.25 * dt["real_fp_per_hr"]:
+            surface = (f"synthetic fires {dt['synth_fp_per_hr']}/hr false positives vs the "
+                       f"reference's {dt['real_fp_per_hr']}/hr — too clean, missing the benign FP surface")
+        else:
+            surface = (f"synthetic fires a realistic {dt['synth_fp_per_hr']}/hr of benign alerts "
+                       f"(reference {dt['real_fp_per_hr']}/hr) but on a different signature set; "
+                       f"matching the reference's specific benign SIDs needs reference-conditioning")
         gaps.append(
             f"Detection: alert-distribution JS is {dt['alert_js']} (target <= {dt['target_js']}); "
-            f"synthetic fires {dt['synth_fp_per_hr']}/hr false positives vs the reference's "
-            f"{dt['real_fp_per_hr']}/hr. Synthetic under-reproduces the benign-app FP surface."
+            f"{surface}."
         )
     vz = gates.get("validity")
     if vz and vz["verdict"] != "pass":

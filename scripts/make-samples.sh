@@ -29,7 +29,9 @@ tidy_ground_truth() {  # scenario writes <base>.GROUND_TRUTH.*; samples want GRO
 scenario() {  # dir, env, args...
   local dir=$1 env=$2; shift 2
   mkdir -p "samples/$dir"
-  "$PY" -m packetforge scenario --env "$env" "$@" -o "samples/$dir/capture.pcap"
+  # A short ambient window keeps the tour captures small; realistic per-minute volume and
+  # the full generator (heavy-tailed sizes, benign-FP surface, failures) are unchanged.
+  "$PY" -m packetforge scenario --env "$env" --duration 200 "$@" -o "samples/$dir/capture.pcap"
   tidy_ground_truth "samples/$dir"
   zeek_of "samples/$dir"
 }

@@ -8,7 +8,7 @@
   },
   "generator": {
     "packetforge_version": "0.0.1",
-    "git_commit": "6e77ec6",
+    "git_commit": "1c7b684",
     "environment": "office",
     "seed": 1337
   },
@@ -16,10 +16,10 @@
     "validity": {
       "verdict": "pass",
       "ok": true,
-      "matched_flows": 366,
-      "total_flows": 366,
+      "matched_flows": 436,
+      "total_flows": 436,
       "matched_ratio": 1.0,
-      "packet_count": 3862,
+      "packet_count": 6274,
       "zeek_weird": 0,
       "tshark_errors": 0
     },
@@ -27,22 +27,22 @@
       "verdict": "gap",
       "c2st_auc": 1.0,
       "held_out_auc": 1.0,
-      "mmd": 0.35,
+      "mmd": 0.171,
       "n_real": 696,
-      "n_synth": 369,
+      "n_synth": 439,
       "target_auc": 0.65,
       "top_tells": [
         "first_window",
         "first_pkt_size",
         "pkt_size_std",
         "l_duration",
-        "resp_bpp"
+        "ia_mean"
       ]
     },
     "detection": {
       "verdict": "gap",
       "real_fp_per_hr": 217.08,
-      "synth_fp_per_hr": 0.0,
+      "synth_fp_per_hr": 205.13,
       "alert_js": 1.0,
       "sig_coverage": 0.0,
       "ruleset": "etopen-all.rules",
@@ -50,8 +50,8 @@
     }
   },
   "honest_gaps": [
-    "Realism: a C2ST adversary separates synthetic from real at AUC 1.0 (target <= 0.65). Strongest tells: first_window, first_pkt_size, pkt_size_std, l_duration, resp_bpp.",
-    "Detection: alert-distribution JS is 1.0 (target <= 0.3); synthetic fires 0.0/hr false positives vs the reference's 217.08/hr. Synthetic under-reproduces the benign-app FP surface."
+    "Realism: a C2ST adversary separates synthetic from real at AUC 1.0 (target <= 0.65). Strongest tells: first_window, first_pkt_size, pkt_size_std, l_duration, ia_mean.",
+    "Detection: alert-distribution JS is 1.0 (target <= 0.3); synthetic fires a realistic 205.13/hr of benign alerts (reference 217.08/hr) but on a different signature set; matching the reference's specific benign SIDs needs reference-conditioning."
   ],
   "verdict": "gap"
 }

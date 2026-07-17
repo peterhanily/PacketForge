@@ -7,7 +7,8 @@ runs a **Kerberoasting** burst: a run of TGS requests for service SPNs, each for
 **What to look for**
 - `zeek/kerberos.log` — the tell is the `cipher` column. Benign auth is
   `aes256-cts-hmac-sha1-96`; the roast stands out as **`rc4-hmac`** on TGS requests
-  (here: 8 RC4 TGS among 66 benign AES exchanges). No IOC needed — it's the enctype.
+  (here: 8 RC4 TGS standing out among the surrounding benign AES exchanges). No IOC
+  needed — it's the enctype.
 - `GROUND_TRUTH.md` — the malicious flows and the ATT&CK technique (T1558.003).
 - `zeek/x509.log`, `ssl.log`, `smb_mapping.log`, `ldap.log` — the ambient AD noise a
   hunter has to separate the roast from.

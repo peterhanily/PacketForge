@@ -18,7 +18,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from packetforge.compile.timeline import write_pcap
-from packetforge.compose import _ambient_flow, _internal_hosts
+from packetforge.compose import (
+    _FP_PER_HOUR,
+    _ambient_flow,
+    _benign_fp_flow,
+    _failed_flow,
+    _host_os_map,
+    _internal_hosts,
+)
 from packetforge.crossval import cross_validate
 from packetforge.environments import Environment
 from packetforge.models.flowspec import CaptureMeta, FlowSet
@@ -77,6 +84,7 @@ def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
     """Build a FlowSet reproducing the profile's service mix in the given environment."""
     rng = random.Random(seed)
     clients = _internal_hosts(env, 12)
+    host_os = _host_os_map(env, clients)
     duration = max(60.0, profile.duration)
     flows = []
     i = 0
@@ -84,10 +92,21 @@ def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
         for _ in range(count):
             start = start_time + rng.uniform(0, duration)
             flow = _ambient_flow(env, service, clients, f"analog-{i:04d}-{service}",
-                                 start, rng, 1025 + (i % 64000))
+                                 start, rng, 1025 + (i % 64000), host_os)
             if flow is not None:
                 flows.append(flow)
             i += 1
+    # A realistic analog also fails a minority of connections and trips the benign
+    # false-positive surface — the same texture compose_scenario adds, so the scorecard
+    # measures the generator as it actually renders.
+    for j in range(round(i * 0.15)):
+        ff = _failed_flow(env, clients, f"analog-fail-{j:04d}",
+                          start_time + rng.uniform(0, duration), rng, 60000 + (j % 5000), host_os)
+        if ff is not None:
+            flows.append(ff)
+    for k in range(round(_FP_PER_HOUR * duration / 3600.0)):
+        flows.append(_benign_fp_flow(env, clients, f"analog-fp-{k:04d}",
+                     start_time + rng.uniform(0, duration), rng, 55000 + (k % 4000), host_os))
     flows.sort(key=lambda f: f.start_time)
     return FlowSet(capture=CaptureMeta(description="transfer analog", link_type=env.link_type,
                                        mac_oui=env.mac_oui), flows=flows)

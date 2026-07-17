@@ -29,6 +29,41 @@ def test_compose_propagates_link_type():
     assert fs.capture.link_type == "linux_sll"
 
 
+def test_client_os_is_a_population():
+    """R1: internal hosts draw from an OS mix, so the SYN fingerprint isn't a single value."""
+    fs = compose_scenario(load_environment("office"), start_time=1700000000.0,
+                          noise_flows=250, seed=1)
+    oses = {f.src_os for f in fs.flows if f.transport == "tcp"}
+    assert len(oses) >= 3, f"client OS population collapsed to {oses}"
+
+
+def test_connection_states_are_diverse():
+    """R3: real networks fail connections — the capture is not ~100% SF."""
+    fs = compose_scenario(load_environment("office"), start_time=1700000000.0,
+                          noise_flows=250, seed=1)
+    states = {f.conn_state for f in fs.flows if f.transport == "tcp" and f.conn_state}
+    assert {"S0", "REJ"} & states, f"no failed connections present: {states}"
+    assert len(states) >= 3, f"conn_state diversity too low: {states}"
+
+
+def test_flow_sizes_are_heavy_tailed():
+    """R2: a heavy tail of bulk transfers, so packet sizes aren't uniformly small."""
+    fs = compose_scenario(load_environment("office"), start_time=1700000000.0,
+                          noise_flows=300, seed=1)
+    sizes = [getattr(f.l7, "response_body_len", 0) or getattr(f.l7, "app_data_resp_bytes", 0)
+             for f in fs.flows]
+    assert max(sizes) > 50_000, "no elephant flows — the full-size packet mode is missing"
+
+
+def test_benign_false_positive_surface_is_present_and_labeled():
+    """R4: the capture carries benign IDS noise, each flow labeled with its expected SID."""
+    fs = compose_scenario(load_environment("office"), start_time=1700000000.0,
+                          duration_s=600, noise_flows=100, seed=1)
+    labeled = [f for f in fs.flows if f.expected_alert]
+    assert len(labeled) >= 10, "benign false-positive surface is missing"
+    assert all(all(isinstance(s, int) for s in f.expected_alert) for f in labeled)
+
+
 def test_storyline_is_woven_in():
     env = load_environment("office")
     from packetforge.models.flowspec import DnsL7, Flow

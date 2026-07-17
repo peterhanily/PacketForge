@@ -43,6 +43,11 @@ class Environment(BaseModel):
     mac_oui: str  # 3-octet vendor prefix, e.g. "00:50:56"
     default_client_os: str = "windows_10"
     default_server_os: str = "linux"
+    # Weighted OS population for internal client hosts (os -> weight). Each host is
+    # assigned one OS deterministically, so a real multi-modal fingerprint distribution
+    # (window/TTL/SYN-options) appears on the wire instead of a single value. Empty ->
+    # every client uses default_client_os.
+    client_os_mix: dict[str, int] = Field(default_factory=dict)
     ambient: list[AmbientService] = Field(default_factory=list)
     sensor: Sensor = Field(default_factory=Sensor)
 

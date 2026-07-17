@@ -7,6 +7,10 @@ dns_server: 192.168.0.1
 mac_oui: "00:1c:06"           # Siemens-style industrial NIC flavor
 default_client_os: windows_10  # engineering workstations are often legacy Windows
 default_server_os: linux
+client_os_mix:               # OT/ICS: heavy legacy Windows engineering stations + some Linux
+  windows_7: 44
+  windows_10: 38
+  linux: 18
 sensor:
   vantage: tap
   nat: none                   # OT segments are typically not NATed to the internet

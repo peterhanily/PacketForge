@@ -7,6 +7,11 @@ dns_server: 192.168.1.1        # the router does DNS
 mac_oui: "b8:27:eb"            # Raspberry Pi / consumer IoT flavor
 default_client_os: windows_10
 default_server_os: linux
+client_os_mix:               # a consumer LAN: mixed Windows, plenty of Macs, a few Linux
+  windows_10: 40
+  macos: 34
+  linux: 14
+  windows_7: 12
 sensor:
   vantage: span
   nat: source                 # home NAT to the internet

@@ -28,12 +28,28 @@ The committed baseline (reference: `smallFlows.pcap`, 696 flows) reports `verdic
   TCP window fingerprint (`first_window`), the first packet size, and per-flow size and duration
   spread. Validity is necessary but not sufficient for realism.
 - **Detection** — `alert_js = 1.0`. The reference fires roughly 217 benign false positives per hour
-  under ET Open; the synthetic fires none. The synthetic does not yet reproduce the benign-
-  application signatures — chat clients, updaters, ad networks — that make real traffic noisy.
+  under ET Open. The synthetic now fires a realistic ~205/hr (dynamic-DNS, noisy-TLD, and
+  external-IP-lookup noise), so it is no longer conspicuously silent — but on a *different*
+  signature set than this particular reference, so the alert distributions remain disjoint.
+  Matching a specific network's benign signatures is a reference-conditioning problem, not a
+  volume one.
 
 The scorecard states this plainly. PacketForge today is a rigorous, Zeek-validated
 network-detection lab, not a realism oracle, and the scorecard is where that distance closes one
 measurable step at a time.
+
+## The realism ratchet
+
+The C2ST is not just a verdict; it is a worklist. Each release measures the classifier's AUC and
+reads its feature importances — the top feature *is* the current giveaway — then a deterministic
+fix retires that tell and the loop repeats. A first pass ("Stage 0") drove several tells down at
+once: the synthetic went from a single TCP-window value to a realistic per-OS population, from
+~100% `SF` connections to a real mix of failures (`S0`/`REJ`/`RSTO`), from uniformly small packets
+to a heavy-tailed size distribution, and from **0 to ~205 benign IDS alerts/hour**. The kernel-MMD
+distance fell accordingly. The headline AUC stays high because it is a max over all features and
+because matching *this reference's exact distributions* is the next stage (reference-conditioning);
+`first_window` remains the named next target. The metric going up when the work improves — and
+refusing to move on distribution-match until the work is actually done — is the point.
 
 ## Generating and checking
 

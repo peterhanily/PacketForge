@@ -7,6 +7,10 @@ dns_server: 10.0.0.2          # VPC resolver
 mac_oui: "02:42:ac"           # container/virtual NIC flavor
 default_client_os: linux
 default_server_os: linux
+client_os_mix:               # a cloud VPC: mostly Linux instances, some admin workstations
+  linux: 72
+  windows_10: 18
+  macos: 10
 sensor:
   vantage: host
   nat: source                 # egress via NAT gateway

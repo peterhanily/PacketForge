@@ -3,11 +3,10 @@ os: macos
 ttl: 64
 window: 65535
 tcp_timestamps: true   # macOS enables TCP Timestamps by default
-syn_options:
-  - [MSS, 1460]
+syn_options:            # no explicit EOL: the timestamp is appended at render time, and
+  - [MSS, 1460]         # an EOL must be the final option — scapy zero-pads to alignment.
   - [NOP, null]
   - [WScale, 6]
   - [NOP, null]
   - [NOP, null]
   - [SAckOK, ""]
-  - [EOL, null]

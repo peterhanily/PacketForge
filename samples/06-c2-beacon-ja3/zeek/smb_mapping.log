@@ -3,13 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smb_mapping
-#open	2026-07-16-22-19-10
+#open	2026-07-17-13-27-14
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	path	service	native_file_system	share_type
 #types	time	string	addr	port	addr	port	string	string	string	string
-1700000038.632579	CNuDkFBfYqSARb2D1	10.10.0.23	1028	10.10.0.25	445	-	-	-	unknown-0
-1700000048.448859	ClWN0Z21PKAfiHR2o6	10.10.0.22	1033	10.10.0.25	445	-	-	-	unknown-0
-1700000075.596475	CbOSgd3o8vfg58acGk	10.10.0.26	1038	10.10.0.23	445	-	-	-	unknown-0
-1700000257.687482	CKDg8B2Ni2eCJHbmPi	10.10.0.27	1063	10.10.0.29	445	-	-	-	unknown-0
-1700000261.035598	CKZAcZ3YUGczds8Md5	10.10.0.21	1066	10.10.0.29	445	-	-	-	unknown-0
-1700000557.902348	CPQZWw4ElXUVfpycxa	10.10.0.27	1085	10.10.0.26	445	-	-	-	unknown-0
-#close	2026-07-16-22-19-10
+1700000073.139816	Ca36Tf25tBOaKiTn8l	10.10.0.26	1037	10.10.0.25	445	-	-	-	unknown-0
+1700000083.249167	CU5GTm2EAzf0MMzVt	10.10.0.24	1041	10.10.0.29	445	-	-	-	unknown-0
+1700000268.211287	CkZocD4mizqJMciGxc	10.10.0.30	1072	10.10.0.29	445	-	-	-	unknown-0
+1700000563.287766	Cb2Q8z3yCL4Y1Ahdzj	10.10.0.28	1088	10.10.0.25	445	-	-	-	unknown-0
+1700000569.648477	C03F3k25qge86trOQ9	10.10.0.25	1090	10.10.0.21	445	-	-	-	unknown-0
+1700000580.932400	CAkbRo10pAOfVlToE6	10.10.0.22	1094	10.10.0.21	445	-	-	-	unknown-0
+#close	2026-07-17-13-27-14
