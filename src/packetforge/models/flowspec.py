@@ -213,14 +213,17 @@ class SmbL7(_L7Base):
 
     If ``read_file`` is set, the session goes on to CREATE/READ/CLOSE that file, and the
     READ carries real file content (typed by extension) that Wireshark's "Export Objects
-    > SMB" and Zeek's ``smb_files.log`` can pull out.
+    > SMB" and Zeek's ``smb_files.log`` can pull out. If ``write_file`` is set, the session
+    CREATE/WRITE/CLOSEs it instead, sending the (inert, typed) content originator->responder
+    so Zeek logs an ``SMB::FILE_WRITE`` — the lateral-tool-transfer signal (T1570).
     """
 
     kind: Literal["smb"] = "smb"
     share: str = "\\\\FILESRV\\Share"
     dialect: int = 0x0300  # SMB 3.0
     read_file: str = ""  # e.g. "payroll.xlsx"; empty = session only (no file transfer)
-    file_bytes: int = 4096  # size of the file content read back
+    write_file: str = ""  # e.g. "svc.exe"; empty = no write. A push to the share (FILE_WRITE)
+    file_bytes: int = 4096  # size of the file content read/written
 
 
 class DceRpcL7(_L7Base):

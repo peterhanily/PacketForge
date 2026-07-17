@@ -139,6 +139,11 @@ def write_ground_truth(intrusion: Intrusion, md_path, json_path=None) -> None:
     import json
     from pathlib import Path
 
+    # Render structured IOC values (e.g. the dce_rpc endpoint/operations) as compact JSON
+    # rather than Python dict repr, so the answer key stays readable.
+    def _fmt(v):
+        return json.dumps(v) if isinstance(v, (dict, list)) else v
+
     lines = [f"# GROUND TRUTH — {intrusion.title}", "",
              "Malicious flows are labelled `atk-*`; everything else is benign ambient noise.",
              "", "## Kill chain", ""]
@@ -147,10 +152,6 @@ def write_ground_truth(intrusion: Intrusion, md_path, json_path=None) -> None:
         lines.append(f"- {e.description}")
         lines.append(f"- Flows: {', '.join(e.flow_ids)}")
         if e.iocs:
-            # Render structured values (e.g. the dce_rpc endpoint/operations) as compact
-            # JSON rather than Python dict repr, so the answer key stays readable.
-            def _fmt(v):
-                return json.dumps(v) if isinstance(v, (dict, list)) else v
             lines.append(f"- IOCs: {', '.join(f'{k}={_fmt(v)}' for k, v in e.iocs.items())}")
         lines.append("")
     if intrusion.evasions:
@@ -409,10 +410,9 @@ def build_asrep_roasting(env: Environment, start_time: float, rng, *, intensity:
 # --------------------------------------------------------------------------- #
 
 
-def _lateral_pair(env: Environment) -> tuple:
-    """An attacker workstation and the target it moves to (both internal hosts)."""
-    attacker, target = _hosts(env, 2)
-    return attacker, target
+# PsExec-style remote service creation over \svcctl (opnums -> Zeek operation names).
+_SVCCTL_CREATE_START = ([15, 12, 19, 0],
+                        ["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"])
 
 
 def _dcerpc_flow(flow_id: str, src: str, dst: str, sport: int, start: float, *,
@@ -426,9 +426,9 @@ def _dcerpc_flow(flow_id: str, src: str, dst: str, sport: int, start: float, *,
 
 def build_remote_service(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Remote service creation over \\svcctl (PsExec-style) — T1543.003 / T1569.002."""
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
-    ops, names = [15, 12, 19, 0], ["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"]
+    ops, names = _SVCCTL_CREATE_START
     flow = _dcerpc_flow("atk-svcctl-01", attacker, target, next(sp), start_time,
                         pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
                         operations=ops, op_names=names, src_os=env.default_client_os)
@@ -440,14 +440,14 @@ def build_remote_service(env: Environment, start_time: float, rng, *, intensity:
         f"OpenSCManagerW -> CreateServiceW -> StartServiceW (PsExec-style).",
         {"attacker": attacker, "target": target, "pipe": "svcctl",
          "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
-         "expected_notice": "ATTACK::Lateral_Movement"})]
+         "expected_notice": "ATTACK::Execution"})]  # BZAR: T1569.002 Service Execution
     return Intrusion([flow], gt, f"Remote service creation on {target}",
                      {"attacker": attacker, "target": target})
 
 
 def build_scheduled_task(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Remote scheduled-task registration over \\atsvc — T1053.005."""
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
     flow = _dcerpc_flow("atk-atsvc-01", attacker, target, next(sp), start_time,
                         pipe="atsvc", interface="ITaskSchedulerService", share=f"\\\\{target}\\IPC$",
@@ -458,7 +458,7 @@ def build_scheduled_task(env: Environment, start_time: float, rng, *, intensity:
         f"Remote scheduled-task registration on {target} via ITaskSchedulerService::SchRpcRegisterTask.",
         {"attacker": attacker, "target": target, "pipe": "atsvc",
          "dce_rpc": {"endpoint": "ITaskSchedulerService", "operations": ["SchRpcRegisterTask"]},
-         "expected_notice": "ATTACK::Persistence"})]
+         "expected_notice": "ATTACK::Execution"})]  # BZAR: T1053.005 Scheduled Task
     return Intrusion([flow], gt, f"Remote scheduled task on {target}",
                      {"attacker": attacker, "target": target})
 
@@ -470,7 +470,7 @@ def build_wmi_exec(env: Environment, start_time: float, rng, *, intensity: float
     ExecMethod opnum (the dce_rpc.log signal BZAR watches) over the uniform SMB-pipe
     substrate, with an inert stub in place of the method arguments.
     """
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
     flow = _dcerpc_flow("atk-wmi-01", attacker, target, next(sp), start_time,
                         pipe="wmi", interface="IWbemServices", share=f"\\\\{target}\\IPC$",
@@ -492,18 +492,19 @@ def build_admin_share_transfer(env: Environment, start_time: float, rng, *, inte
     The transferred file is an inert PE *shell* (valid MZ/PE header over synthetic
     filler, no code) — extraction tooling sees a file, but nothing executable.
     """
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
     flow = Flow(flow_id="atk-admin-01", transport="tcp", src_ip=attacker, dst_ip=target,
                 src_port=next(sp), dst_port=445, start_time=start_time, conn_state="SF",
                 src_os=env.default_client_os,
-                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", read_file="svc.exe", file_bytes=6144))
+                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", write_file="svc.exe", file_bytes=6144))
     gt = [GroundTruthEntry(
         "Lateral Movement", "T1021.002 SMB/Windows Admin Shares / T1570 Lateral Tool Transfer",
         ["atk-admin-01"],
-        f"Lateral tool staging to {target}\\ADMIN$ (svc.exe, inert PE shell).",
+        f"Lateral tool transfer to {target}\\ADMIN$ (SMB write of svc.exe, inert PE shell).",
         {"attacker": attacker, "target": target, "share": f"\\\\{target}\\ADMIN$",
          "smb_files": {"share": "ADMIN$", "name": "svc.exe"},
+         # A single SMB write to an admin file share trips BZAR's T1021.002/T1570 notice.
          "expected_notice": "ATTACK::Lateral_Movement"})]
     return Intrusion([flow], gt, f"Admin-share tool transfer to {target}",
                      {"attacker": attacker, "target": target})
@@ -511,17 +512,21 @@ def build_admin_share_transfer(env: Environment, start_time: float, rng, *, inte
 
 def build_share_discovery(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Network share enumeration over \\srvsvc — T1135."""
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
+    # A share sweep: enumerate shares, then pull details on each. Six discovery calls, so
+    # BZAR's SumStats crosses its Discovery threshold (>=5 in the epoch).
+    ops = [15, 16, 16, 16, 16, 16]
+    names = ["NetrShareEnum"] + ["NetrShareGetInfo"] * 5
     flow = _dcerpc_flow("atk-srvsvc-01", attacker, target, next(sp), start_time,
                         pipe="srvsvc", interface="srvsvc", share=f"\\\\{target}\\IPC$",
-                        operations=[15], op_names=["NetrShareEnum"], src_os=env.default_client_os)
+                        operations=ops, op_names=names, src_os=env.default_client_os)
     gt = [GroundTruthEntry(
         "Discovery", "T1135 Network Share Discovery",
         ["atk-srvsvc-01"],
-        f"Network share enumeration on {target}: srvsvc::NetrShareEnum.",
+        f"Network share enumeration on {target}: srvsvc NetrShareEnum + per-share NetrShareGetInfo.",
         {"attacker": attacker, "target": target, "pipe": "srvsvc",
-         "dce_rpc": {"endpoint": "srvsvc", "operations": ["NetrShareEnum"]},
+         "dce_rpc": {"endpoint": "srvsvc", "operations": ["NetrShareEnum", "NetrShareGetInfo"]},
          "expected_notice": "ATTACK::Discovery"})]
     return Intrusion([flow], gt, f"Share discovery against {target}",
                      {"attacker": attacker, "target": target})
@@ -529,19 +534,26 @@ def build_share_discovery(env: Environment, start_time: float, rng, *, intensity
 
 def build_account_discovery(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Domain account enumeration over \\samr — T1087.002."""
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
-    ops = [0, 7, 13, 1]
-    names = ["SamrConnect", "SamrOpenDomain", "SamrEnumerateUsersInDomain", "SamrCloseHandle"]
+    # Full account-enumeration chain. The six Enumerate*/Query*/Lookup* calls are all
+    # BZAR discovery operations, so its SumStats crosses the Discovery threshold (>=5).
+    ops = [0, 5, 6, 7, 8, 13, 11, 15, 17, 1]
+    names = ["SamrConnect", "SamrLookupDomainInSamServer", "SamrEnumerateDomainsInSamServer",
+             "SamrOpenDomain", "SamrQueryInformationDomain", "SamrEnumerateUsersInDomain",
+             "SamrEnumerateGroupsInDomain", "SamrEnumerateAliasesInDomain",
+             "SamrLookupNamesInDomain", "SamrCloseHandle"]
     flow = _dcerpc_flow("atk-samr-01", attacker, target, next(sp), start_time,
                         pipe="samr", interface="samr", share=f"\\\\{target}\\IPC$",
                         operations=ops, op_names=names, src_os=env.default_client_os)
     gt = [GroundTruthEntry(
         "Discovery", "T1087.002 Account Discovery: Domain Account",
         ["atk-samr-01"],
-        f"Domain account enumeration on {target}: samr Connect -> OpenDomain -> EnumerateUsersInDomain.",
+        f"Domain account enumeration on {target}: samr Connect/OpenDomain then "
+        f"EnumerateUsers/Groups/Aliases + LookupNames.",
         {"attacker": attacker, "target": target, "pipe": "samr",
-         "dce_rpc": {"endpoint": "samr", "operations": ["SamrEnumerateUsersInDomain"]},
+         "dce_rpc": {"endpoint": "samr",
+                     "operations": ["SamrEnumerateUsersInDomain", "SamrEnumerateAliasesInDomain"]},
          "expected_notice": "ATTACK::Discovery"})]
     return Intrusion([flow], gt, f"Account discovery against {target}",
                      {"attacker": attacker, "target": target})
@@ -549,7 +561,7 @@ def build_account_discovery(env: Environment, start_time: float, rng, *, intensi
 
 def build_remote_registry(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Remote registry modification over \\winreg — T1112."""
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
     flow = _dcerpc_flow("atk-winreg-01", attacker, target, next(sp), start_time,
                         pipe="winreg", interface="winreg", share=f"\\\\{target}\\IPC$",
@@ -561,7 +573,9 @@ def build_remote_registry(env: Environment, start_time: float, rng, *, intensity
         f"Remote registry modification on {target}: winreg BaseRegCreateKey -> BaseRegSetValue.",
         {"attacker": attacker, "target": target, "pipe": "winreg",
          "dce_rpc": {"endpoint": "winreg", "operations": ["BaseRegCreateKey", "BaseRegSetValue"]},
-         "expected_notice": "ATTACK::Persistence"})]
+         # Generic winreg writes are not a BZAR-detected technique; the detection is the
+         # dce_rpc.log winreg operation itself (a defender's own rule keys on it).
+         "detection": "dce_rpc.log winreg BaseRegCreateKey/BaseRegSetValue"})]
     return Intrusion([flow], gt, f"Remote registry write on {target}",
                      {"attacker": attacker, "target": target})
 
@@ -573,26 +587,26 @@ def build_psexec_lateral(env: Environment, start_time: float, rng, *, intensity:
     staging followed by svcctl service creation/start against the same host (classic
     PsExec). Both flows are inert.
     """
-    attacker, target = _lateral_pair(env)
+    attacker, target = _hosts(env, 2)
     sp = _sports()
     drop = Flow(flow_id="atk-psexec-drop", transport="tcp", src_ip=attacker, dst_ip=target,
                 src_port=next(sp), dst_port=445, start_time=start_time, conn_state="SF",
                 src_os=env.default_client_os,
-                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", read_file="svc.exe", file_bytes=6144))
+                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", write_file="svc.exe", file_bytes=6144))
     svc = _dcerpc_flow("atk-psexec-svc", attacker, target, next(sp), start_time + 3.0,
                        pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
-                       operations=[15, 12, 19, 0],
-                       op_names=["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"],
+                       operations=_SVCCTL_CREATE_START[0], op_names=_SVCCTL_CREATE_START[1],
                        src_os=env.default_client_os)
     gt = [GroundTruthEntry(
-        "Lateral Movement", "T1021.002 SMB/Windows Admin Shares / T1569.002 Service Execution",
+        "Lateral Movement", "T1021.002 SMB/Windows Admin Shares / T1570 / T1569.002 Service Execution",
         ["atk-psexec-drop", "atk-psexec-svc"],
-        f"PsExec-style lateral movement to {target}: ADMIN$ tool staging (svc.exe) then "
-        f"svcctl CreateServiceW/StartServiceW referencing it.",
+        f"PsExec-style lateral movement to {target}: ADMIN$ tool transfer (SMB write of svc.exe) "
+        f"then svcctl CreateServiceW/StartServiceW — the combination BZAR flags.",
         {"attacker": attacker, "target": target,
          "smb_files": {"share": "ADMIN$", "name": "svc.exe"},
          "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
-         "expected_notice": "ATTACK::Lateral_Movement"})]
+         # ADMIN$ write (score 1) + RPC exec (score 1000) to the same host -> BZAR's combined notice.
+         "expected_notice": "ATTACK::Lateral_Movement_and_Execution"})]
     return Intrusion([drop, svc], gt, f"PsExec-style lateral movement to {target}",
                      {"attacker": attacker, "target": target})
 

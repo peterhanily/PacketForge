@@ -17,7 +17,7 @@ For every attack flow:
    could create a service**: the service name and binary path are zero filler.
 2. **File-only, offline, no I/O.** Output is a capture file. PacketForge opens no sockets,
    contacts no host, transmits nothing, and executes nothing.
-3. **Laballed ground truth.** Every malicious flow is tagged with its ATT&CK technique and
+3. **Labelled ground truth.** Every malicious flow is tagged with its ATT&CK technique and
    the detection it is expected to trip (the Zeek log signal and the BZAR notice).
 4. **Deterministic.** Every field is a seeded function of the scenario; the same input
    produces byte-identical output.
@@ -58,16 +58,30 @@ SMB2 named-pipe carrier + a DCE-RPC bind to a well-known interface + one request
 operation, so **real Zeek** names the interface (`endpoint`) and each `operation` in
 `dce_rpc.log` — the exact field BZAR keys on.
 
-| Attack (`--attack`) | ATT&CK | Zeek signal |
-|---|---|---|
-| `remote-service`      | T1543.003 / T1569.002 | `dce_rpc.log` svcctl `OpenSCManagerW` → `CreateServiceW` → `StartServiceW` |
-| `scheduled-task`      | T1053.005             | `dce_rpc.log` ITaskSchedulerService `SchRpcRegisterTask` |
-| `wmi-exec`            | T1047                 | `dce_rpc.log` IWbemServices `ExecMethod` |
-| `admin-share-transfer`| T1021.002 / T1570     | `smb_files.log` ADMIN$ file (`svc.exe`, inert PE shell) |
-| `share-discovery`     | T1135                 | `dce_rpc.log` srvsvc `NetrShareEnum` |
-| `account-discovery`   | T1087.002             | `dce_rpc.log` samr `SamrConnect`/`SamrEnumerateUsersInDomain` |
-| `remote-registry`     | T1112                 | `dce_rpc.log` winreg `BaseRegCreateKey` → `BaseRegSetValue` |
-| `psexec-lateral`      | T1021.002 / T1569.002 | ADMIN$ tool staging **+** svcctl service creation (BZAR combined `ATTACK::Lateral_Movement`) |
+The BZAR notice each fixture raises is **verified**, not asserted: the test suite runs the
+real BZAR analytic over each rendered pcap and checks `notice.log`
+(`test_builder_trips_expected_bzar_notice`, opt-in via `PF_BZAR_PATH`).
+
+| Attack (`--attack`) | ATT&CK | Zeek signal | BZAR notice (verified) |
+|---|---|---|---|
+| `remote-service`      | T1543.003 / T1569.002 | `dce_rpc.log` svcctl `CreateServiceW` → `StartServiceW` | `ATTACK::Execution` |
+| `scheduled-task`      | T1053.005             | `dce_rpc.log` ITaskSchedulerService `SchRpcRegisterTask` | `ATTACK::Execution` |
+| `wmi-exec`            | T1047                 | `dce_rpc.log` IWbemServices `ExecMethod` | `ATTACK::Execution` |
+| `admin-share-transfer`| T1021.002 / T1570     | `smb_files.log` `SMB::FILE_WRITE` to ADMIN$ (`svc.exe`, inert PE shell) | `ATTACK::Lateral_Movement` |
+| `share-discovery`     | T1135                 | `dce_rpc.log` srvsvc `NetrShareEnum` + `NetrShareGetInfo` (≥5) | `ATTACK::Discovery` |
+| `account-discovery`   | T1087.002             | `dce_rpc.log` samr `Enumerate*`/`Lookup*` (≥5) | `ATTACK::Discovery` |
+| `remote-registry`     | T1112                 | `dce_rpc.log` winreg `BaseRegCreateKey` → `BaseRegSetValue` | *(none — see below)* |
+| `psexec-lateral`      | T1021.002 / T1570 / T1569.002 | ADMIN$ SMB write **+** svcctl service creation, same host | `ATTACK::Lateral_Movement_and_Execution` |
+
+Two honest notes on BZAR coverage. **Thresholds:** BZAR's Discovery detection is a SumStats
+analytic that needs ≥5 enumeration operations in its epoch, and its combined
+`Lateral_Movement_and_Execution` needs an admin-share write *and* remote execution against the
+same host (score 1+1000 ≥ 1001) — so the discovery and PsExec fixtures issue the operations
+that actually cross those thresholds. **Gaps:** generic remote-registry writes
+(`winreg::BaseRegSetValue`) are in no BZAR detection set, so `remote-registry` raises no BZAR
+notice; its detection is the `dce_rpc.log` winreg operation itself, which a defender's own rule
+keys on. Reproducing those thresholds and gaps faithfully is the point of validating against the
+real analytic rather than declaring expected notices from memory.
 
 ## Validation: the inert stub *is* the boundary
 

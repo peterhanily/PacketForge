@@ -21,6 +21,8 @@ from scapy.layers.smb2 import (
     SMB2_Session_Setup_Response,
     SMB2_Tree_Connect_Request,
     SMB2_Tree_Connect_Response,
+    SMB2_Write_Request,
+    SMB2_Write_Response,
 )
 
 from packetforge.compile.tcp import Endpoint, TcpMessage, build_tcp_flow
@@ -36,6 +38,9 @@ def _nb(pkt) -> bytes:
 def render_smb(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -> RenderResult:
     spec: SmbL7 = flow.l7
     sid = rng.randint(1, 0xFFFFFFFF)
+    # Tree id assigned by the tree connect and echoed on every later request, so Zeek can
+    # bind each create/read/write to the share it happened on (and keep its path).
+    tid = rng.randint(1, 0xFFFF)
     # SMB2 FILETIME (100 ns since 1601). Pin ServerTime/ServerStartTime — scapy fills
     # them with wall-clock time when left None, breaking determinism.
     ft = int((flow.start_time + 11644473600) * 10_000_000)
@@ -50,8 +55,13 @@ def render_smb(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
                               / SMB2_Session_Setup_Response())),
         TcpMessage(True, _nb(SMB2_Header(Command=3, SessionId=sid)
                              / SMB2_Tree_Connect_Request(Buffer=[("Path", spec.share)]))),
-        TcpMessage(False, _nb(SMB2_Header(Command=3, Flags=1, SessionId=sid)
-                              / SMB2_Tree_Connect_Response())),
+        # Return the real share type: PIPE (2) for IPC$, else DISK (1) for a file share.
+        # Without a valid share type Zeek treats the tree mapping as unresolved and drops
+        # the share path (smb_mapping.log path stays empty), which blindsides analytics
+        # that key on the share name (e.g. BZAR's ADMIN$ test).
+        TcpMessage(False, _nb(SMB2_Header(Command=3, Flags=1, TID=tid, SessionId=sid)
+                              / SMB2_Tree_Connect_Response(
+                                  ShareType=2 if spec.share.upper().endswith("IPC$") else 1))),
     ]
 
     if spec.read_file:
@@ -60,20 +70,43 @@ def render_smb(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         content, _ = file_for(spec.read_file, spec.file_bytes, rng)
         fid = rng.randbytes(16)  # deterministic 16-byte FileId (not scapy's wall-clock GUID)
         messages += [
-            TcpMessage(True, _nb(SMB2_Header(Command=5, SessionId=sid)
+            TcpMessage(True, _nb(SMB2_Header(Command=5, TID=tid, SessionId=sid)
                                  / SMB2_Create_Request(Buffer=[("Name", spec.read_file)]))),
-            TcpMessage(False, _nb(SMB2_Header(Command=5, Flags=1, SessionId=sid)
+            TcpMessage(False, _nb(SMB2_Header(Command=5, Flags=1, TID=tid, SessionId=sid)
                                   / SMB2_Create_Response(FileId=fid, EndOfFile=len(content),
                                                         AllocationSize=len(content),
                                                         CreationTime=ft, LastAccessTime=ft,
                                                         LastWriteTime=ft, ChangeTime=ft))),
-            TcpMessage(True, _nb(SMB2_Header(Command=8, SessionId=sid)
+            TcpMessage(True, _nb(SMB2_Header(Command=8, TID=tid, SessionId=sid)
                                  / SMB2_Read_Request(FileId=fid, Length=len(content)))),
-            TcpMessage(False, _nb(SMB2_Header(Command=8, Flags=1, SessionId=sid)
+            TcpMessage(False, _nb(SMB2_Header(Command=8, Flags=1, TID=tid, SessionId=sid)
                                   / SMB2_Read_Response(Buffer=[("Data", content)]))),
-            TcpMessage(True, _nb(SMB2_Header(Command=6, SessionId=sid)
+            TcpMessage(True, _nb(SMB2_Header(Command=6, TID=tid, SessionId=sid)
                                  / SMB2_Close_Request(FileId=fid))),
-            TcpMessage(False, _nb(SMB2_Header(Command=6, Flags=1, SessionId=sid)
+            TcpMessage(False, _nb(SMB2_Header(Command=6, Flags=1, TID=tid, SessionId=sid)
+                                  / SMB2_Close_Response())),
+        ]
+
+    if spec.write_file:
+        # CREATE -> WRITE -> CLOSE: the WRITE pushes real, typed content originator->
+        # responder, so Zeek logs an SMB::FILE_WRITE (lateral tool transfer, T1570).
+        content, _ = file_for(spec.write_file, spec.file_bytes, rng)
+        wfid = rng.randbytes(16)
+        messages += [
+            TcpMessage(True, _nb(SMB2_Header(Command=5, TID=tid, SessionId=sid)
+                                 / SMB2_Create_Request(Buffer=[("Name", spec.write_file)]))),
+            TcpMessage(False, _nb(SMB2_Header(Command=5, Flags=1, TID=tid, SessionId=sid)
+                                  / SMB2_Create_Response(FileId=wfid, EndOfFile=len(content),
+                                                        AllocationSize=len(content),
+                                                        CreationTime=ft, LastAccessTime=ft,
+                                                        LastWriteTime=ft, ChangeTime=ft))),
+            TcpMessage(True, _nb(SMB2_Header(Command=9, TID=tid, SessionId=sid)
+                                 / SMB2_Write_Request(FileId=wfid, Buffer=[("Data", content)]))),
+            TcpMessage(False, _nb(SMB2_Header(Command=9, Flags=1, TID=tid, SessionId=sid)
+                                  / SMB2_Write_Response(Count=len(content)))),
+            TcpMessage(True, _nb(SMB2_Header(Command=6, TID=tid, SessionId=sid)
+                                 / SMB2_Close_Request(FileId=wfid))),
+            TcpMessage(False, _nb(SMB2_Header(Command=6, Flags=1, TID=tid, SessionId=sid)
                                   / SMB2_Close_Response())),
         ]
 

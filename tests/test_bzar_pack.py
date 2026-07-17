@@ -16,12 +16,13 @@ Two things are asserted here, both mechanically:
 
 import random
 import struct
+from pathlib import Path
 
 import pytest
 
 from packetforge.compile.timeline import compile_flowset
 from packetforge.environments import load_environment
-from packetforge.models.flowspec import CaptureMeta, DceRpcL7, FlowSet, SmbL7
+from packetforge.models.flowspec import CaptureMeta, DceRpcL7, Flow, FlowSet, SmbL7
 from packetforge.scenarios import BZAR_PACK, build_attack, list_attacks
 from packetforge.validation import validators_available
 from scapy.layers.inet import IP
@@ -39,6 +40,19 @@ _FORBIDDEN = [
 ]
 
 
+# The inert file-body filler alphabet (renderers/file_bodies.py `_ascii`): letters, digits,
+# and space only — no punctuation, so a base64/encoded payload (which needs +/=) cannot pass.
+_FILLER_ALPHABET = set(b"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ")
+
+
+def _max_ascii_run(data: bytes) -> int:
+    best = cur = 0
+    for x in data:
+        cur = cur + 1 if 0x20 <= x <= 0x7E else 0
+        best = max(best, cur)
+    return best
+
+
 def _build(name):
     return build_attack(name, ENV, START, random.Random(1))
 
@@ -48,39 +62,48 @@ def _dcerpc_flows(intr):
 
 
 def _file_transfer_flows(intr):
-    return [f for f in intr.flows if isinstance(f.l7, SmbL7) and f.l7.read_file]
+    return [f for f in intr.flows
+            if isinstance(f.l7, SmbL7) and (f.l7.read_file or f.l7.write_file)]
 
 
-def _responder_stream(packets, resp_ip):
-    """Concatenate the responder's TCP payloads in order. A file the target returns over
-    SMB arrives contiguously in one read response, so its body appears intact here."""
+def _stream_from(packets, src_ip):
+    """Concatenate one direction's TCP payloads in order. A transferred file arrives
+    contiguously in one read/write, so its body appears intact here. A file the target
+    returns (read) is in the responder stream; a file pushed to it (write) is in the
+    originator stream."""
     return b"".join(bytes(p[Raw].load) for p in packets
-                    if p.haslayer(Raw) and p[IP].src == resp_ip)
+                    if p.haslayer(Raw) and p[IP].src == src_ip)
+
+
+_DCE_PTYPES = {0, 2, 11, 12}  # request, response, bind, bind_ack
 
 
 def _dce_pdu_stubs(packets):
-    """Yield (kind, stub_bytes) for every DCE-RPC request/response PDU on the wire.
+    """Yield (kind, stub_bytes) for every DCE-RPC request/response PDU, reassembled across
+    TCP segments (so a stub larger than one MSS is still scanned) and matched on ptype
+    regardless of pfc_flags. A PDU header is ``05 00 <ptype> <pfc_flags>`` then a 2-byte
+    little-endian ``frag_length`` at offset 8; the common+type header is 24 bytes and the
+    stub (where NDR arguments/returns would sit) is the rest of the frag. Raises if a PDU's
+    declared frag_length runs past the reassembled bytes — a truncated or smuggled stub.
 
-    A connection-oriented DCE-RPC PDU begins ``05 00 <ptype> 03`` (v5, minor 0,
-    pfc_flags=FIRST|LAST); request=0x00, response=0x02. The common+type header is 24
-    bytes; the stub (where NDR arguments/returns would sit) is the remainder of the frag.
+    ACK-only packets carry no payload, so concatenating every payload in packet order keeps
+    each PDU (and its segments) contiguous; walking frag_length hops PDU-to-PDU, skipping
+    the SMB2 framing between them.
     """
-    for p in packets:
-        raw = bytes(p[Raw].load) if p.haslayer(Raw) else b""
-        i = 0
-        while i < len(raw):
-            cand = [x for x in (raw.find(b"\x05\x00\x00\x03", i),
-                                raw.find(b"\x05\x00\x02\x03", i)) if x != -1]
-            if not cand:
-                break
-            j = min(cand)
-            frag_len = int.from_bytes(raw[j + 8:j + 10], "little")
-            if frag_len < 24 or j + frag_len > len(raw):
-                i = j + 4
+    raw = b"".join(bytes(p[Raw].load) for p in packets if p.haslayer(Raw))
+    i, n = 0, len(raw)
+    while i + 10 <= n:
+        if raw[i] == 0x05 and raw[i + 1] == 0x00 and raw[i + 2] in _DCE_PTYPES:
+            frag_len = int.from_bytes(raw[i + 8:i + 10], "little")
+            if 24 <= frag_len <= 0xFFFF:
+                if i + frag_len > n:
+                    raise AssertionError(
+                        f"DCE-RPC frag_length {frag_len} runs past the reassembled stream")
+                if raw[i + 2] in (0, 2):
+                    yield ("request" if raw[i + 2] == 0 else "response"), raw[i + 24:i + frag_len]
+                i += frag_len
                 continue
-            kind = "request" if raw[j + 2] == 0 else "response"
-            yield kind, raw[j + 24:j + frag_len]
-            i = j + frag_len
+        i += 1
 
 
 # --------------------------------------------------------------------------- #
@@ -98,10 +121,12 @@ def test_builder_declares_technique_and_expected_detection(name):
     assert all(f.flow_id.startswith("atk-") for f in intr.flows)
     for e in intr.ground_truth:
         assert e.technique.startswith("T1"), e.technique
-        # A concrete, checkable detection expectation: the BZAR notice AND the Zeek log
-        # signal (dce_rpc endpoint/operations or an smb_files admin-share write).
-        assert e.iocs.get("expected_notice", "").startswith("ATTACK::"), e.iocs
+        # A concrete, checkable detection expectation: the Zeek log signal (dce_rpc
+        # operations or an smb_files admin-share write) is always declared, plus either a
+        # BZAR notice (when one fires) or a plain detection note (when it does not).
         assert ("dce_rpc" in e.iocs) or ("smb_files" in e.iocs), e.iocs
+        notice = e.iocs.get("expected_notice", "")
+        assert notice.startswith("ATTACK::") or e.iocs.get("detection"), e.iocs
 
 
 # --------------------------------------------------------------------------- #
@@ -170,34 +195,58 @@ def test_every_pack_flow_is_a_gated_inert_type():
             assert isinstance(f.l7, (DceRpcL7, SmbL7)), f"{name}: ungated flow type {f.l7.kind}"
 
 
+def _assert_inert_shell(label, stream, file_bytes):
+    # A transferred .exe must be an inert shell — a valid container header over synthetic
+    # filler, never a working executable or shellcode. Checked on the wire, so it holds
+    # regardless of how the file body is generated.
+    mz = stream.find(b"MZ")
+    assert mz != -1, f"{label}: expected the transferred file on the wire"
+    pe = stream.find(b"PE\x00\x00", mz)
+    assert pe != -1, f"{label}: transferred file is not a PE container"
+    body = stream[mz:mz + file_bytes]
+    pe_rel = pe - mz
+    # NumberOfSections == 0: the shell maps no code/data section, so it cannot execute.
+    n_sections = struct.unpack_from("<H", body, pe_rel + 6)[0]
+    assert n_sections == 0, f"{label}: transferred PE has {n_sections} sections (not a shell)"
+    # A standard-sized optional header, whose body (past its 2-byte magic) is all zero:
+    # no data directories, no entry point, and no room to hide code by inflating it.
+    size_opt = struct.unpack_from("<H", body, pe_rel + 20)[0]
+    assert 0 < size_opt <= 0xF0, f"{label}: non-standard SizeOfOptionalHeader {size_opt}"
+    header_end = pe_rel + 24 + size_opt
+    assert set(body[pe_rel + 26:header_end]) <= {0}, \
+        f"{label}: non-zero optional header (possible embedded code)"
+    # Everything after the container header is synthetic filler (alnum + space) — not code,
+    # not shellcode, and not an encoded (e.g. base64, which uses +/=) payload.
+    assert set(body[header_end:]) <= _FILLER_ALPHABET, \
+        f"{label}: transferred body past the header is not inert filler"
+    # And no command/path string is smuggled into the header region itself.
+    assert _max_ascii_run(body[:header_end]) < 6, \
+        f"{label}: long ASCII string in the PE header region (possible embedded path/command)"
+
+
 @pytest.mark.parametrize("name", sorted(BZAR_PACK))
 def test_transferred_files_are_inert_shells(name):
-    # A "lateral tool transfer" flow (svc.exe to ADMIN$) must carry an inert shell — a
-    # valid container header over synthetic printable filler — never a working executable
-    # or shellcode. This is checked on the wire, so it holds regardless of how the file
-    # body is generated: swapping the filler for a real PE (code section) or shellcode
-    # (binary opcodes in the body) fails this test.
-    intr = _build(name)
-    xfers = _file_transfer_flows(intr)
-    for flow in xfers:
+    for flow in _file_transfer_flows(_build(name)):
         comp = compile_flowset(FlowSet(flows=[flow]))
-        stream = _responder_stream(comp.packets, flow.dst_ip)
-        mz = stream.find(b"MZ")
-        assert mz != -1, f"{name}: expected the transferred file on the wire"
-        pe = stream.find(b"PE\x00\x00", mz)
-        assert pe != -1, f"{name}: transferred file is not a PE container"
-        # NumberOfSections == 0: the shell maps no code/data section, so it cannot execute.
-        n_sections = struct.unpack_from("<H", stream, pe + 6)[0]
-        assert n_sections == 0, f"{name}: transferred PE has {n_sections} sections (not a shell)"
-        # Past the container header, the body is printable filler — no code / shellcode
-        # bytes. Non-printable bytes must be confined to the header region (< 512 B).
-        body = stream[mz:mz + flow.l7.file_bytes]
-        tail = body[512:]
-        assert all(0x20 <= b <= 0x7E for b in tail), \
-            f"{name}: non-printable bytes past the header (possible embedded code)"
+        # A written file rides the originator stream; a read file rides the responder's.
+        src = flow.src_ip if flow.l7.write_file else flow.dst_ip
+        _assert_inert_shell(name, _stream_from(comp.packets, src), flow.l7.file_bytes)
+
+
+def test_read_direction_exe_is_also_an_inert_shell():
+    # The pack transfers via SMB write; exercise the read path too (an .exe pulled from a
+    # share) so the responder-stream branch and the shell property are covered both ways.
+    flow = Flow(flow_id="atk-read-exe", transport="tcp", src_ip="10.10.0.40", dst_ip="10.10.0.41",
+                src_port=50000, dst_port=445, start_time=START, conn_state="SF",
+                l7=SmbL7(share="\\\\10.10.0.41\\Share", read_file="tool.exe", file_bytes=6144))
+    comp = compile_flowset(FlowSet(flows=[flow]))
+    _assert_inert_shell("read-exe", _stream_from(comp.packets, flow.dst_ip), flow.l7.file_bytes)
 
 
 def test_pack_is_byte_deterministic():
+    # Guards rng/ordering determinism (same seed -> identical bytes). Wall-clock leakage is
+    # covered separately by test_determinism.test_no_renderer_reads_wall_clock, which drives
+    # each renderer (incl. dcerpc) at clocks years apart.
     for name in sorted(BZAR_PACK):
         a = compile_flowset(FlowSet(flows=_build(name).flows))
         b = compile_flowset(FlowSet(flows=_build(name).flows))
@@ -228,6 +277,7 @@ def test_builder_is_zeek_clean_and_detectable(name, texture, tmp_path):
 
     dce_rows = {(r["endpoint"], r["operation"]) for r in _parse_zeek_log(tmp_path / "dce_rpc.log")}
     smb_names = {r.get("name", "") for r in _parse_zeek_log(tmp_path / "smb_files.log")}
+    smb_paths = {r.get("path", "") for r in _parse_zeek_log(tmp_path / "smb_mapping.log")}
     for e in intr.ground_truth:
         want = e.iocs.get("dce_rpc")
         if want:
@@ -237,3 +287,44 @@ def test_builder_is_zeek_clean_and_detectable(name, texture, tmp_path):
         sf = e.iocs.get("smb_files")
         if sf:
             assert sf["name"] in smb_names, f"{name}: expected smb_files {sf['name']}, saw {smb_names}"
+            # The tool-transfer property: Zeek resolved the tree onto the declared admin
+            # share (its path is what BZAR's ADMIN$/C$ test keys on). Enforced here, always,
+            # not only in the opt-in BZAR gate.
+            assert any(sf["share"] in p for p in smb_paths), \
+                f"{name}: expected an SMB tree mapped to {sf['share']}, saw paths {smb_paths}"
+
+
+# --------------------------------------------------------------------------- #
+# BZAR gate — the analytic must actually raise the ATT&CK notice we claim.      #
+# Opt-in: point PF_BZAR_PATH at bzar/scripts (or install BZAR via zkg).         #
+# --------------------------------------------------------------------------- #
+def _bzar_scripts():
+    import os
+    candidates = [os.environ.get("PF_BZAR_PATH"),
+                  "/opt/zeek/share/zeek/site/bzar/scripts",
+                  os.path.expanduser("~/.zkg/clones/package/bzar/scripts")]
+    for c in candidates:
+        if c and (Path(c) / "__load__.zeek").exists():
+            return c
+    return None
+
+
+@pytest.mark.skipif(not validators_available() or _bzar_scripts() is None,
+                    reason="requires zeek + the BZAR scripts (set PF_BZAR_PATH)")
+@pytest.mark.parametrize("name", sorted(BZAR_PACK))
+def test_builder_trips_expected_bzar_notice(name, tmp_path):
+    """Render the fixture, run Zeek + BZAR, and assert every declared ATT&CK notice fires."""
+    import subprocess
+
+    from packetforge.compile.timeline import write_pcap
+    from packetforge.validation.roundtrip import _parse_zeek_log
+
+    intr = _build(name)
+    pcap = tmp_path / "c.pcap"
+    write_pcap(FlowSet(flows=intr.flows), pcap)
+    subprocess.run(["zeek", "-r", str(pcap), _bzar_scripts(), "detect_filtered_trace=F"],
+                   cwd=str(tmp_path), capture_output=True, text=True, check=False)
+    fired = {r.get("note", "") for r in _parse_zeek_log(tmp_path / "notice.log")}
+    expected = {e.iocs["expected_notice"] for e in intr.ground_truth if e.iocs.get("expected_notice")}
+    for want in expected:
+        assert want in fired, f"{name}: expected BZAR notice {want}, saw {sorted(fired) or '(none)'}"
