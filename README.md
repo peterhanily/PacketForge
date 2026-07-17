@@ -46,6 +46,12 @@ conn.log dns.log http.log ssl.log x509.log smtp.log ldap.log kerberos.log smb_fi
   Kerberoasting, AS-REP roasting, DNS tunneling, ransomware, and more — each mapped to a
   technique with a `GROUND_TRUTH.md`/`.json` answer key. Plus **evasion modifiers**
   (domain-fronting, JA3 randomization, slow-and-low…).
+- **BZAR lateral-movement pack** — eight inert MS-RPC-over-SMB fixtures (remote service
+  creation, scheduled task, WMI, admin-share transfer, share/account discovery, remote
+  registry, PsExec co-detect) that reproduce the `dce_rpc.log` endpoint + operation an
+  analytic like [BZAR](https://github.com/mitre-attack/bzar) keys on — the detection
+  *signal*, never the offensive *capability*. See
+  [`docs/inert-by-construction.md`](docs/inert-by-construction.md).
 - **A detection lab** — run your Suricata rules or Sigma-over-Zeek against generated
   attacks + benign noise and get a coverage matrix, a false-positive rate, and a versioned
   regression corpus.

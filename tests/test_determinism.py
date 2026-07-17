@@ -39,6 +39,7 @@ def test_all_renderers_byte_identical_across_runs():
         "radius": (m.RadiusL7(), 1812, "udp"), "modbus": (m.ModbusL7(), 502, "tcp"),
         "ldap": (m.LdapL7(), 389, "tcp"),
         "smb": (m.SmbL7(read_file="report.pdf", file_bytes=3000), 445, "tcp"),
+        "dcerpc": (m.DceRpcL7(interface="svcctl", pipe="svcctl", operations=[15, 12, 19, 0]), 445, "tcp"),
         "kerberos": (m.KerberosL7(request_type="TGS", service="HTTP/x@R"), 88, "tcp"),
         "icmp": (m.IcmpL7(), 0, "icmp"),
         "opaque_tcp": (m.OpaqueTcpL7(orig_bytes=50, resp_bytes=50), 9000, "tcp"),
@@ -74,6 +75,7 @@ def test_no_renderer_reads_wall_clock(monkeypatch):
         "tls": (m.TlsL7(server_name="s"), 443, "tcp"),
         "ntp": (m.NtpL7(), 123, "udp"),
         "smb": (m.SmbL7(read_file="report.pdf", file_bytes=3000), 445, "tcp"),
+        "dcerpc": (m.DceRpcL7(interface="svcctl", pipe="svcctl", operations=[15, 12, 19, 0]), 445, "tcp"),
         "kerberos": (m.KerberosL7(request_type="TGS", service="HTTP/x@R"), 88, "tcp"),
         "kerberos_as": (m.KerberosL7(request_type="AS"), 88, "tcp"),
     }

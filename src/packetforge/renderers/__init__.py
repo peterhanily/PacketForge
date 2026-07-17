@@ -9,6 +9,7 @@ are both valid and correctly interpreted.
 """
 
 from packetforge.renderers.base import RenderResult
+from packetforge.renderers.dcerpc import render_dcerpc
 from packetforge.renderers.dhcp import render_dhcp
 from packetforge.renderers.dns import render_dns
 from packetforge.renderers.ftp import render_ftp
@@ -47,6 +48,7 @@ RENDERERS = {
     "radius": render_radius,
     "ldap": render_ldap,
     "smb": render_smb,
+    "dcerpc": render_dcerpc,
     "kerberos": render_kerberos,
     "pop3": render_pop3,
     "imap": render_imap,

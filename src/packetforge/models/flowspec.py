@@ -223,6 +223,30 @@ class SmbL7(_L7Base):
     file_bytes: int = 4096  # size of the file content read back
 
 
+class DceRpcL7(_L7Base):
+    """DCE-RPC over an SMB named pipe — the MS-RPC lateral-movement workhorse.
+
+    Renders the on-the-wire *shape* of a remote MS-RPC operation: the SMB2 named-pipe
+    setup (tree connect to ``IPC$`` -> create ``\\<pipe>``), a DCE-RPC bind to a
+    well-known interface (svcctl/atsvc/srvsvc/samr/winreg/...), and one request/response
+    per operation. Real Zeek reads back the interface (``endpoint``) and each
+    ``operation`` in ``dce_rpc.log`` — the exact signal an analytic like BZAR keys on for
+    remote service creation, scheduled tasks, WMI, share/account discovery, etc.
+
+    Inert by construction: the request/response stubs are opaque filler, never real
+    operation arguments (no service binary/path, command line, task XML, or registry
+    payload). There are deliberately **no argument fields** — ``operations`` are DCE-RPC
+    opnums (ints) and ``op_names`` are human labels with no effect on the emitted bytes.
+    """
+
+    kind: Literal["dcerpc"] = "dcerpc"
+    share: str = "\\\\HOST\\IPC$"
+    pipe: str = "svcctl"  # named pipe opened over IPC$ (e.g. svcctl, atsvc, winreg)
+    interface: str = "svcctl"  # well-known interface name -> UUID/version in the renderer
+    operations: list[int] = Field(default_factory=list)  # DCE-RPC opnums, in call order
+    op_names: list[str] = Field(default_factory=list)  # labels only; no wire effect
+
+
 class KerberosL7(_L7Base):
     """A Kerberos AS or TGS exchange over TCP/88 (drives Zeek ``kerberos.log``).
 
@@ -281,7 +305,7 @@ class SipL7(_L7Base):
 L7Spec = Annotated[
     Union[DnsL7, HttpL7, TlsL7, SmtpL7, IcmpL7, OpaqueTcpL7, OpaqueUdpL7,
           DhcpL7, NtpL7, SshL7, FtpL7, SnmpL7, ModbusL7, RadiusL7, LdapL7, SmbL7,
-          KerberosL7, Pop3L7, ImapL7, IrcL7, SipL7],
+          DceRpcL7, KerberosL7, Pop3L7, ImapL7, IrcL7, SipL7],
     Field(discriminator="kind"),
 ]
 
@@ -362,6 +386,7 @@ class Flow(BaseModel):
             "radius": {"udp"},
             "ldap": {"tcp"},
             "smb": {"tcp"},
+            "dcerpc": {"tcp"},
             "kerberos": {"tcp"},
             "pop3": {"tcp"},
             "imap": {"tcp"},

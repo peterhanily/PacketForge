@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 
 from packetforge.environments import Environment
 from packetforge.models.flowspec import (
-    DnsL7, Flow, HttpL7, KerberosL7, LdapL7, OpaqueTcpL7, SmbL7, SmtpL7, SshL7, TlsL7,
+    DceRpcL7, DnsL7, Flow, HttpL7, KerberosL7, LdapL7, OpaqueTcpL7, SmbL7, SmtpL7, SshL7, TlsL7,
 )
 
 
@@ -147,7 +147,11 @@ def write_ground_truth(intrusion: Intrusion, md_path, json_path=None) -> None:
         lines.append(f"- {e.description}")
         lines.append(f"- Flows: {', '.join(e.flow_ids)}")
         if e.iocs:
-            lines.append(f"- IOCs: {', '.join(f'{k}={v}' for k, v in e.iocs.items())}")
+            # Render structured values (e.g. the dce_rpc endpoint/operations) as compact
+            # JSON rather than Python dict repr, so the answer key stays readable.
+            def _fmt(v):
+                return json.dumps(v) if isinstance(v, (dict, list)) else v
+            lines.append(f"- IOCs: {', '.join(f'{k}={_fmt(v)}' for k, v in e.iocs.items())}")
         lines.append("")
     if intrusion.evasions:
         lines += ["## Evasions applied", "",
@@ -391,6 +395,222 @@ def build_asrep_roasting(env: Environment, start_time: float, rng, *, intensity:
                      {"victim": victim, "dc": dc, "enctype": "rc4-hmac"})
 
 
+# --------------------------------------------------------------------------- #
+# BZAR lateral-movement pack — inert MS-RPC-over-SMB fixtures.                  #
+#                                                                              #
+# Each builder renders the on-the-wire *shape* of a lateral-movement technique #
+# (SMB named pipe + DCE-RPC bind + the operation's opnum) so a blue team can    #
+# point Zeek + the BZAR analytic at the capture and confirm their coverage      #
+# fires. Inert by construction: the DCE-RPC request stubs are opaque filler,    #
+# never real operation arguments — no service binary/path, task payload, or      #
+# command. See docs/inert-by-construction.md. Ground truth carries the ATT&CK    #
+# technique, the concrete Zeek dce_rpc.log endpoint+operations, and the BZAR     #
+# notice the flow is expected to trip.                                          #
+# --------------------------------------------------------------------------- #
+
+
+def _lateral_pair(env: Environment) -> tuple:
+    """An attacker workstation and the target it moves to (both internal hosts)."""
+    attacker, target = _hosts(env, 2)
+    return attacker, target
+
+
+def _dcerpc_flow(flow_id: str, src: str, dst: str, sport: int, start: float, *,
+                 pipe: str, interface: str, share: str, operations: list, op_names: list,
+                 src_os: str) -> Flow:
+    return Flow(flow_id=flow_id, transport="tcp", src_ip=src, dst_ip=dst,
+               src_port=sport, dst_port=445, start_time=start, conn_state="SF", src_os=src_os,
+               l7=DceRpcL7(share=share, pipe=pipe, interface=interface,
+                          operations=operations, op_names=op_names))
+
+
+def build_remote_service(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Remote service creation over \\svcctl (PsExec-style) — T1543.003 / T1569.002."""
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    ops, names = [15, 12, 19, 0], ["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"]
+    flow = _dcerpc_flow("atk-svcctl-01", attacker, target, next(sp), start_time,
+                        pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
+                        operations=ops, op_names=names, src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Lateral Movement",
+        "T1543.003 Create or Modify System Process / T1569.002 Service Execution",
+        ["atk-svcctl-01"],
+        f"Remote service creation on {target} over \\svcctl: "
+        f"OpenSCManagerW -> CreateServiceW -> StartServiceW (PsExec-style).",
+        {"attacker": attacker, "target": target, "pipe": "svcctl",
+         "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
+         "expected_notice": "ATTACK::Lateral_Movement"})]
+    return Intrusion([flow], gt, f"Remote service creation on {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_scheduled_task(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Remote scheduled-task registration over \\atsvc — T1053.005."""
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    flow = _dcerpc_flow("atk-atsvc-01", attacker, target, next(sp), start_time,
+                        pipe="atsvc", interface="ITaskSchedulerService", share=f"\\\\{target}\\IPC$",
+                        operations=[1], op_names=["SchRpcRegisterTask"], src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Persistence", "T1053.005 Scheduled Task/Job: Scheduled Task",
+        ["atk-atsvc-01"],
+        f"Remote scheduled-task registration on {target} via ITaskSchedulerService::SchRpcRegisterTask.",
+        {"attacker": attacker, "target": target, "pipe": "atsvc",
+         "dce_rpc": {"endpoint": "ITaskSchedulerService", "operations": ["SchRpcRegisterTask"]},
+         "expected_notice": "ATTACK::Persistence"})]
+    return Intrusion([flow], gt, f"Remote scheduled task on {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_wmi_exec(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """WMI remote execution via IWbemServices::ExecMethod — T1047.
+
+    Real WMI rides DCOM over ncacn_ip_tcp; the fixture renders the IWbemServices bind +
+    ExecMethod opnum (the dce_rpc.log signal BZAR watches) over the uniform SMB-pipe
+    substrate, with an inert stub in place of the method arguments.
+    """
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    flow = _dcerpc_flow("atk-wmi-01", attacker, target, next(sp), start_time,
+                        pipe="wmi", interface="IWbemServices", share=f"\\\\{target}\\IPC$",
+                        operations=[24], op_names=["ExecMethod"], src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Execution", "T1047 Windows Management Instrumentation",
+        ["atk-wmi-01"],
+        f"WMI remote execution against {target}: IWbemServices::ExecMethod.",
+        {"attacker": attacker, "target": target, "pipe": "wmi",
+         "dce_rpc": {"endpoint": "IWbemServices", "operations": ["ExecMethod"]},
+         "expected_notice": "ATTACK::Execution"})]
+    return Intrusion([flow], gt, f"WMI execution on {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_admin_share_transfer(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Lateral tool transfer to an ADMIN$ share — T1021.002 / T1570.
+
+    The transferred file is an inert PE *shell* (valid MZ/PE header over synthetic
+    filler, no code) — extraction tooling sees a file, but nothing executable.
+    """
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    flow = Flow(flow_id="atk-admin-01", transport="tcp", src_ip=attacker, dst_ip=target,
+                src_port=next(sp), dst_port=445, start_time=start_time, conn_state="SF",
+                src_os=env.default_client_os,
+                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", read_file="svc.exe", file_bytes=6144))
+    gt = [GroundTruthEntry(
+        "Lateral Movement", "T1021.002 SMB/Windows Admin Shares / T1570 Lateral Tool Transfer",
+        ["atk-admin-01"],
+        f"Lateral tool staging to {target}\\ADMIN$ (svc.exe, inert PE shell).",
+        {"attacker": attacker, "target": target, "share": f"\\\\{target}\\ADMIN$",
+         "smb_files": {"share": "ADMIN$", "name": "svc.exe"},
+         "expected_notice": "ATTACK::Lateral_Movement"})]
+    return Intrusion([flow], gt, f"Admin-share tool transfer to {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_share_discovery(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Network share enumeration over \\srvsvc — T1135."""
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    flow = _dcerpc_flow("atk-srvsvc-01", attacker, target, next(sp), start_time,
+                        pipe="srvsvc", interface="srvsvc", share=f"\\\\{target}\\IPC$",
+                        operations=[15], op_names=["NetrShareEnum"], src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Discovery", "T1135 Network Share Discovery",
+        ["atk-srvsvc-01"],
+        f"Network share enumeration on {target}: srvsvc::NetrShareEnum.",
+        {"attacker": attacker, "target": target, "pipe": "srvsvc",
+         "dce_rpc": {"endpoint": "srvsvc", "operations": ["NetrShareEnum"]},
+         "expected_notice": "ATTACK::Discovery"})]
+    return Intrusion([flow], gt, f"Share discovery against {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_account_discovery(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Domain account enumeration over \\samr — T1087.002."""
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    ops = [0, 7, 13, 1]
+    names = ["SamrConnect", "SamrOpenDomain", "SamrEnumerateUsersInDomain", "SamrCloseHandle"]
+    flow = _dcerpc_flow("atk-samr-01", attacker, target, next(sp), start_time,
+                        pipe="samr", interface="samr", share=f"\\\\{target}\\IPC$",
+                        operations=ops, op_names=names, src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Discovery", "T1087.002 Account Discovery: Domain Account",
+        ["atk-samr-01"],
+        f"Domain account enumeration on {target}: samr Connect -> OpenDomain -> EnumerateUsersInDomain.",
+        {"attacker": attacker, "target": target, "pipe": "samr",
+         "dce_rpc": {"endpoint": "samr", "operations": ["SamrEnumerateUsersInDomain"]},
+         "expected_notice": "ATTACK::Discovery"})]
+    return Intrusion([flow], gt, f"Account discovery against {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_remote_registry(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Remote registry modification over \\winreg — T1112."""
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    flow = _dcerpc_flow("atk-winreg-01", attacker, target, next(sp), start_time,
+                        pipe="winreg", interface="winreg", share=f"\\\\{target}\\IPC$",
+                        operations=[6, 22], op_names=["BaseRegCreateKey", "BaseRegSetValue"],
+                        src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Defense Evasion", "T1112 Modify Registry",
+        ["atk-winreg-01"],
+        f"Remote registry modification on {target}: winreg BaseRegCreateKey -> BaseRegSetValue.",
+        {"attacker": attacker, "target": target, "pipe": "winreg",
+         "dce_rpc": {"endpoint": "winreg", "operations": ["BaseRegCreateKey", "BaseRegSetValue"]},
+         "expected_notice": "ATTACK::Persistence"})]
+    return Intrusion([flow], gt, f"Remote registry write on {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_psexec_lateral(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Co-detect: admin-share tool transfer + remote service creation, same target.
+
+    The combination BZAR raises a single ``ATTACK::Lateral_Movement`` on: an ADMIN$ file
+    staging followed by svcctl service creation/start against the same host (classic
+    PsExec). Both flows are inert.
+    """
+    attacker, target = _lateral_pair(env)
+    sp = _sports()
+    drop = Flow(flow_id="atk-psexec-drop", transport="tcp", src_ip=attacker, dst_ip=target,
+                src_port=next(sp), dst_port=445, start_time=start_time, conn_state="SF",
+                src_os=env.default_client_os,
+                l7=SmbL7(share=f"\\\\{target}\\ADMIN$", read_file="svc.exe", file_bytes=6144))
+    svc = _dcerpc_flow("atk-psexec-svc", attacker, target, next(sp), start_time + 3.0,
+                       pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
+                       operations=[15, 12, 19, 0],
+                       op_names=["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"],
+                       src_os=env.default_client_os)
+    gt = [GroundTruthEntry(
+        "Lateral Movement", "T1021.002 SMB/Windows Admin Shares / T1569.002 Service Execution",
+        ["atk-psexec-drop", "atk-psexec-svc"],
+        f"PsExec-style lateral movement to {target}: ADMIN$ tool staging (svc.exe) then "
+        f"svcctl CreateServiceW/StartServiceW referencing it.",
+        {"attacker": attacker, "target": target,
+         "smb_files": {"share": "ADMIN$", "name": "svc.exe"},
+         "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
+         "expected_notice": "ATTACK::Lateral_Movement"})]
+    return Intrusion([drop, svc], gt, f"PsExec-style lateral movement to {target}",
+                     {"attacker": attacker, "target": target})
+
+
+# The BZAR lateral-movement pack — the attacks added by this content pack. Kept as a
+# named set so the pack's inert-invariant and Zeek round-trip tests can iterate it.
+BZAR_PACK = {
+    "remote-service": build_remote_service,
+    "scheduled-task": build_scheduled_task,
+    "wmi-exec": build_wmi_exec,
+    "admin-share-transfer": build_admin_share_transfer,
+    "share-discovery": build_share_discovery,
+    "account-discovery": build_account_discovery,
+    "remote-registry": build_remote_registry,
+    "psexec-lateral": build_psexec_lateral,
+}
+
+
 ATTACKS = {
     "phishing-intrusion": build_intrusion,
     "dns-exfil": build_dns_exfil,
@@ -400,6 +620,7 @@ ATTACKS = {
     "ransomware": build_ransomware,
     "kerberoasting": build_kerberoasting,
     "asrep-roasting": build_asrep_roasting,
+    **BZAR_PACK,
 }
 
 
