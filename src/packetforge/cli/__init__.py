@@ -142,9 +142,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sc.add_argument("--real", required=True, help="a real reference capture (.pcap)")
     sc.add_argument("--env", default="home", help="environment for the matched synthetic analog")
     sc.add_argument("--rules", default=None, help="Suricata ruleset (enables the detection gate)")
-    sc.add_argument("--calibrate", default=None, metavar="REAL2.pcap",
-                    help="a second distinct real capture; calibrates the C2ST against the "
-                         "real-vs-real floor (0.5 is unreachable vs one reference)")
+    sc.add_argument("--calibrate", nargs="+", default=None, metavar="REAL.pcap",
+                    help="one or more distinct real captures; calibrates the C2ST against the "
+                         "real-vs-real floor, averaged over them (0.5 is unreachable vs one reference)")
     sc.add_argument("--seed", type=int, default=1337)
     sc.add_argument("--out", default=None, help="write the scorecard JSON here (default: stdout)")
     sc.add_argument("--check", default=None, metavar="BASELINE.json",

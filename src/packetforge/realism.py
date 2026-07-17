@@ -148,7 +148,9 @@ class RealismReport:
     # this is well above 0.5 — it is the floor a generator of *novel* traffic can reach. The
     # synth's AUC is only meaningful relative to it; an absolute 0.5 target is unachievable for
     # anything but a near-exact replay of this one reference. 0.0 => not measured.
-    real_baseline_auc: float = 0.0
+    real_baseline_auc: float = 0.0            # mean AUC across the calibration captures
+    real_baseline_range: tuple = ()           # (min, max) across the calibration captures
+    temporal_baseline_auc: float = 0.0        # within-source floor (first vs second half)
 
     @property
     def verdict(self) -> str:
@@ -210,6 +212,18 @@ def c2st_auc_between(rows_a: list, rows_b: list) -> float:
     clf = HistGradientBoostingClassifier(max_depth=4, random_state=0)
     p = cross_val_predict(clf, Xy, yy, cv=5, method="predict_proba")[:, 1]
     return float(roc_auc_score(yy, p))
+
+
+def temporal_split_auc(rows: list) -> float:
+    """C2ST AUC between the first and second half of one capture's flows (conn.log is ~time
+    ordered). A *within-source* baseline: how separable two time-windows of the same network
+    are. It sits between the random-split null (~0.5) and the cross-capture floor (~0.95), and
+    needs no second capture — so it is always reportable as context for the synth's number.
+    """
+    n = len(rows) // 2
+    if n < 20:
+        return 0.5
+    return c2st_auc_between(rows[:n], rows[n:])
 
 
 def audit(real_workdir: str | Path, synth_workdir: str | Path,

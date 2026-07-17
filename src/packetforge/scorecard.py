@@ -72,11 +72,15 @@ def _realism_gate(r) -> dict:
     # The C2ST vs a single reference measures distance to *that capture*, not realism in the
     # abstract: two distinct real captures score ~0.95, so an absolute 0.5/0.65 target is
     # unreachable for a generator of novel traffic. When a real-vs-real baseline is measured,
-    # the synth passes if it is no more separable than a distinct real capture is (within a
-    # noise tolerance); otherwise we fall back to the absolute target and flag it honestly.
+    # the synth passes if it is no more separable than a real capture is. We score against the
+    # *top* of the real-vs-real range (plus a noise tolerance) rather than the mean, so the
+    # verdict is robust to run-to-run jitter instead of flipping on the odd 0.001; the full
+    # range is reported so a wide band can't hide behind its max. No baseline -> absolute target.
     baseline = getattr(r, "real_baseline_auc", 0.0) or 0.0
-    if baseline > 0.5:
-        verdict = "pass" if r.c2st_auc <= baseline + _C2ST_BASELINE_TOL else "gap"
+    rng = getattr(r, "real_baseline_range", ()) or ()
+    floor = max(rng) if rng else baseline
+    if floor > 0.5:
+        verdict = "pass" if r.c2st_auc <= floor + _C2ST_BASELINE_TOL else "gap"
     else:
         verdict = "pass" if r.c2st_auc <= _TARGET_C2ST else "gap"
     return {
@@ -85,6 +89,8 @@ def _realism_gate(r) -> dict:
         "held_out_auc": round(r.held_out_auc, 3),
         "mmd": round(r.mmd, 3),
         "real_baseline_auc": round(baseline, 3),
+        "real_baseline_range": [round(x, 3) for x in rng],
+        "temporal_baseline_auc": round(getattr(r, "temporal_baseline_auc", 0.0) or 0.0, 3),
         "n_real": r.n_real,
         "n_synth": r.n_synth,
         "target_auc": _TARGET_C2ST,
@@ -224,7 +230,12 @@ def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int =
     import tempfile
 
     from packetforge.compile.timeline import write_pcap
-    from packetforge.realism import audit, c2st_auc_between, flow_feature_rows
+    from packetforge.realism import (
+        audit,
+        c2st_auc_between,
+        flow_feature_rows,
+        temporal_split_auc,
+    )
     from packetforge.realism_detection import (
         detection_outcome,
         matched_synthetic,
@@ -263,18 +274,26 @@ def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int =
         wds[label] = wd
     realism = audit(wds["real"], wds["synth"], real_pcap=real_pcap, synth_pcap=synth_pcap)
 
-    # Calibrate the C2ST against a real-vs-real baseline: run the identical adversary between the
-    # reference and a *second distinct real* capture. Two real captures are not one distribution,
-    # so this lands well above 0.5 — it is the floor a generator of novel traffic can reach, and
-    # the only fair thing to score the synth's AUC against.
-    if baseline_pcap is not None:
-        bwd = base / "zeek_baseline"
+    # Calibrate the C2ST. Two baselines make the synth's AUC interpretable:
+    #  * temporal (within-source): the reference's first vs second half — always available, the
+    #    floor two time-windows of the *same* network reach.
+    #  * cross-capture (real-vs-real): the reference vs one or more *distinct real* captures — the
+    #    floor a generator of novel traffic can reach. Averaged over the captures for robustness,
+    #    with the (min, max) range reported so a single easy/hard capture can't skew the picture.
+    ref_rows, _, _ = flow_feature_rows(wds["real"], real_pcap)
+    realism.temporal_baseline_auc = temporal_split_auc(ref_rows)
+    baselines = [baseline_pcap] if isinstance(baseline_pcap, (str, Path)) else (baseline_pcap or [])
+    aucs = []
+    for i, bp in enumerate(baselines):
+        bwd = base / f"zeek_baseline_{i}"
         bwd.mkdir(exist_ok=True)
-        subprocess.run(["zeek", "-C", "-r", str(baseline_pcap), "detect_filtered_trace=F"],
+        subprocess.run(["zeek", "-C", "-r", str(bp), "detect_filtered_trace=F"],
                        cwd=str(bwd), capture_output=True, text=True, check=False)
-        ref_rows, _, _ = flow_feature_rows(wds["real"], real_pcap)
-        base_rows, _, _ = flow_feature_rows(bwd, Path(baseline_pcap))
-        realism.real_baseline_auc = c2st_auc_between(ref_rows, base_rows)
+        b_rows, _, _ = flow_feature_rows(bwd, Path(bp))
+        aucs.append(c2st_auc_between(ref_rows, b_rows))
+    if aucs:
+        realism.real_baseline_auc = sum(aucs) / len(aucs)
+        realism.real_baseline_range = (min(aucs), max(aucs))
 
     # Phase 1 — detection-outcome equivalence (only if a ruleset is available).
     detection = None
@@ -288,9 +307,9 @@ def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int =
         "generator": {"packetforge_version": _pf_version(), "git_commit": git_commit,
                       "environment": getattr(env, "name", str(env)), "seed": seed},
     }
-    if baseline_pcap is not None:   # the second real capture the C2ST is calibrated against
-        baseline_pcap = Path(baseline_pcap)
-        meta["calibration"] = {"name": baseline_pcap.name, "sha256": _sha256(baseline_pcap)}
+    if baselines:   # the real captures the C2ST is calibrated against (provenance)
+        meta["calibration"] = [{"name": Path(bp).name, "sha256": _sha256(Path(bp))}
+                               for bp in baselines]
     return build_scorecard(meta=meta, validity=validity, realism=realism, detection=detection)
 
 

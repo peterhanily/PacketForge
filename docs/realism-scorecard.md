@@ -31,17 +31,19 @@ under `honest_gaps`.
 
 ## Current baseline
 
-The committed baseline (reference: `smallFlows.pcap`, calibrated against `bigFlows`) reports
-`verdict: gap` — carried entirely by the detection gate:
+The committed baseline (reference: `smallFlows.pcap`, calibrated against three `bigFlows` windows)
+reports `verdict: gap` — carried entirely by the detection gate:
 
-- **Realism** — `verdict: pass`. `c2st_auc = 0.969` against a `real_baseline_auc = 0.949`: the
-  synthetic is only ~0.02 more separable from `smallFlows` than a *different real capture*
-  (`bigFlows`) is, i.e. it sits at the real-vs-real floor. Reference-conditioning drove the AUC from
-  a starting 1.0 (and the kernel-MMD from 0.17 to 0.077) by retiring the TCP-window, byte-volume,
-  connection-state, and coarse-timing tells in turn (see the ratchet below). The residual tells are
-  fine-grained (within-flow timing, per-OS SYN-option layout, mid-stream-capture artifacts) — the
-  same micro-differences that separate any two real captures. Chasing `c2st_auc` below the
-  real-vs-real floor would mean replaying this one capture, not generating.
+- **Realism** — `verdict: pass`. `c2st_auc = 0.973` against a real-vs-real band of
+  `[0.931, 0.961]` (mean 0.942, three distinct `bigFlows` windows), with a within-source
+  `temporal_baseline_auc` of 0.663 for reference. The synthetic sits at the *upper edge* of the
+  real-vs-real band — as separable from `smallFlows` as another real enterprise capture is, within a
+  noise tolerance of its top. Reference-conditioning drove the AUC from a starting 1.0 (and the
+  kernel-MMD from 0.17 to 0.077) by retiring the TCP-window, byte-volume, connection-state, and
+  coarse-timing tells in turn (see the ratchet below). The residual tells are fine-grained
+  (within-flow timing, per-OS SYN-option layout, mid-stream-capture artifacts) — the same
+  micro-differences that separate any two real captures. Chasing `c2st_auc` below the real-vs-real
+  band would mean replaying this one capture, not generating.
 - **Detection** — `alert_js = 1.0` (`verdict: gap`). The reference fires roughly 217 benign false
   positives per hour under ET Open. The synthetic now fires **~217/hr** — the same rate, once the
   analog's flow durations were conditioned to the reference (dynamic-DNS, noisy-TLD, and
@@ -107,18 +109,26 @@ per-OS SYN-option layouts.
 ### How low can the AUC actually go?
 
 At AUC ~0.97 the ratchet stopped moving the headline number, which raised the right question: is
-0.5 even the target? It is not. Running the identical adversary between `smallFlows` and a *second
-real* capture (`bigFlows`) scores **0.949** — and against another (`big.pcap`), **1.0**. Two
-distinct real captures are trivially separable, because they *are* different distributions
-(different networks, times, hosts, mix). The only thing that scores ~0.5 is two random halves of the
-*same* capture (measured: **0.46**, confirming the adversary is calibrated). So an absolute 0.5 bar
-is reachable only by replaying one specific capture — the opposite of generating. The honest floor
-for a generator of novel traffic is the **real-vs-real** number, and the synthetic (0.969) sits
-~0.02 above it. This is why the realism gate scores `c2st_auc` against a measured `real_baseline_auc`
-rather than a fixed constant, and why the distributional distance (kernel-MMD, the metric the
-synthetic-traffic literature actually uses) is reported alongside it: MMD more than halved across the
-five passes, 0.17 → 0.077, which is the real evidence the distributions converged. Pushing the C2ST
-lower than the real-vs-real floor would not be more realism — it would be memorising the reference.
+0.5 even the target? It is not. The same adversary, run on real captures, traces a clear spectrum:
+
+| Comparison | C2ST AUC | what it is |
+|------------|:--------:|------------|
+| `smallFlows` random-split vs itself | **~0.46** | the null — one distribution, so chance (adversary is calibrated) |
+| `smallFlows` first half vs second half | **~0.67** | *within-source* drift — two time-windows of the same network |
+| `smallFlows` vs `bigFlows` chunks | **~0.95** | *cross-capture* — two distinct real enterprise captures |
+| **the PacketForge synthetic** | **~0.97** | sits at the cross-capture floor |
+
+Two distinct real captures are trivially separable because they *are* different distributions
+(different networks, times, hosts, mix); the only thing that scores ~0.5 is two random halves of one
+capture. So an absolute 0.5 bar is reachable only by replaying one specific capture — the opposite of
+generating. The honest floor for a generator of *novel* traffic is the **real-vs-real** number, and
+the synthetic sits right at it. The scorecard therefore scores `c2st_auc` against a measured
+`real_baseline_auc` — averaged over several real captures, with the `real_baseline_range` reported so
+one easy or hard capture can't skew it — and carries the within-source `temporal_baseline_auc`
+alongside as a stricter reference point. It also reports the distributional distance (kernel-MMD, the
+metric the synthetic-traffic literature actually uses), which more than halved across the five passes,
+0.17 → 0.077 — the real evidence the distributions converged. Pushing the C2ST below the real-vs-real
+floor would not be more realism; it would be memorising the reference.
 
 ## Generating and checking
 

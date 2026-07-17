@@ -24,9 +24,10 @@ def _validity(ok=True, matched=100, total=100):
                            packet_count=500, zeek_weird=0, tshark_errors=0)
 
 
-def _realism(auc=0.55, held=0.55, baseline=0.0):
+def _realism(auc=0.55, held=0.55, baseline=0.0, baseline_range=(), temporal=0.0):
     return SimpleNamespace(c2st_auc=auc, held_out_auc=held, mmd=1.2, n_real=200, n_synth=200,
-                           real_baseline_auc=baseline,
+                           real_baseline_auc=baseline, real_baseline_range=baseline_range,
+                           temporal_baseline_auc=temporal,
                            tells=[("first_window", 0.4, 0.3), ("conn_state", 0.3, 0.2)])
 
 
@@ -71,6 +72,30 @@ def test_realism_gaps_when_above_the_real_vs_real_floor():
                            realism=_realism(0.99, baseline=0.90), detection=_detection(0.1))
     assert card["gates"]["realism"]["verdict"] == "gap"
     assert any("distinct real capture scores 0.9" in g for g in card["honest_gaps"])
+
+
+def test_realism_gate_reports_the_baseline_range_and_temporal_floor():
+    card = build_scorecard(meta=META, validity=_validity(),
+                           realism=_realism(0.97, baseline=0.95, baseline_range=(0.93, 0.97),
+                                            temporal=0.67),
+                           detection=_detection(0.1))
+    rz = card["gates"]["realism"]
+    assert rz["verdict"] == "pass"
+    assert rz["real_baseline_range"] == [0.93, 0.97]
+    assert rz["temporal_baseline_auc"] == 0.67
+
+
+def test_temporal_split_auc_separates_a_drifting_capture_but_not_a_stationary_one():
+    pytest.importorskip("sklearn", reason="needs the [realism] extra")
+    import numpy as np
+
+    from packetforge.realism import temporal_split_auc
+    rng = np.random.RandomState(0)
+    stationary = rng.normal(0, 1, size=(240, 6))          # halves are one distribution -> ~0.5
+    drift = np.vstack([rng.normal(0, 1, size=(120, 6)),
+                       rng.normal(3, 1, size=(120, 6))])    # second half shifted -> separable
+    assert temporal_split_auc(stationary) < 0.65
+    assert temporal_split_auc(drift) > 0.9
 
 
 def test_c2st_auc_between_calibrates_at_half_and_separates_distinct():

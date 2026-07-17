@@ -41,7 +41,12 @@ def _pcap_duration(pcap: Path) -> float:
     """Capture span in seconds (last - first frame), via tshark."""
     out = subprocess.run(["tshark", "-r", str(pcap), "-T", "fields", "-e", "frame.time_epoch"],
                          capture_output=True, text=True, check=False).stdout.split()
-    ts = [float(x) for x in out if x]
+    ts = []
+    for x in out:                       # tshark can emit a malformed epoch on the odd frame;
+        try:                            # skip it rather than crash the whole scorecard
+            ts.append(float(x))
+        except ValueError:
+            continue
     return (max(ts) - min(ts)) if len(ts) > 1 else 0.0
 
 
