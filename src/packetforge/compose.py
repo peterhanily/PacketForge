@@ -175,6 +175,22 @@ def _size_originator(flow: Flow, target: int, rng: random.Random) -> None:
             l7.request_body_len = extra
 
 
+# Responder L7 bytes a bare flow already carries before its variable body: a TLS server's
+# handshake (ServerHello + certificate chain) and an HTTP response's status line + headers.
+_RESP_BASE = {"tls": 2600, "http": 160}
+
+
+def _size_responder(flow: Flow, target: int, rng: random.Random) -> None:
+    """Grow a flow's responder byte volume toward `target` via its variable body — TLS server
+    application-data or the HTTP response body. Matches the reference's resp_bytes marginal so
+    the orig:resp packet ratio (l_pkt_ratio) tracks it too."""
+    l7 = flow.l7
+    if isinstance(l7, TlsL7):
+        l7.app_data_resp_bytes = max(0, target - _RESP_BASE["tls"])
+    elif isinstance(l7, HttpL7):
+        l7.response_body_len = max(0, target - _RESP_BASE["http"])
+
+
 def _weighted_choice(rng: random.Random, items: list, weights: list):
     total = sum(weights)
     r = rng.uniform(0, total)

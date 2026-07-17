@@ -80,6 +80,8 @@ def compile_flowset(fs: FlowSet, salt: str = "") -> CompileResult:
 
 
 def _compile_flows(fs: FlowSet, salt: str, result: CompileResult) -> None:
+    from packetforge.compile.tcp import _SEG_BYTES
+
     for flow in fs.flows:
         kind = flow.l7.kind
         if kind not in RENDERERS:
@@ -92,7 +94,11 @@ def _compile_flows(fs: FlowSet, salt: str, result: CompileResult) -> None:
         orig = resolve_endpoint(flow.src_ip, flow.src_port, flow.src_os, oui,
                                 window=flow.syn_window, ttl=flow.syn_ttl)
         resp = resolve_endpoint(flow.dst_ip, flow.dst_port, flow.dst_os, oui)
-        rendered = RENDERERS[kind](flow, orig, resp, rng)
+        seg_token = _SEG_BYTES.set(flow.seg_bytes)
+        try:
+            rendered = RENDERERS[kind](flow, orig, resp, rng)
+        finally:
+            _SEG_BYTES.reset(seg_token)
         result.packets.extend(rendered.packets)
         result.flows.append(
             CompiledFlow(

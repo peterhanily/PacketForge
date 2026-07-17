@@ -71,6 +71,7 @@ def profile_reference(real_pcap: Path, workdir: Path):
     states: dict = {}
     ia_means: list = []
     orig_bytes: dict = {}
+    vectors: list = []
     for r in conn:
         svc = _ZEEK_TO_AMBIENT.get(r.get("service", "-"))
         if svc:
@@ -84,16 +85,24 @@ def profile_reference(real_pcap: Path, workdir: Path):
             states[cs] = states.get(cs, 0) + 1
         try:
             dur = float(r.get("duration", "0") or 0)
-            pkts = int(r.get("orig_pkts", "0") or 0) + int(r.get("resp_pkts", "0") or 0)
-            if dur > 0 and pkts > 1:
-                ia_means.append(min(2.0, dur / (pkts - 1)))   # clamp idle-flow outliers
+            op, rp = int(r.get("orig_pkts", "0") or 0), int(r.get("resp_pkts", "0") or 0)
+            if dur > 0 and op + rp > 1:
+                ia_means.append(min(2.0, dur / (op + rp - 1)))   # clamp idle-flow outliers
+            # Per-flow vector for *joint* cloning: bytes, packets, duration and conn_state
+            # from the SAME flow, so a cloned flow's ia_mean is consistent with its packet
+            # count (a marginal draw decorrelates them and balloons a few flows' durations).
+            if svc or cs in ("S0", "REJ"):
+                vectors.append({"service": svc, "conn_state": cs or "SF",
+                                "orig_bytes": int(r.get("orig_bytes", "0") or 0),
+                                "resp_bytes": int(r.get("resp_bytes", "0") or 0),
+                                "orig_pkts": op, "resp_pkts": rp, "duration": dur})
         except (ValueError, TypeError):
             pass
     windows, ttls = _syn_fingerprints(real_pcap)
     return Profile(services=counts, total_conns=sum(counts.values()),
                    duration=max(60.0, _pcap_duration(real_pcap)),
                    syn_windows=windows, syn_ttls=ttls, conn_states=states, ia_means=ia_means,
-                   orig_bytes=orig_bytes)
+                   orig_bytes=orig_bytes, flow_vectors=vectors)
 
 
 def matched_synthetic(profile, env: Environment, *, seed: int = 0,

@@ -329,6 +329,10 @@ class Flow(BaseModel):
     # synthetic matches its fingerprint marginals, rather than the OS-profile defaults.
     syn_window: Optional[int] = None
     syn_ttl: Optional[int] = None
+    # Effective on-the-wire segment size (bytes). Real captures are taken above NIC offload
+    # (GRO/LSO), so a large transfer appears as fewer, larger-than-MSS segments; conditioning
+    # this to the reference's bytes-per-packet matches its packet counts (orig_pkts, resp_bpp).
+    seg_bytes: Optional[int] = None
     rtt: float = 0.03  # seconds; used to space handshake/data/teardown
     conn_state: str = "SF"  # target Zeek conn_state for TCP flows
     l7: L7Spec
@@ -384,7 +388,7 @@ class CaptureMeta(BaseModel):
     mac_oui: Optional[str] = None  # 3-octet vendor prefix for internal host MACs
     # clean = byte-exact ideal flows; realistic = RTT jitter + retransmits + dup-ACKs
     # (still Zeek-clean; the reassembled stream and seq-based byte counts are unchanged).
-    texture: Literal["clean", "realistic"] = "clean"
+    texture: Literal["clean", "realistic", "conditioned"] = "clean"
 
 
 class FlowSet(BaseModel):

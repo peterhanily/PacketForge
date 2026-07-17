@@ -23,17 +23,18 @@ identical, **1** is disjoint. Each gate also lists the features that separate th
 
 The committed baseline (reference: `smallFlows.pcap`, 696 flows) reports `verdict: gap`:
 
-- **Realism** — `c2st_auc = 0.978`. A capture that is valid, in the sense that real Zeek reproduces
+- **Realism** — `c2st_auc = 0.969`. A capture that is valid, in the sense that real Zeek reproduces
   it exactly, can still be distinguishable in feature space. Reference-conditioning has retired the
-  TCP-window, byte-volume, and connection-state tells (see the ratchet below); the strongest
-  *remaining* tells are within-flow packet-timing dynamics (`ia_std`, `ia_burst`) and packet-count
-  structure (`l_orig_pkts`, `l_pkt_ratio`). Validity is necessary but not sufficient for realism.
+  TCP-window, byte-volume, connection-state, and coarse-timing tells (see the ratchet below); the
+  strongest *remaining* tells are fine-grained within-flow timing (`ia_std`, `ia_burst`) and
+  packet-structure micro-detail (`l_orig_pkts`, `first_pkt_size`, `resp_bpp`). Validity is necessary
+  but not sufficient for realism.
 - **Detection** — `alert_js = 1.0`. The reference fires roughly 217 benign false positives per hour
-  under ET Open. The synthetic now fires a realistic ~226/hr (dynamic-DNS, noisy-TLD, and
-  external-IP-lookup noise), so it is no longer conspicuously silent — but on a *different*
-  signature set than this particular reference, so the alert distributions remain disjoint.
-  Matching a specific network's benign signatures is a reference-conditioning problem, not a
-  volume one.
+  under ET Open. The synthetic now fires **217/hr** — the same rate, once the analog's flow
+  durations were conditioned to the reference (dynamic-DNS, noisy-TLD, and external-IP-lookup
+  noise) — so it is no longer conspicuously silent. It fires on a *different* signature set than
+  this particular reference, though, so the alert distributions remain disjoint. Matching a specific
+  network's benign signatures is a reference-conditioning problem, not a volume one.
 
 The scorecard states this plainly. PacketForge today is a rigorous, Zeek-validated
 network-detection lab, not a realism oracle, and the scorecard is where that distance closes one
@@ -73,10 +74,22 @@ line's worth, a request body) — never filler the parser rejects. The synthetic
 every TLS flow) to matching the reference across the full heavy tail (median 2607 vs 2642, p90
 31428 vs 31441). That retired the whole byte-volume family: AUC 0.987 → 0.978, MMD 0.11 → 0.10.
 The tells that surfaced next are a new family again — within-flow timing dynamics (`ia_std`,
-`ia_burst`) and packet-count structure (`l_orig_pkts`, `l_pkt_ratio`). Four passes in, the pattern
-holds: the aggregate distance (MMD) falls steadily, 0.17 → 0.10, while the max-over-features AUC
-descends only as each *dominant* family is retired in turn. The metric refuses to flatter the
-generator until that work is actually done.
+`ia_burst`) and packet-count structure (`l_orig_pkts`, `l_pkt_ratio`).
+
+A fifth pass turned the four point-fixes into an **engine**. Conditioning each marginal
+independently decorrelates features that co-vary in real traffic — draw a flow's mean inter-arrival
+from one distribution and its packet count from another and a few flows end up with absurd durations
+— so the analog now does *joint per-flow cloning*: it reproduces each reference flow's bytes, packet
+counts, duration, and conn_state **together**, from the same flow. Within-flow packet timing is
+drawn from a lognormal (bursty, heavy right tail, mean-preserving) so `ia_burst` matches, and each
+flow's effective segment size is set to the reference's bytes-per-packet — real captures are taken
+above NIC offload, so a large transfer is a few big segments, not dozens of MSS ones. All of it is
+retransmit-free, so validity stays byte-exact. This collapsed the benign false-positive rate onto
+the reference (**217/hr vs 217/hr**, from a duration-inflated 98), pulled MMD to 0.075, and moved
+the AUC to 0.969. What remains is genuinely fine-grained: the exact shape of small flows' timing and
+per-OS SYN-option layouts. Five passes in, the pattern holds — the aggregate distance (MMD) has more
+than halved, 0.17 → 0.075, while the max-over-features AUC descends only as each *dominant* family
+is retired in turn. The metric refuses to flatter the generator until that work is actually done.
 
 ## Generating and checking
 

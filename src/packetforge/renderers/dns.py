@@ -51,7 +51,9 @@ def render_dns(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
                 ancount=len(spec.answers) if (spec.rcode == "NOERROR" and answerable) else 0,
             )
         )
-        reply.time = flow.start_time + rng.uniform(0.002, 0.02)
+        # Query->response gap tracks the flow's rtt (reference-conditioning sets it to the
+        # real per-flow inter-arrival), not a fixed few-ms constant that ignores it.
+        reply.time = flow.start_time + max(0.001, flow.rtt) * rng.uniform(0.5, 1.5)
         packets.append(reply)
 
     expected = {

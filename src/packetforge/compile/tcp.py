@@ -16,6 +16,7 @@ IR. L7 renderers call it; DNS/ICMP do not.
 from __future__ import annotations
 
 import contextvars
+import math
 import random
 from dataclasses import dataclass, field
 from typing import Optional
@@ -42,17 +43,33 @@ class Texture:
     dup_ack_prob: float = 0.0      # per ACK, chance a duplicate ACK follows
     linger_scale: float = 0.0      # mean idle seconds before teardown (heavy-tailed);
     #                                real flows keep connections open, ours don't
+    heavy_timing: bool = False     # draw data-phase gaps from a heavy-tailed (exponential)
+    #                                distribution instead of tight uniform jitter, and space
+    #                                consecutive segments, so within-flow inter-arrivals get
+    #                                the spread/burstiness (ia_std, ia_burst) of real traffic.
+    #                                Mean-preserving and adds no packets — validity is untouched.
 
+
+_LOGN_SIGMA = 1.2   # heavy_timing: lognormal gap sigma (CV = sqrt(exp(s^2)-1) ~ 1.7, bursty)
 
 TEXTURES = {
     "clean": Texture(),
     "realistic": Texture(jitter_frac=0.45, retransmit_prob=0.03, dup_ack_prob=0.05,
                          linger_scale=12.0),
+    # Reference-matching timing without retransmits/dup-ACKs, so packet counts stay exact
+    # (validity is byte-for-byte) while within-flow inter-arrivals get real bursty spread.
+    "conditioned": Texture(jitter_frac=0.3, heavy_timing=True),
 }
 
 # Capture-wide texture, set by the compiler around a render so renderers need no new
 # parameter. Defaults to clean, so a bare build_tcp_flow() is byte-exact as before.
 _TEXTURE: contextvars.ContextVar = contextvars.ContextVar("pf_texture", default=TEXTURES["clean"])
+
+# Per-flow effective segment size (bytes), set by the compiler around a render. None -> MSS.
+# Lets a flow emit fewer, larger-than-MSS segments (as an offload/GRO capture does) so its
+# packet count matches a conditioned reference. Capped to fit a single IP packet.
+_SEG_BYTES: contextvars.ContextVar = contextvars.ContextVar("pf_seg_bytes", default=None)
+_MAX_SEG = 64000
 
 
 @dataclass
@@ -144,6 +161,18 @@ def build_tcp_flow(
             return base
         return max(0.0, base * (1.0 + texture.jitter_frac * (rng.random() * 2.0 - 1.0)))
 
+    def hgap(mean: float) -> float:
+        """A data-phase inter-packet gap. Under heavy_timing it is lognormal with expectation
+        `mean` and a heavy right tail (sigma sets the burstiness), reproducing real traffic's
+        low-median / high-variance inter-arrivals (ia_std, ia_burst). Lognormal is used rather
+        than an ON/OFF mix because each gap independently centres on `mean`, so even a short
+        flow with a handful of gaps keeps ia_mean ~ `mean` instead of collapsing to a floor.
+        Mean-preserving and adds no packets; falls back to uniform jitter when not heavy-tailed."""
+        if not (texture.heavy_timing and mean > 0):
+            return jit(mean)
+        mu = math.log(mean) - _LOGN_SIGMA * _LOGN_SIGMA / 2.0   # E[exp(N(mu,s))] = mean
+        return min(90.0, math.exp(rng.gauss(mu, _LOGN_SIGMA)))
+
     # TCP Timestamps: negotiated only when both endpoints advertise them; once active
     # they appear on every segment with a ~1 kHz clock and echo the peer's last tsval.
     ts_active = orig.timestamps and resp.timestamps
@@ -178,7 +207,11 @@ def build_tcp_flow(
         hist.record(letter, from_orig)
         clock["t"] += advance
 
-    half = rtt / 2.0
+    # Under heavy_timing the conditioned rtt is an *application* pacing scale (think-time),
+    # so network-level gaps — the handshake, teardown ACKs — use a capped network RTT. The
+    # mix of a fast handshake and slow think-time is what gives real flows their ia_std.
+    net_rtt = min(rtt, 0.05) if texture.heavy_timing else rtt
+    half = net_rtt / 2.0
 
     # ----- handshake (all states except a pure teardown-less variant start here) -----
     established = conn_state in {"SF", "RSTO", "RSTR"}
@@ -206,8 +239,10 @@ def build_tcp_flow(
             snd, rcv = (True, False) if msg.from_orig else (False, True)
             seq = c_seq if msg.from_orig else s_seq
             peer_ack = s_seq if msg.from_orig else c_seq
-            clock["t"] += jit(rng.uniform(0.001, 0.01))
-            for i, chunk in enumerate(_segment(msg.payload, MSS, min_segments)):
+            clock["t"] += hgap(rtt) if texture.heavy_timing else jit(rng.uniform(0.001, 0.01))
+            mss = min(_SEG_BYTES.get() or MSS, _MAX_SEG)
+            segs = list(_segment(msg.payload, mss, min_segments))
+            for i, chunk in enumerate(segs):
                 emit(frame(snd, "PA", seq, peer_ack, payload=chunk), "D", snd)
                 data_bytes[snd] += len(chunk)  # original bytes only
                 # Retransmission: the same segment (same seq/payload) resent after a
@@ -217,12 +252,14 @@ def build_tcp_flow(
                     clock["t"] += jit(half * (1.0 + rng.random()))
                     emit(frame(snd, "PA", seq, peer_ack, payload=chunk), "T", snd)
                 seq += len(chunk)
+                if texture.heavy_timing and i < len(segs) - 1:
+                    clock["t"] += hgap(rtt)  # space consecutive segments (bursty app pacing)
             if msg.from_orig:
                 c_seq = seq
             else:
                 s_seq = seq
             # peer acknowledges the whole message
-            clock["t"] += jit(rtt)
+            clock["t"] += hgap(rtt)
             ack_seq = s_seq if msg.from_orig else c_seq
             ack_num = c_seq if msg.from_orig else s_seq
             emit(frame(rcv, "A", ack_seq, ack_num), "A", rcv)
