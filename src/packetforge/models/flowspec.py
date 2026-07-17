@@ -324,6 +324,11 @@ class Flow(BaseModel):
     start_time: float = Field(description="Epoch seconds of the first packet.")
     src_os: str = "windows_10"  # -> fingerprints/tcp/<os>.yaml
     dst_os: str = "linux"
+    # Optional per-flow overrides of the originator's SYN window / TTL. Reference-
+    # conditioning uses these to draw from a real capture's measured distributions so the
+    # synthetic matches its fingerprint marginals, rather than the OS-profile defaults.
+    syn_window: Optional[int] = None
+    syn_ttl: Optional[int] = None
     rtt: float = 0.03  # seconds; used to space handshake/data/teardown
     conn_state: str = "SF"  # target Zeek conn_state for TCP flows
     l7: L7Spec

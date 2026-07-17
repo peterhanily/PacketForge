@@ -216,14 +216,14 @@ def run_scorecard(real_pcap, env, *, rules=None, seed: int = 1337, workdir=None,
 
     # Profile the reference, then build a matched synthetic capture.
     prof_dir = base / "profile"
-    service_counts, duration = profile_reference(real_pcap, prof_dir)
+    prof = profile_reference(real_pcap, prof_dir)
     # A reference with no parseable flows can't anchor a realism comparison: two empty
     # captures are trivially "indistinguishable", so an unguarded run would emit a
     # vacuous verdict=pass on a non-pcap. Refuse it instead.
     if not _parse_zeek_log(prof_dir / "conn.log"):
         raise ValueError(f"reference capture {real_pcap.name} has no parseable flows — "
                          f"is it a valid, non-empty pcap?")
-    fs = matched_synthetic(service_counts, duration, env, seed=seed)
+    fs = matched_synthetic(prof, env, seed=seed)
     synth_pcap = base / "synth.pcap"
     write_pcap(fs, synth_pcap)
 
@@ -248,7 +248,7 @@ def run_scorecard(real_pcap, env, *, rules=None, seed: int = 1337, workdir=None,
     ref_flows = len([r for r in _parse_zeek_log(wds["real"] / "conn.log") if r.get("uid")])
     meta = {
         "reference": {"name": real_pcap.name, "sha256": _sha256(real_pcap),
-                      "flows": ref_flows, "duration_s": round(duration, 1)},
+                      "flows": ref_flows, "duration_s": round(prof.duration, 1)},
         "generator": {"packetforge_version": _pf_version(), "git_commit": git_commit,
                       "environment": getattr(env, "name", str(env)), "seed": seed},
     }

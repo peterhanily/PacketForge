@@ -45,27 +45,62 @@ def _pcap_duration(pcap: Path) -> float:
     return (max(ts) - min(ts)) if len(ts) > 1 else 0.0
 
 
-def profile_reference(real_pcap: Path, workdir: Path) -> tuple:
-    """Real reference -> (per-ambient-service flow counts, duration seconds)."""
+def _syn_fingerprints(pcap: Path) -> tuple:
+    """The reference's originator-SYN window and TTL populations (for conditioning)."""
+    out = subprocess.run(
+        ["tshark", "-r", str(pcap), "-Y", "tcp.flags.syn==1 && tcp.flags.ack==0",
+         "-T", "fields", "-e", "tcp.window_size_value", "-e", "ip.ttl"],
+        capture_output=True, text=True, check=False).stdout
+    windows, ttls = [], []
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+            windows.append(int(parts[0]))
+            ttls.append(int(parts[1]))
+    return windows, ttls
+
+
+def profile_reference(real_pcap: Path, workdir: Path):
+    """Real reference -> a Profile: service mix, duration, and fingerprint marginals."""
+    from packetforge.transfer import Profile
     workdir.mkdir(parents=True, exist_ok=True)
     subprocess.run(["zeek", "-C", "-r", str(real_pcap), "detect_filtered_trace=F"],
                    cwd=str(workdir), capture_output=True, text=True, check=False)
     conn = _parse_zeek_log(workdir / "conn.log")
     counts: dict = {}
+    states: dict = {}
+    ia_means: list = []
+    orig_bytes: dict = {}
     for r in conn:
         svc = _ZEEK_TO_AMBIENT.get(r.get("service", "-"))
         if svc:
             counts[svc] = counts.get(svc, 0) + 1
-    return counts, _pcap_duration(real_pcap)
+            try:                       # the reference's per-service originator-volume marginal
+                orig_bytes.setdefault(svc, []).append(int(r.get("orig_bytes", "0") or 0))
+            except (ValueError, TypeError):
+                pass
+        cs = r.get("conn_state")
+        if cs:
+            states[cs] = states.get(cs, 0) + 1
+        try:
+            dur = float(r.get("duration", "0") or 0)
+            pkts = int(r.get("orig_pkts", "0") or 0) + int(r.get("resp_pkts", "0") or 0)
+            if dur > 0 and pkts > 1:
+                ia_means.append(min(2.0, dur / (pkts - 1)))   # clamp idle-flow outliers
+        except (ValueError, TypeError):
+            pass
+    windows, ttls = _syn_fingerprints(real_pcap)
+    return Profile(services=counts, total_conns=sum(counts.values()),
+                   duration=max(60.0, _pcap_duration(real_pcap)),
+                   syn_windows=windows, syn_ttls=ttls, conn_states=states, ia_means=ia_means,
+                   orig_bytes=orig_bytes)
 
 
-def matched_synthetic(service_counts: dict, duration: float, env: Environment, *,
-                      seed: int = 0, start_time: float = 1_700_000_000.0):
-    """A synthetic capture matching the reference's per-service flow counts + duration."""
-    from packetforge.transfer import Profile, synthesize_analog
-    prof = Profile(services=dict(service_counts), total_conns=sum(service_counts.values()),
-                   duration=max(60.0, duration))
-    return synthesize_analog(prof, env, seed=seed, start_time=start_time)
+def matched_synthetic(profile, env: Environment, *, seed: int = 0,
+                      start_time: float = 1_700_000_000.0):
+    """A synthetic capture matching the reference profile (mix, duration, fingerprints)."""
+    from packetforge.transfer import synthesize_analog
+    return synthesize_analog(profile, env, seed=seed, start_time=start_time)
 
 
 def _alert_histogram(pcap: Path, rules: Path, workdir: Path) -> dict:
@@ -154,18 +189,19 @@ def detection_outcome(real_pcap: str | Path, env: Environment, rules: str | Path
     base = Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix="pf_rdet_"))
     base.mkdir(parents=True, exist_ok=True)
 
-    counts, real_dur = profile_reference(real_pcap, base / "ref_zeek")
+    prof = profile_reference(real_pcap, base / "ref_zeek")
     if not _parse_zeek_log(base / "ref_zeek" / "conn.log"):
         # Without this, a garbage reference yields empty alert histograms that compare
         # as JS=0.0 / coverage=1.0 — a vacuous "perfect match". Refuse it.
         raise ValueError(f"reference capture {real_pcap.name} has no parseable flows — "
                          f"is it a valid, non-empty pcap?")
-    analog = matched_synthetic(counts, real_dur, env, seed=seed)
+    analog = matched_synthetic(prof, env, seed=seed)
     synth_pcap = base / "synth.pcap"
     write_pcap(analog, synth_pcap)
 
-    rep = DetectionOutcomeReport(ruleset=str(rules), service_counts=counts,
-                                 real_duration=real_dur, synth_duration=_pcap_duration(synth_pcap))
+    rep = DetectionOutcomeReport(ruleset=str(rules), service_counts=prof.services,
+                                 real_duration=prof.duration,
+                                 synth_duration=_pcap_duration(synth_pcap))
     rep.real_hist = _alert_histogram(real_pcap, rules, base / "suri_real")
     rep.synth_hist = _alert_histogram(synth_pcap, rules, base / "suri_synth")
     rep.real_alerts = sum(rep.real_hist.values())

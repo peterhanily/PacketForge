@@ -22,9 +22,12 @@ from packetforge.compose import (
     _FP_PER_HOUR,
     _ambient_flow,
     _benign_fp_flow,
+    _conn_state_plan,
     _failed_flow,
     _host_os_map,
     _internal_hosts,
+    _size_originator,
+    _weighted_choice,
 )
 from packetforge.crossval import cross_validate
 from packetforge.environments import Environment
@@ -45,6 +48,14 @@ class Profile:
     services: dict = field(default_factory=dict)   # ambient-service -> flow count
     total_conns: int = 0
     duration: float = 0.0
+    # Fingerprint marginals measured from the reference, for reference-conditioning: the
+    # empirical SYN-window and TTL populations, and the conn_state histogram. Empty ->
+    # the generator falls back to its OS-profile defaults and its own conn_state mix.
+    syn_windows: list = field(default_factory=list)
+    syn_ttls: list = field(default_factory=list)
+    conn_states: dict = field(default_factory=dict)
+    ia_means: list = field(default_factory=list)   # per-flow mean packet inter-arrival (s)
+    orig_bytes: dict = field(default_factory=dict)  # ambient-service -> [per-flow orig L7 bytes]
 
     def render(self) -> str:
         svc = ", ".join(f"{k}:{v}" for k, v in sorted(self.services.items(), key=lambda kv: -kv[1]))
@@ -94,19 +105,48 @@ def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
             flow = _ambient_flow(env, service, clients, f"analog-{i:04d}-{service}",
                                  start, rng, 1025 + (i % 64000), host_os)
             if flow is not None:
+                # Reference-conditioning: size the originator payload to the reference's
+                # per-service orig_bytes marginal — the dominant remaining C2ST tell.
+                if profile.orig_bytes.get(service):
+                    _size_originator(flow, rng.choice(profile.orig_bytes[service]), rng)
                 flows.append(flow)
             i += 1
     # A realistic analog also fails a minority of connections and trips the benign
     # false-positive surface — the same texture compose_scenario adds, so the scorecard
-    # measures the generator as it actually renders.
-    for j in range(round(i * 0.15)):
+    # measures the generator as it actually renders. When the reference's conn_state mix is
+    # known, condition on it: reproduce its SF/RSTO/RSTR split among established flows and
+    # its exact failure rate and S0:REJ ratio, retiring the cs_* C2ST tells.
+    plan = _conn_state_plan(profile.conn_states)
+    if plan:
+        for f in flows:
+            if f.transport == "tcp" and f.conn_state in ("SF", "RSTO", "RSTR"):
+                f.conn_state = _weighted_choice(rng, *plan.established)
+        # fail_frac is a share of *all* connections; convert to a count relative to the
+        # established flows, capped so a degenerate reference can't explode the flow list.
+        n_fail = min(round(len(flows) * plan.fail_frac / (1 - plan.fail_frac)), 4 * len(flows))
+    else:
+        n_fail = round(i * 0.15)
+    for j in range(n_fail):
+        cs = _weighted_choice(rng, *plan.failed) if plan else None
         ff = _failed_flow(env, clients, f"analog-fail-{j:04d}",
-                          start_time + rng.uniform(0, duration), rng, 60000 + (j % 5000), host_os)
+                          start_time + rng.uniform(0, duration), rng, 60000 + (j % 5000),
+                          host_os, conn_state=cs)
         if ff is not None:
             flows.append(ff)
     for k in range(round(_FP_PER_HOUR * duration / 3600.0)):
         flows.append(_benign_fp_flow(env, clients, f"analog-fp-{k:04d}",
                      start_time + rng.uniform(0, duration), rng, 55000 + (k % 4000), host_os))
+    # Reference-conditioning: draw each flow's SYN window/TTL from the reference's measured
+    # populations, so the synthetic matches those fingerprint marginals (the dominant C2ST
+    # tell) rather than the OS-profile defaults. Window/TTL are orthogonal to the labels.
+    if profile.syn_windows:
+        for f in flows:
+            if f.transport == "tcp":
+                f.syn_window = rng.choice(profile.syn_windows)
+                if profile.syn_ttls:
+                    f.syn_ttl = rng.choice(profile.syn_ttls)
+                if profile.ia_means:   # match the reference's packet-timing spread
+                    f.rtt = max(0.002, rng.choice(profile.ia_means))
     flows.sort(key=lambda f: f.start_time)
     return FlowSet(capture=CaptureMeta(description="transfer analog", link_type=env.link_type,
                                        mac_oui=env.mac_oui), flows=flows)

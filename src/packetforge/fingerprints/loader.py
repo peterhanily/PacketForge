@@ -69,14 +69,15 @@ def load_ja3_profile(name: str) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
-def resolve_endpoint(ip: str, port: int, os_name: str, oui: str | None = None) -> Endpoint:
-    ttl, window, raw_opts, timestamps = _load_tcp_profile(os_name)
+def resolve_endpoint(ip: str, port: int, os_name: str, oui: str | None = None,
+                     window: int | None = None, ttl: int | None = None) -> Endpoint:
+    p_ttl, p_window, raw_opts, timestamps = _load_tcp_profile(os_name)
     return Endpoint(
         ip=ip,
         port=port,
         mac=mac_for_ip(ip, oui),
-        ttl=ttl,
-        window=window,
+        ttl=ttl if ttl is not None else p_ttl,
+        window=window if window is not None else p_window,
         syn_options=_to_scapy_options([list(o) for o in raw_opts]),
         timestamps=timestamps,
     )

@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import random
+from dataclasses import dataclass
 
 from packetforge.environments import Environment
 from packetforge.models.flowspec import (
@@ -88,6 +89,52 @@ def _benign_conn_state(rng: random.Random) -> str:
     return rng.choice(_SERVICE_CONN_STATES)
 
 
+# Zeek names 13 conn_states; the renderer models five (established flows carry their L7 as
+# SF/RSTO/RSTR, pure handshake failures are connectionless S0/REJ). This folds the full
+# taxonomy onto that set so a reference's measured mix can be reproduced: half-open and
+# reset-before-reply states (SH/RSTOS0/...) are failures, midstream/partial-close states
+# (OTH/S1..S3) are normal establishments.
+_CSTATE_FOLD = {
+    "SF": "SF", "S1": "SF", "S2": "SF", "S3": "SF", "OTH": "SF",
+    "RSTO": "RSTO", "RSTR": "RSTR",
+    "S0": "S0", "RSTOS0": "S0", "SH": "S0", "SHR": "S0", "RSTRH": "S0",
+    "REJ": "REJ",
+}
+
+
+@dataclass
+class _ConnPlan:
+    fail_frac: float                 # share of connections that never establish (S0/REJ)
+    established: tuple               # (states, weights) among SF/RSTO/RSTR
+    failed: tuple                    # (states, weights) among S0/REJ
+
+
+def _conn_state_plan(conn_states: dict) -> _ConnPlan | None:
+    """Fold a reference's Zeek conn_state histogram into a renderable establishment plan.
+
+    Returns None if the reference carries no usable conn_state counts, so the caller keeps
+    its built-in mix. Otherwise the analog reproduces the reference's SF/RSTO/RSTR split and
+    its exact failure rate and S0:REJ ratio — retiring the cs_* C2ST tells.
+    """
+    folded: dict = {}
+    for state, n in conn_states.items():
+        tgt = _CSTATE_FOLD.get(state)
+        if tgt and n > 0:
+            folded[tgt] = folded.get(tgt, 0) + n
+    total = sum(folded.values())
+    if not total:
+        return None
+    est = {s: folded.get(s, 0) for s in ("SF", "RSTO", "RSTR") if folded.get(s)}
+    fail = {s: folded.get(s, 0) for s in ("S0", "REJ") if folded.get(s)}
+    if not est:                      # a reference with only failures still needs a base state
+        est = {"SF": 1}
+    return _ConnPlan(
+        fail_frac=sum(fail.values()) / total,
+        established=(list(est), list(est.values())),
+        failed=(list(fail), list(fail.values())) if fail else (["S0"], [1]),
+    )
+
+
 def _resp_size(rng: random.Random) -> int:
     """A heavy-tailed transfer size: mostly small ("mice"), a heavy tail of bulk
     transfers ("elephants"). Real captures are ~1/3 full-size (MTU) packets because a
@@ -96,6 +143,36 @@ def _resp_size(rng: random.Random) -> int:
     if rng.random() < 0.14:                              # elephant: a bulk transfer
         return min(700_000, int(rng.paretovariate(0.9) * 22_000))
     return max(0, int(rng.lognormvariate(6.0, 1.3)))     # mouse: small/medium body
+
+
+# Approximate originator L7 bytes a bare service flow already carries (handshake / request
+# line + default headers), measured from the composer's own output. Reference-conditioning
+# grows a flow *toward* a drawn target by adding this much less legitimate client content.
+_ORIG_BASE = {"tls": 280, "http": 90}
+_TOKEN = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+
+
+def _size_originator(flow: Flow, target: int, rng: random.Random) -> None:
+    """Grow a flow's originator byte volume toward `target` with legitimate protocol content.
+
+    TLS gains client application-data (opaque, already record-fragmented); HTTP gains a
+    realistic Cookie (browser GETs carry fat cookies) or, past what fits a header line, a
+    request body. Both are counted by Zeek as orig_bytes and neither is filler the parser
+    chokes on — so the analog's originator-volume marginal can match the reference's.
+    """
+    l7 = flow.l7
+    if isinstance(l7, TlsL7):
+        l7.app_data_orig_bytes = max(l7.app_data_orig_bytes, target - _ORIG_BASE["tls"])
+    elif isinstance(l7, HttpL7):
+        extra = target - _ORIG_BASE["http"]
+        if extra <= 0:
+            return
+        if extra <= 2048:   # a fat cookie, well within Zeek's header-line bound — stays a GET
+            cookie = "s=" + "".join(rng.choice(_TOKEN) for _ in range(extra - 2))
+            l7.request_headers = {**l7.request_headers, "Cookie": cookie}
+        else:               # a genuine upload; a body is unbounded and always parses clean
+            l7.method = "POST"
+            l7.request_body_len = extra
 
 
 def _weighted_choice(rng: random.Random, items: list, weights: list):
@@ -242,12 +319,13 @@ _FAIL_PORTS = [445, 3389, 22, 139, 1433, 5900, 8080, 23, 3306]
 
 
 def _failed_flow(env: Environment, clients: list, fid: str, start: float,
-                 rng: random.Random, sport: int, host_os: dict) -> Flow | None:
+                 rng: random.Random, sport: int, host_os: dict,
+                 conn_state: str | None = None) -> Flow | None:
     """A benign failed connection — dead host / closed port / scan (S0 or REJ)."""
     if len(clients) < 2:
         return None
     client = rng.choice(clients)
-    cstate = rng.choice(_FAILED_CONN_STATES)
+    cstate = conn_state or rng.choice(_FAILED_CONN_STATES)
     return Flow(flow_id=fid, src_ip=client, dst_ip=_server(client, clients, rng),
                 start_time=round(start, 6), transport="tcp", src_port=sport,
                 dst_port=rng.choice(_FAIL_PORTS),

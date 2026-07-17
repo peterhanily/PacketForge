@@ -89,7 +89,8 @@ def _compile_flows(fs: FlowSet, salt: str, result: CompileResult) -> None:
             )
         rng = _seed(flow, salt)
         oui = fs.capture.mac_oui
-        orig = resolve_endpoint(flow.src_ip, flow.src_port, flow.src_os, oui)
+        orig = resolve_endpoint(flow.src_ip, flow.src_port, flow.src_os, oui,
+                                window=flow.syn_window, ttl=flow.syn_ttl)
         resp = resolve_endpoint(flow.dst_ip, flow.dst_port, flow.dst_os, oui)
         rendered = RENDERERS[kind](flow, orig, resp, rng)
         result.packets.extend(rendered.packets)
