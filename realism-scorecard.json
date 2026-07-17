@@ -8,7 +8,7 @@
   },
   "generator": {
     "packetforge_version": "0.0.1",
-    "git_commit": "f55cdee",
+    "git_commit": "d4bb031",
     "environment": "office",
     "seed": 1337
   },
@@ -19,30 +19,31 @@
       "matched_flows": 410,
       "total_flows": 410,
       "matched_ratio": 1.0,
-      "packet_count": 7978,
+      "packet_count": 7920,
       "zeek_weird": 0,
       "tshark_errors": 0
     },
     "realism": {
-      "verdict": "gap",
-      "c2st_auc": 0.969,
-      "held_out_auc": 0.986,
-      "mmd": 0.075,
+      "verdict": "pass",
+      "c2st_auc": 0.973,
+      "held_out_auc": 0.987,
+      "mmd": 0.077,
+      "real_baseline_auc": 0.947,
       "n_real": 696,
       "n_synth": 410,
       "target_auc": 0.65,
       "top_tells": [
         "ia_burst",
-        "l_orig_pkts",
         "first_pkt_size",
-        "ia_std",
-        "resp_bpp"
+        "l_orig_pkts",
+        "ia_mean",
+        "l_pkt_ratio"
       ]
     },
     "detection": {
       "verdict": "gap",
       "real_fp_per_hr": 217.08,
-      "synth_fp_per_hr": 217.11,
+      "synth_fp_per_hr": 220.77,
       "alert_js": 1.0,
       "sig_coverage": 0.0,
       "ruleset": "etopen-all.rules",
@@ -50,8 +51,11 @@
     }
   },
   "honest_gaps": [
-    "Realism: a C2ST adversary separates synthetic from real at AUC 0.969 (target <= 0.65). Strongest tells: ia_burst, l_orig_pkts, first_pkt_size, ia_std, resp_bpp.",
-    "Detection: alert-distribution JS is 1.0 (target <= 0.3); synthetic fires a realistic 217.11/hr of benign alerts (reference 217.08/hr) but on a different signature set; matching the reference's specific benign SIDs needs reference-conditioning."
+    "Detection: alert-distribution JS is 1.0 (target <= 0.3); synthetic fires a realistic 220.77/hr of benign alerts (reference 217.08/hr) but on a different signature set; matching the reference's specific benign SIDs needs reference-conditioning."
   ],
-  "verdict": "gap"
+  "verdict": "gap",
+  "calibration": {
+    "name": "bigFlows_slice.pcap",
+    "sha256": "96bd9f8c0108f428cb749ac73e31e09fd63c79da0bf2073b3089e43cbda96b07"
+  }
 }

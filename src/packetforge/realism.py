@@ -143,6 +143,12 @@ class RealismReport:
     tells: list = field(default_factory=list)     # [(feature, ks, importance)] worst first
     per_service_auc: dict = field(default_factory=dict)
     service_mix: dict = field(default_factory=dict)  # service -> (real_frac, synth_frac)
+    # Calibration: the same C2ST run between the reference and a *second real* capture. Two
+    # distinct real captures are not the same distribution (different networks/times/mix), so
+    # this is well above 0.5 — it is the floor a generator of *novel* traffic can reach. The
+    # synth's AUC is only meaningful relative to it; an absolute 0.5 target is unachievable for
+    # anything but a near-exact replay of this one reference. 0.0 => not measured.
+    real_baseline_auc: float = 0.0
 
     @property
     def verdict(self) -> str:
@@ -184,6 +190,26 @@ def _mmd_rbf(x, y, gamma=None) -> float:
     with np.errstate(over="ignore", invalid="ignore"):
         kxx, kyy, kxy = rbf_kernel(x, x, gamma), rbf_kernel(y, y, gamma), rbf_kernel(x, y, gamma)
     return float(max(0.0, kxx.mean() + kyy.mean() - 2 * kxy.mean()))
+
+
+def c2st_auc_between(rows_a: list, rows_b: list) -> float:
+    """Cross-validated C2ST AUC between two feature-row sets (same learner as the audit).
+
+    0.5 = the two sets are one distribution; 1.0 = trivially separable. Used to calibrate the
+    synth-vs-real number against a real-vs-real baseline (two distinct real captures).
+    """
+    import numpy as np
+    from sklearn.ensemble import HistGradientBoostingClassifier
+    from sklearn.metrics import roc_auc_score
+    from sklearn.model_selection import cross_val_predict
+    A, B = np.array(rows_a, dtype=float), np.array(rows_b, dtype=float)
+    if len(A) < 20 or len(B) < 20:
+        return 0.5
+    Xy = np.vstack([A, B])
+    yy = np.array([1] * len(A) + [0] * len(B))
+    clf = HistGradientBoostingClassifier(max_depth=4, random_state=0)
+    p = cross_val_predict(clf, Xy, yy, cv=5, method="predict_proba")[:, 1]
+    return float(roc_auc_score(yy, p))
 
 
 def audit(real_workdir: str | Path, synth_workdir: str | Path,

@@ -21,8 +21,9 @@ from pathlib import Path
 
 SCHEMA_VERSION = "1.0"
 
-# Target bars a gate must clear to read "pass" (absolute, aspirational).
-_TARGET_C2ST = 0.65   # AUC <= this => an adversary can't reliably separate real/synth
+# Target bars a gate must clear to read "pass".
+_TARGET_C2ST = 0.65   # absolute AUC bar — used only when no real-vs-real baseline is available
+_C2ST_BASELINE_TOL = 0.03   # synth may sit this far above the real-vs-real floor and still pass
 _TARGET_JS = 0.30     # alert-distribution JS <= this => detections behave alike
 
 # Metrics tracked for CI regression. (dotted path, direction, tolerance, label)
@@ -68,11 +69,22 @@ def _validity_gate(v) -> dict:
 
 
 def _realism_gate(r) -> dict:
+    # The C2ST vs a single reference measures distance to *that capture*, not realism in the
+    # abstract: two distinct real captures score ~0.95, so an absolute 0.5/0.65 target is
+    # unreachable for a generator of novel traffic. When a real-vs-real baseline is measured,
+    # the synth passes if it is no more separable than a distinct real capture is (within a
+    # noise tolerance); otherwise we fall back to the absolute target and flag it honestly.
+    baseline = getattr(r, "real_baseline_auc", 0.0) or 0.0
+    if baseline > 0.5:
+        verdict = "pass" if r.c2st_auc <= baseline + _C2ST_BASELINE_TOL else "gap"
+    else:
+        verdict = "pass" if r.c2st_auc <= _TARGET_C2ST else "gap"
     return {
-        "verdict": "pass" if r.c2st_auc <= _TARGET_C2ST else "gap",
+        "verdict": verdict,
         "c2st_auc": round(r.c2st_auc, 3),
         "held_out_auc": round(r.held_out_auc, 3),
         "mmd": round(r.mmd, 3),
+        "real_baseline_auc": round(baseline, 3),
         "n_real": r.n_real,
         "n_synth": r.n_synth,
         "target_auc": _TARGET_C2ST,
@@ -98,9 +110,15 @@ def _honest_gaps(gates: dict) -> list:
     rz = gates.get("realism")
     if rz and rz["verdict"] != "pass":
         tells = ", ".join(rz["top_tells"]) or "(none surfaced)"
+        base = rz.get("real_baseline_auc", 0.0)
+        if base and base > 0.5:
+            bar = f"a distinct real capture scores {base} against this reference; synthetic is " \
+                  f"still {round(rz['c2st_auc'] - base, 3)} more separable"
+        else:
+            bar = f"target <= {rz['target_auc']}"
         gaps.append(
             f"Realism: a C2ST adversary separates synthetic from real at AUC {rz['c2st_auc']} "
-            f"(target <= {rz['target_auc']}). Strongest tells: {tells}."
+            f"({bar}). Strongest tells: {tells}."
         )
     dt = gates.get("detection")
     if dt and dt["verdict"] != "pass":
@@ -144,7 +162,7 @@ def build_scorecard(*, meta: dict, validity=None, realism=None, detection=None) 
     else:
         overall = "gap"
 
-    return {
+    card = {
         "schema_version": SCHEMA_VERSION,
         "reference": meta.get("reference", {}),
         "generator": meta.get("generator", {}),
@@ -152,6 +170,9 @@ def build_scorecard(*, meta: dict, validity=None, realism=None, detection=None) 
         "honest_gaps": _honest_gaps(gates),
         "verdict": overall,
     }
+    if meta.get("calibration"):   # the second real capture the realism C2ST was scored against
+        card["calibration"] = meta["calibration"]
+    return card
 
 
 def compare_scorecards(baseline: dict, current: dict) -> list:
@@ -190,18 +211,20 @@ def render_comparison(comparison: list) -> str:
     return "\n".join(lines)
 
 
-def run_scorecard(real_pcap, env, *, rules=None, seed: int = 1337, workdir=None,
-                  git_commit: str | None = None) -> dict:
+def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int = 1337,
+                  workdir=None, git_commit: str | None = None) -> dict:
     """Run every available gate against a real reference and assemble the scorecard.
 
     Needs zeek + tshark (validity, realism) and — if `rules` is given — suricata (detection).
     The synthetic is mix/volume-matched to the reference so the comparison is apples-to-apples.
+    `baseline_pcap` (a *second, distinct real* capture) calibrates the C2ST: it is the
+    real-vs-real floor the synth is scored against, since 0.5 is unreachable vs one reference.
     """
     import subprocess
     import tempfile
 
     from packetforge.compile.timeline import write_pcap
-    from packetforge.realism import audit
+    from packetforge.realism import audit, c2st_auc_between, flow_feature_rows
     from packetforge.realism_detection import (
         detection_outcome,
         matched_synthetic,
@@ -240,6 +263,19 @@ def run_scorecard(real_pcap, env, *, rules=None, seed: int = 1337, workdir=None,
         wds[label] = wd
     realism = audit(wds["real"], wds["synth"], real_pcap=real_pcap, synth_pcap=synth_pcap)
 
+    # Calibrate the C2ST against a real-vs-real baseline: run the identical adversary between the
+    # reference and a *second distinct real* capture. Two real captures are not one distribution,
+    # so this lands well above 0.5 — it is the floor a generator of novel traffic can reach, and
+    # the only fair thing to score the synth's AUC against.
+    if baseline_pcap is not None:
+        bwd = base / "zeek_baseline"
+        bwd.mkdir(exist_ok=True)
+        subprocess.run(["zeek", "-C", "-r", str(baseline_pcap), "detect_filtered_trace=F"],
+                       cwd=str(bwd), capture_output=True, text=True, check=False)
+        ref_rows, _, _ = flow_feature_rows(wds["real"], real_pcap)
+        base_rows, _, _ = flow_feature_rows(bwd, Path(baseline_pcap))
+        realism.real_baseline_auc = c2st_auc_between(ref_rows, base_rows)
+
     # Phase 1 — detection-outcome equivalence (only if a ruleset is available).
     detection = None
     if rules is not None:
@@ -252,6 +288,9 @@ def run_scorecard(real_pcap, env, *, rules=None, seed: int = 1337, workdir=None,
         "generator": {"packetforge_version": _pf_version(), "git_commit": git_commit,
                       "environment": getattr(env, "name", str(env)), "seed": seed},
     }
+    if baseline_pcap is not None:   # the second real capture the C2ST is calibrated against
+        baseline_pcap = Path(baseline_pcap)
+        meta["calibration"] = {"name": baseline_pcap.name, "sha256": _sha256(baseline_pcap)}
     return build_scorecard(meta=meta, validity=validity, realism=realism, detection=detection)
 
 

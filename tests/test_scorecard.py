@@ -24,8 +24,9 @@ def _validity(ok=True, matched=100, total=100):
                            packet_count=500, zeek_weird=0, tshark_errors=0)
 
 
-def _realism(auc=0.55, held=0.55):
+def _realism(auc=0.55, held=0.55, baseline=0.0):
     return SimpleNamespace(c2st_auc=auc, held_out_auc=held, mmd=1.2, n_real=200, n_synth=200,
+                           real_baseline_auc=baseline,
                            tells=[("first_window", 0.4, 0.3), ("conn_state", 0.3, 0.2)])
 
 
@@ -53,6 +54,36 @@ def test_gaps_are_named_not_smoothed_over():
     assert len(card["honest_gaps"]) == 2
     assert any("0.94" in g and "first_window" in g for g in card["honest_gaps"])
     assert any("JS is 1.0" in g for g in card["honest_gaps"])
+
+
+def test_realism_passes_when_within_the_real_vs_real_floor():
+    # AUC 0.97 is far above the absolute 0.65 bar, but a distinct real capture scores 0.95 against
+    # the reference — the synth is no more separable than real-vs-real, so the gate passes.
+    card = build_scorecard(meta=META, validity=_validity(),
+                           realism=_realism(0.97, baseline=0.95), detection=_detection(0.1))
+    assert card["gates"]["realism"]["verdict"] == "pass"
+    assert card["gates"]["realism"]["real_baseline_auc"] == 0.95
+    assert card["honest_gaps"] == []
+
+
+def test_realism_gaps_when_above_the_real_vs_real_floor():
+    card = build_scorecard(meta=META, validity=_validity(),
+                           realism=_realism(0.99, baseline=0.90), detection=_detection(0.1))
+    assert card["gates"]["realism"]["verdict"] == "gap"
+    assert any("distinct real capture scores 0.9" in g for g in card["honest_gaps"])
+
+
+def test_c2st_auc_between_calibrates_at_half_and_separates_distinct():
+    pytest.importorskip("sklearn", reason="needs the [realism] extra")
+    import numpy as np
+
+    from packetforge.realism import c2st_auc_between
+    rng = np.random.RandomState(0)
+    a = rng.normal(0, 1, size=(120, 6))
+    b_same = rng.normal(0, 1, size=(120, 6))     # same distribution -> ~0.5
+    b_far = rng.normal(4, 1, size=(120, 6))      # shifted -> separable
+    assert c2st_auc_between(a, b_same) < 0.65, "same distribution should look ~indistinguishable"
+    assert c2st_auc_between(a, b_far) > 0.9, "clearly different distributions should separate"
 
 
 def test_a_failing_validity_gate_fails_overall():

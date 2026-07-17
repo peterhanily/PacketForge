@@ -142,6 +142,9 @@ def _build_parser() -> argparse.ArgumentParser:
     sc.add_argument("--real", required=True, help="a real reference capture (.pcap)")
     sc.add_argument("--env", default="home", help="environment for the matched synthetic analog")
     sc.add_argument("--rules", default=None, help="Suricata ruleset (enables the detection gate)")
+    sc.add_argument("--calibrate", default=None, metavar="REAL2.pcap",
+                    help="a second distinct real capture; calibrates the C2ST against the "
+                         "real-vs-real floor (0.5 is unreachable vs one reference)")
     sc.add_argument("--seed", type=int, default=1337)
     sc.add_argument("--out", default=None, help="write the scorecard JSON here (default: stdout)")
     sc.add_argument("--check", default=None, metavar="BASELINE.json",
@@ -431,7 +434,7 @@ def _dispatch(args) -> int:
         commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
                                 capture_output=True, text=True, check=False).stdout.strip() or None
         card = run_scorecard(args.real, load_environment(args.env), rules=args.rules,
-                             seed=args.seed, git_commit=commit)
+                             baseline_pcap=args.calibrate, seed=args.seed, git_commit=commit)
         text = json.dumps(card, indent=2) + "\n"
         if args.out:
             Path(args.out).write_text(text, encoding="utf-8")
