@@ -39,7 +39,9 @@ from scapy.layers.tls.handshake import (
     TLSServerHelloDone,
     TLSServerKeyExchange,
 )
+from scapy.layers.tls.extensions import TLS_Ext_PSKKeyExchangeModes
 from scapy.layers.tls.keyexchange import ServerECDHNamedCurveParams
+from scapy.layers.tls.keyexchange_tls13 import KeyShareEntry, TLS_Ext_KeyShare_CH
 from scapy.layers.tls.record import TLSChangeCipherSpec
 
 from packetforge.compile.tcp import Endpoint, TcpMessage, build_tcp_flow
@@ -149,7 +151,10 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
     ext_types = list(profile["extensions"])
     if is13:
         cipher_list = _TLS13_CIPHERS + cipher_list
-        ext_types = ext_types + [43]  # supported_versions advertises 1.3
+        # A real TLS 1.3 ClientHello advertises supported_versions *and* key_share *and*
+        # psk_key_exchange_modes; a hello that carried only supported_versions (as this did)
+        # is not a shape any real client sends, and is trivially separable by a JA3/JA4 tool.
+        ext_types = ext_types + [43, 51, 45]
     if spec.alpn and 16 not in ext_types:
         ext_types.append(16)  # advertise ALPN even if the base profile omits it
     if grease:
@@ -160,6 +165,14 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
     for t in ext_types:
         if t == 43:
             exts.append(TLS_Ext_SupportedVersion_CH(versions=[0x0304, 0x0303]))
+        elif t == 51:
+            # key_share for the client's preferred group: an opaque but correctly-sized
+            # public key (x25519 -> 32 bytes; an EC point -> 0x04 || X || Y).
+            grp = int(profile["curves"][0])
+            kx = rng.randbytes(32) if grp == 29 else b"\x04" + rng.randbytes(64)
+            exts.append(TLS_Ext_KeyShare_CH(client_shares=[KeyShareEntry(group=grp, key_exchange=kx)]))
+        elif t == 45:
+            exts.append(TLS_Ext_PSKKeyExchangeModes(kxmodes=[1]))  # psk_dhe_ke
         else:
             exts.append(_build_extension(t, profile, spec.server_name, grease, alpn=spec.alpn))
     client_hello = TLSClientHello(

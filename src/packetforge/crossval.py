@@ -163,13 +163,27 @@ def _ja3_external(pcap: Path) -> list:
 
 
 def _internal_ja3_digests(flowset) -> set:
-    """The JA3 digests PacketForge intends for the TLS flows in a FlowSet."""
+    """The JA3 digests PacketForge intends for the TLS flows in a FlowSet.
+
+    Mirrors ``render_tls``: a TLS 1.3 hello prepends the 1.3 ciphers and advertises
+    supported_versions / key_share / psk_key_exchange_modes, and ALPN adds extension 16 —
+    so the computed digest matches the bytes an external JA3 tool reads off the wire.
+    """
     digests = set()
     for f in flowset.flows:
         if getattr(f.l7, "kind", "") == "tls":
+            if getattr(f.l7, "ja3", None):
+                continue  # explicit wire-JA3 override: not recomputed from a named profile
             prof = load_ja3_profile(f.l7.client_profile)
-            digests.add(ja3_hash(prof.get("tls_version", 771), prof["ciphers"],
-                                 prof["extensions"], prof["curves"], prof["point_formats"]))
+            ciphers = list(prof["ciphers"])
+            exts = list(prof["extensions"])
+            if getattr(f.l7, "version", "TLS1.2") == "TLS1.3":
+                ciphers = [4865, 4866, 4867] + ciphers
+                exts = exts + [43, 51, 45]
+            if getattr(f.l7, "alpn", None) and 16 not in exts:
+                exts.append(16)
+            digests.add(ja3_hash(prof.get("tls_version", 771), ciphers, exts,
+                                 prof["curves"], prof["point_formats"]))
     return digests
 
 

@@ -32,3 +32,6 @@ detection/etopen/
 
 # Keep the committed sample captures, their Zeek logs, and ground truth
 !samples/**
+
+# Real captured traffic from the local realism-probe harness — never committed
+/realcap/

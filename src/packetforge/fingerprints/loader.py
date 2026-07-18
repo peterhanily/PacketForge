@@ -57,7 +57,7 @@ def _load_tcp_profile(os_name: str) -> tuple:
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     # tuple so it's hashable/cacheable; rebuilt into an Endpoint per use.
     return (int(data["ttl"]), int(data["window"]), tuple(map(tuple, data["syn_options"])),
-            bool(data.get("tcp_timestamps", False)))
+            bool(data.get("tcp_timestamps", False)), str(data.get("ip_id", "random")))
 
 
 def load_ja3_profile(name: str) -> dict:
@@ -71,7 +71,7 @@ def load_ja3_profile(name: str) -> dict:
 
 def resolve_endpoint(ip: str, port: int, os_name: str, oui: str | None = None,
                      window: int | None = None, ttl: int | None = None) -> Endpoint:
-    p_ttl, p_window, raw_opts, timestamps = _load_tcp_profile(os_name)
+    p_ttl, p_window, raw_opts, timestamps, ip_id_mode = _load_tcp_profile(os_name)
     return Endpoint(
         ip=ip,
         port=port,
@@ -80,4 +80,5 @@ def resolve_endpoint(ip: str, port: int, os_name: str, oui: str | None = None,
         window=window if window is not None else p_window,
         syn_options=_to_scapy_options([list(o) for o in raw_opts]),
         timestamps=timestamps,
+        ip_id_mode=ip_id_mode,
     )

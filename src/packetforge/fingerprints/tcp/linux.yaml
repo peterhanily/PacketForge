@@ -8,3 +8,4 @@ syn_options:
   - [SAckOK, ""]
   - [NOP, null]
   - [WScale, 7]
+ip_id: zero

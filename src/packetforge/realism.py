@@ -32,7 +32,9 @@ from pathlib import Path
 # Rich, detection-relevant per-flow features derived from packet timing/size — the
 # cadence and packet-shape signal behavioural detection keys on, which conn.log misses.
 _PKT_FEATURES = ["ia_mean", "ia_std", "ia_burst", "pkt_size_mean", "pkt_size_std",
-                 "first_pkt_size", "first_ttl", "first_window"]
+                 "first_pkt_size", "first_ttl", "first_window",
+                 # L7 / fingerprint signal a JA3/JA4- or p0f-aware adversary keys on:
+                 "has_tcp_ts", "tls13", "ch_n_ciphers", "ch_n_exts", "ch_has_alpn"]
 
 
 def _flow_key(orig_h, orig_p, resp_h, resp_p):
@@ -40,7 +42,10 @@ def _flow_key(orig_h, orig_p, resp_h, resp_p):
 
 
 def _packet_features(pcap) -> dict:
-    """Per-flow (5-tuple) inter-arrival + packet-size stats read from the pcap via tshark."""
+    """Per-flow (5-tuple) features from the pcap via tshark: inter-arrival + packet-size
+    stats, plus the L7 / fingerprint signal a JA3/JA4- or p0f-aware adversary keys on —
+    TCP-timestamp presence and TLS ClientHello shape (version, cipher/extension counts,
+    ALPN) — which conn.log alone can't see."""
     if pcap is None:
         return {}
     out = subprocess.run(
@@ -48,11 +53,13 @@ def _packet_features(pcap) -> dict:
          "-e", "ip.src", "-e", "ipv6.src", "-e", "ip.dst", "-e", "ipv6.dst",
          "-e", "tcp.srcport", "-e", "udp.srcport", "-e", "tcp.dstport", "-e", "udp.dstport",
          "-e", "frame.time_epoch", "-e", "frame.len", "-e", "ip.ttl",
-         "-e", "tcp.window_size_value"],
+         "-e", "tcp.window_size_value", "-e", "tcp.options.timestamp.tsval",
+         "-e", "tls.handshake.type", "-e", "tls.handshake.ciphersuite",
+         "-e", "tls.handshake.extension.type"],
         capture_output=True, text=True, check=False).stdout
     flows: dict = {}
     for line in out.splitlines():
-        c = (line.split("\t") + [""] * 12)[:12]
+        c = (line.split("\t") + [""] * 16)[:16]
         src, dst = c[0] or c[1], c[2] or c[3]
         sport, dport = c[4] or c[5], c[6] or c[7]
         if not src or not dst:
@@ -62,9 +69,18 @@ def _packet_features(pcap) -> dict:
         except ValueError:
             continue
         f = flows.setdefault(_flow_key(src, sport, dst, dport),
-                             {"ts": [], "sz": [], "ttl": _f(c[10]), "win": _f(c[11])})
+                             {"ts": [], "sz": [], "ttl": _f(c[10]), "win": _f(c[11]),
+                              "has_ts": 0.0, "ciph": 0.0, "ext": 0.0, "alpn": 0.0, "v13": 0.0})
         f["ts"].append(t)
         f["sz"].append(ln)
+        if c[12]:                               # any segment carried a TCP timestamp
+            f["has_ts"] = 1.0
+        if "1" in c[13].split(","):             # a TLS ClientHello in this frame
+            exts = [x for x in c[15].split(",") if x]
+            f["ciph"] = float(len([x for x in c[14].split(",") if x]))
+            f["ext"] = float(len(exts))
+            f["alpn"] = 1.0 if "16" in exts else 0.0
+            f["v13"] = 1.0 if "43" in exts else 0.0  # supported_versions -> a real 1.3 hello
     feats: dict = {}
     for key, d in flows.items():
         ts, sz = sorted(d["ts"]), d["sz"]
@@ -75,7 +91,8 @@ def _packet_features(pcap) -> dict:
                       ia_std / ia_mean if ia_mean else 0.0,
                       statistics.mean(sz) if sz else 0.0,
                       statistics.pstdev(sz) if len(sz) > 1 else 0.0,
-                      float(sz[0]) if sz else 0.0, d["ttl"], d["win"]]
+                      float(sz[0]) if sz else 0.0, d["ttl"], d["win"],
+                      d["has_ts"], d["v13"], d["ciph"], d["ext"], d["alpn"]]
     return feats
 
 # Categorical conn_state values Zeek emits; one-hot so the classifier can use them.

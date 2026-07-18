@@ -10,3 +10,4 @@ syn_options:            # no explicit EOL: the timestamp is appended at render t
   - [NOP, null]
   - [NOP, null]
   - [SAckOK, ""]
+ip_id: random

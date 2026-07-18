@@ -3,12 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssh
-#open	2026-07-18-00-54-24
+#open	2026-07-18-02-04-25
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	auth_success	auth_attempts	direction	client	server	cipher_alg	mac_alg	compression_alg	kex_alg	host_key_alg	host_key_fingerprint
 #types	time	string	addr	port	addr	port	count	bool	count	enum	string	string	string	string	string	string	string	string
-1700000112.081609	C0eNzg2py7QQA3r9Ze	10.10.0.26	1120	10.10.0.23	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
-1700000128.699917	C8hayA4hoBwe4TVJqg	10.10.0.29	1138	10.10.0.30	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
-1700000169.317398	C0cjEK3Q8mRRxZkQ4c	10.10.0.31	1182	10.10.0.21	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
-1700000171.735407	ChxzYi1bCQXdqEzVJl	10.10.0.21	1192	10.10.0.25	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
-1700000173.173590	Cgd882y93ret0cPWh	10.10.0.26	1199	10.10.0.27	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
-#close	2026-07-18-00-54-24
+1700000004.329881	C0P41f13NYY3xNpE3k	10.10.0.29	1051	10.10.0.21	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+1700000024.871237	ClB64P3WpBgvta6G28	10.10.0.20	1083	10.10.0.21	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+1700000064.547817	C9UXfg2YIks3wtJwc7	10.10.0.28	1115	10.10.0.23	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+1700000159.440887	CpKwoD23wrbixkmg9k	10.10.0.21	1161	10.10.0.29	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+1700000170.265963	CaiJIu3zbv89Y8GX9g	10.10.0.26	1184	10.10.0.31	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+1700000200.031218	CjIkqL1s6Dybyn0Q3j	10.10.0.29	1217	10.10.0.27	22	2	-	0	-	SSH-2.0-OpenSSH_9.6	SSH-2.0-OpenSSH_9.6	chacha20-poly1305@openssh.com	umac-64-etm@openssh.com	none	curve25519-sha256	ssh-ed25519	-
+#close	2026-07-18-02-04-25

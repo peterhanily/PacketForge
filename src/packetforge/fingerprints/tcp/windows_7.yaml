@@ -12,3 +12,4 @@ syn_options:
   - [NOP, null]
   - [NOP, null]
   - [SAckOK, ""]
+ip_id: incremental

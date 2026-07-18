@@ -245,9 +245,14 @@ def _ambient_flow(env: Environment, service: str, clients: list, fid: str,
                   host_os: dict | None = None) -> Flow | None:
     client = rng.choice(clients)
     cstate = _benign_conn_state(rng)  # most flows succeed (SF); a realistic minority fail
+    # Internet-facing services (web, IRC) run on Linux, which enables TCP Timestamps;
+    # internal AD/file services keep the environment's server OS. So a TS-capable client
+    # negotiates timestamps only with the hosts that really would — matching real captures
+    # where macOS/Linux egress carries timestamps but a Windows-desktop LAN largely doesn't.
+    dst_os = "linux" if service in ("tls", "http", "irc") else env.default_server_os
     common = dict(flow_id=fid, src_ip=client, start_time=round(start, 6),
                   src_os=(host_os or {}).get(client, env.default_client_os),
-                  dst_os=env.default_server_os)
+                  dst_os=dst_os)
 
     if service == "dns":
         return Flow(**common, transport="udp", src_port=sport, dst_port=53,
@@ -263,8 +268,13 @@ def _ambient_flow(env: Environment, service: str, clients: list, fid: str,
     if service in ("tls", "http"):
         ip, name = rng.choice(_EXTERNAL)
         port = 443 if service == "tls" else 80
-        l7 = (TlsL7(server_name=name, client_profile=rng.choice(["generic_browser", "curl"]),
-                    app_data_resp_bytes=_resp_size(rng))
+        # Modern web is overwhelmingly TLS 1.3 with ALPN h2; a minority of endpoints still
+        # negotiate 1.2 (which also carries the server certificate in the clear). Two client
+        # profiles keep JA3 a real discriminator across the capture.
+        _prof = rng.choice(["generic_browser", "generic_browser", "curl"])
+        _ver = rng.choices(["TLS1.3", "TLS1.2"], weights=[4, 1])[0]
+        l7 = (TlsL7(server_name=name, client_profile=_prof, version=_ver,
+                    alpn=["h2", "http/1.1"], app_data_resp_bytes=_resp_size(rng))
               if service == "tls" else
               HttpL7(host=name, uri=rng.choice(["/", "/api/v1/status", "/index.html"]),
                      status=rng.choice([200, 200, 304, 404]), response_body_len=_resp_size(rng)))

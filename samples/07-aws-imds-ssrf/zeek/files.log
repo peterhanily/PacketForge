@@ -3,25 +3,24 @@
 #empty_field	(empty)
 #unset_field	-
 #path	files
-#open	2026-07-18-00-54-28
+#open	2026-07-18-02-04-28
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-1700000038.503441	F0incP23CdbNdc2rV4	CyjCly4o9jRHfYDDQc	172.31.0.27	1053	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	500	500	0	0	F	-	-	-	-	-	-	-
-1700000046.433573	FUq2eA2trfvEvcLCGh	Ch1Whf1Emtp5WaW90g	172.31.0.31	1079	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	696	696	0	0	F	-	-	-	-	-	-	-
-1700000052.198522	FZYdrY2mgjwj73hDh6	CQZH7C2Uh1S0vWLr7	172.31.0.30	1111	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	125956	125956	0	0	F	-	-	-	-	-	-	-
-1700000056.289439	FXJJFX1SIATSOwKzif	CXSNnG4HQfpzMT9gIc	172.31.0.20	1121	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	309	309	0	0	F	-	-	-	-	-	-	-
-1700000057.381261	FCw475IT5mMsHFRnf	CkAuMBEJQXOw7jt34	172.31.0.21	1123	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	263	263	0	0	F	-	-	-	-	-	-	-
-1700000062.032541	FKyngM3lxjG484uiCf	CEvQZdQhMLchzFIKk	172.31.0.22	1132	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1654	1654	0	0	F	-	-	-	-	-	-	-
-1700000090.446101	F2Oq2G2T1USqs6dldg	CkYNag3q7Rme3TQuCf	172.31.0.31	1135	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	125679	125679	0	0	F	-	-	-	-	-	-	-
-1700000092.543756	FydGIF4sbguS9YIlXf	Ctfvdm4LH7EWeyVapc	172.31.0.26	1141	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	187	187	0	0	F	-	-	-	-	-	-	-
-1700000100.067494	FW3XKe12rYJp1KoN7l	Cm2HiD4ki2ERTXmxGg	172.31.0.40	40000	169.254.169.254	80	HTTP	0	(empty)	text/html	-	0.000000	T	F	987	987	0	0	F	-	-	-	-	-	-	-
-1700000100.575439	FXPFkO2STwgYi9y9zf	Ca85x31StWcnbnXdAj	172.31.0.40	40001	169.254.169.254	80	HTTP	0	(empty)	text/html	-	0.000000	T	F	482	482	0	0	F	-	-	-	-	-	-	-
-1700000106.434033	FjkkMo1pdlhMLY2r76	Cp5syCNaWbzhQXTGd	172.31.0.28	1165	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	411	411	0	0	F	-	-	-	-	-	-	-
-1700000125.100250	FTsE2V3ihCuDdjPm65	CUyQNB4EkQANXkngu3	172.31.0.21	1177	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	382	382	0	0	F	-	-	-	-	-	-	-
-1700000146.507209	F1RRtb1qdz4XW3aZS2	CPL5MU3vbQN8Bjvxk7	172.31.0.28	1189	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	408	408	0	0	F	-	-	-	-	-	-	-
-1700000146.895889	F1B9Rg3Xd8IzIcS351	CnCeb72XC3fVDOjiIb	172.31.0.25	55003	104.16.132.229	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
-1700000147.666082	FHsPZ04r7pjtEilbfj	CKxcYX3yNdB65QqSa5	172.31.0.24	1192	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	561	561	0	0	F	-	-	-	-	-	-	-
-1700000150.219877	FzKcmi3nfzaipYeiQ4	Ca7TBC2q1nbIaJiNDc	172.31.0.30	55004	104.16.132.229	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
-1700000151.242109	Fys7sV20CBmAk91vX4	CFeDAZqEipTI4Exz9	172.31.0.29	55007	140.82.121.4	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
-1700000169.197109	F375yb264LQF7t0Vc	CAd3EQ3cpHeRbjLr2l	172.31.0.21	1207	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	459	459	0	0	F	-	-	-	-	-	-	-
-#close	2026-07-18-00-54-28
+1700000025.416937	Fhuwzt4qfhb0qogMG7	CYJJsat5gyBXz7fZc	172.31.0.26	1030	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	344	344	0	0	F	-	-	-	-	-	-	-
+1700000029.822761	FUpeFq21sTuy5Osfv6	C4u7C22j0aEqG7jy75	172.31.0.29	1038	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2295	2295	0	0	F	-	-	-	-	-	-	-
+1700000037.867995	FYXIAU3WhsZKt7TD2k	C7mjyT4cNjF9l9sE1	172.31.0.24	1052	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	38844	38844	0	0	F	-	-	-	-	-	-	-
+1700000046.153877	FTZWu53KGJE8OIUIH9	CAHeLK3OigQIMsbLg2	172.31.0.20	1078	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	305	305	0	0	F	-	-	-	-	-	-	-
+1700000050.310050	Fh9Vc73aiHY7CJeEVf	Ca0zma4tEnrJvBISNa	172.31.0.24	1104	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	65054	65054	0	0	F	-	-	-	-	-	-	-
+1700000050.697909	FWusqNVTmwvURGIb5	CUSrJt3SSCiHhT8sIl	172.31.0.25	1107	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2062	2062	0	0	F	-	-	-	-	-	-	-
+1700000051.637786	FOFZ0g47AmTZml8cL7	CvnZu42gJdx24axAK2	172.31.0.30	1108	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	294	294	0	0	F	-	-	-	-	-	-	-
+1700000075.726703	FrzipC1It6rugcxhnh	CIPVUDD1AGYHpWZfh	172.31.0.26	55003	140.82.121.4	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000099.916251	FcRauH1PW6ym8TVDN5	CHhLBc38BpaH9WalD7	172.31.0.28	1148	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	204	204	0	0	F	-	-	-	-	-	-	-
+1700000100.069974	FW3XKe12rYJp1KoN7l	CTLSdQ1P3Z8T3wxpdb	172.31.0.40	40000	169.254.169.254	80	HTTP	0	(empty)	text/html	-	0.000000	T	F	987	987	0	0	F	-	-	-	-	-	-	-
+1700000100.562820	FXPFkO2STwgYi9y9zf	CCRhHNQ8alveOyTCi	172.31.0.40	40001	169.254.169.254	80	HTTP	0	(empty)	text/html	-	0.000000	T	F	482	482	0	0	F	-	-	-	-	-	-	-
+1700000103.101937	FDMj7y3VdJ7ABlisnj	C39CUz7jNiMujVNo2	172.31.0.26	1149	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	244	244	0	0	F	-	-	-	-	-	-	-
+1700000104.767898	FFVHrKwXx3EnSAVVe	CtS4TU2CYLidNncXI6	172.31.0.30	1158	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	140	140	0	0	F	-	-	-	-	-	-	-
+1700000105.829763	FXVwYH17R8sPjzrwP4	CvBpml4zh9YJqI6fL8	172.31.0.28	1163	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	792	792	0	0	F	-	-	-	-	-	-	-
+1700000105.861529	Fsec9huvC7TQphi6l	C9709N2pUnfrIPZJTh	172.31.0.30	55005	104.16.132.229	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000129.116107	F3nvSV3r15fFNVVoV5	CyFnCtacgU6aEyvl5	172.31.0.24	1185	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	478	478	0	0	F	-	-	-	-	-	-	-
+1700000139.843306	F260Cp3I3vgwCPadC	C1ClMj2l1Rnf2Lar6j	172.31.0.29	55007	142.250.72.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-18-02-04-28

@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dce_rpc
-#open	2026-07-18-00-55-01
+#open	2026-07-18-02-04-58
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	rtt	named_pipe	endpoint	operation
 #types	time	string	addr	port	addr	port	interval	string	string	string
-1700000103.478052	CAk7Wr3nXmyXfntKE1	10.10.0.40	40001	10.10.0.41	445	0.105396	\\PIPE\\svcctl	svcctl	OpenSCManagerW
-1700000103.618524	CAk7Wr3nXmyXfntKE1	10.10.0.40	40001	10.10.0.41	445	0.105291	\\PIPE\\svcctl	svcctl	CreateServiceW
-1700000103.758035	CAk7Wr3nXmyXfntKE1	10.10.0.40	40001	10.10.0.41	445	0.105080	\\PIPE\\svcctl	svcctl	StartServiceW
-1700000103.895697	CAk7Wr3nXmyXfntKE1	10.10.0.40	40001	10.10.0.41	445	0.107727	\\PIPE\\svcctl	svcctl	CloseServiceHandle
-#close	2026-07-18-00-55-01
+1700000103.471445	CKamJ39ksZKV6eTXe	10.10.0.40	40001	10.10.0.41	445	0.107934	\\PIPE\\svcctl	svcctl	OpenSCManagerW
+1700000103.610582	CKamJ39ksZKV6eTXe	10.10.0.40	40001	10.10.0.41	445	0.112340	\\PIPE\\svcctl	svcctl	CreateServiceW
+1700000103.761727	CKamJ39ksZKV6eTXe	10.10.0.40	40001	10.10.0.41	445	0.109260	\\PIPE\\svcctl	svcctl	StartServiceW
+1700000103.909804	CKamJ39ksZKV6eTXe	10.10.0.40	40001	10.10.0.41	445	0.103355	\\PIPE\\svcctl	svcctl	CloseServiceHandle
+#close	2026-07-18-02-04-58

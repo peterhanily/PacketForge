@@ -28,6 +28,7 @@ def fragment_packets(packets: list, fragsize: int = 576) -> list:
         if Ether in p and IP in p and len(p[IP].payload) > frag:
             eth = p[Ether]
             for piece in fragment(p[IP], fragsize=frag):
+                piece.flags = int(piece.flags) & ~0x02  # a host that fragments has cleared DF
                 fr = Ether(src=eth.src, dst=eth.dst) / piece
                 fr.time = p.time
                 out.append(fr)

@@ -83,6 +83,7 @@ class Endpoint:
     # scapy TCP options list, e.g. [("MSS", 1460), ("SAckOK", b""), ("WScale", 7)].
     syn_options: list = field(default_factory=list)
     timestamps: bool = False  # emit the TCP Timestamps option (negotiated if both do)
+    ip_id_mode: str = "random"  # IPv4 IP-ID policy: random | incremental (Windows) | zero (Linux)
 
 
 @dataclass
@@ -183,7 +184,16 @@ def build_tcp_flow(
                False: rng.randint(1_000_000, 2_000_000_000)}  # keyed by from_orig
     ts_last = {True: 0, False: 0}
 
-    def _ipid() -> int:
+    # Per-endpoint IP-ID behaviour (a p0f-style OS tell): Windows increments a counter,
+    # modern Linux emits 0 with DF set (RFC 6864 atomic datagrams), macOS/others randomize.
+    ipid_ctr = {True: rng.randint(0, 0xFFFF), False: rng.randint(0, 0xFFFF)}
+
+    def _ipid(ep: Endpoint, from_orig: bool) -> int:
+        if ep.ip_id_mode == "zero":
+            return 0
+        if ep.ip_id_mode == "incremental":
+            ipid_ctr[from_orig] = (ipid_ctr[from_orig] + 1) & 0xFFFF
+            return ipid_ctr[from_orig]
         return rng.randint(0, 0xFFFF)
 
     def frame(from_orig: bool, flags: str, seq: int, ack: Optional[int],
@@ -204,7 +214,8 @@ def build_tcp_flow(
         if _is_v6:
             l3 = IPv6(src=s.ip, dst=d.ip, hlim=s.ttl)
         else:
-            l3 = IP(src=s.ip, dst=d.ip, id=_ipid(), ttl=s.ttl)
+            # Modern stacks set DF (PMTUD); it also makes Linux's IP-ID 0 well-formed.
+            l3 = IP(src=s.ip, dst=d.ip, id=_ipid(s, from_orig), ttl=s.ttl, flags="DF")
         p = Ether(src=s.mac, dst=d.mac) / l3 / tcp
         if payload:
             p = p / Raw(payload)

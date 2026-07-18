@@ -34,7 +34,9 @@ $ zeek -r incident.pcap && ls *.log
 conn.log dns.log http.log ssl.log smtp.log ldap.log smb_mapping.log ...
 ```
 
-`incident.pcap` opens in Wireshark; `incident.GROUND_TRUTH.md` is the answer key.
+`incident.pcap` opens in Wireshark; `incident.GROUND_TRUTH.md` is the answer key. (`eval`'s
+score is a heuristic floor — see [How realistic is it, really?](#how-realistic-is-it-really) for
+the honest C2ST verdict.)
 
 ## What's in it
 
@@ -65,8 +67,9 @@ conn.log dns.log http.log ssl.log smtp.log ldap.log smb_mapping.log ...
 - **Detection-CI bundles** (`packetforge bundle`) — the pcap ships with the exact Zeek logs it
   produces, the ATT&CK ground truth, and a consistency manifest: grade a rule against the
   bundle without re-deriving anything.
-- **A blind-panel evaluator** (`packetforge eval`) — a heuristic adversary that scores a
-  capture for the tells analysts actually look for.
+- **A blind-panel evaluator** (`packetforge eval`) — a heuristic floor (parseability, timing,
+  MAC/TTL plausibility), not the realism verdict. The real question — *can a classifier tell
+  ours from real?* — is measured by the C2ST audit below, which is honest about where it can.
 
 ## Try it
 
@@ -114,6 +117,24 @@ renders a pcap, and diffs our Zeek against EF's own logs. On the branch-office
 scenario (all ~6,500 flows): clean capture, proto/service ~100%, DNS/HTTP/TLS IOC
 fields 100%, conn_state 99%, exact byte counts for analyzer-free flows —
 [`docs/DESIGN.md`](docs/DESIGN.md) §11.
+
+## How realistic is it, really?
+
+Two different claims, kept separate on purpose:
+
+- **Consistency — proven.** Packets and logs derive from one event and real Zeek reproduces
+  the declared fields; the round-trip is a pass/fail gate. As a **consistency / detection-CI
+  harness**, that's the solid, load-bearing use case.
+- **Indistinguishable-from-real — measured, with a known gap.** `packetforge realism-audit`
+  runs a cross-validated **C2ST** (a gradient-boosted adversary) against a real reference, and
+  `realism-scorecard` versions the result. Today's verdict is **`gap`**: benign ambient traffic
+  passes *within a real-vs-real band* on flow-level features, but detection-surface behavior and
+  L7 fingerprint fidelity (e.g. TLS ClientHello shape) still separate synthetic from real. The
+  method and current numbers are in [`docs/realism-scorecard.md`](docs/realism-scorecard.md) — read
+  it before using this to argue a detection would fire on *real* malware.
+
+Treat the tool as a consistency/CI harness that is *becoming* a realistic-traffic generator, not
+one that claims to be there yet.
 
 ## Status
 
