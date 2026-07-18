@@ -1,0 +1,38 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http
+#open	2026-07-18-00-54-19
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1700000011.781552	CqbcwP3d89QV3fuosj	10.10.0.24	1032	13.107.42.14	80	1	GET	portal.example.io	/index.html	-	1.1	Mozilla/5.0	-	0	467	200	OK	-	-	(empty)	-	-	-	-	-	-	FWglCO3wT7B3LkDwdc	-	text/html
+1700000015.395342	CJla1t1Fw93oeHr8qf	10.10.0.23	1046	13.107.42.14	80	1	GET	portal.example.io	/index.html	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000016.916589	CAMkct2g0sKDjzgyzi	10.10.0.31	1052	151.101.1.140	80	1	GET	assets.example.co	/index.html	-	1.1	Mozilla/5.0	-	0	1296	200	OK	-	-	(empty)	-	-	-	-	-	-	FQByDY2dhvqinRSRbb	-	text/html
+1700000020.404786	C8xpa64jgRUU816cS2	10.10.0.23	1065	152.199.19.161	80	1	GET	cdn.example.net	/	-	1.1	Mozilla/5.0	-	0	1486	404	Not Found	-	-	(empty)	-	-	-	-	-	-	Fo77se3ZSd4Ym9Xb7c	-	text/html
+1700000031.547700	COogLc3ebugfO7mJK2	10.10.0.29	55000	13.107.42.14	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	FVmbfT1gtgFpO2O8Hi	-	text/plain
+1700000036.311676	CwLqud1wTHeCYoh0k8	10.10.0.20	1075	13.107.42.14	80	1	GET	portal.example.io	/api/v1/status	-	1.1	Mozilla/5.0	-	0	160	200	OK	-	-	(empty)	-	-	-	-	-	-	F2Sk8m2aVgiGw2JEpc	-	text/html
+1700000038.347643	CYG9N63fFUeRVxzXV8	10.10.0.30	1078	152.199.19.161	80	1	GET	cdn.example.net	/	-	1.1	Mozilla/5.0	-	0	253	200	OK	-	-	(empty)	-	-	-	-	-	-	FSifdr0IoSUx6NBFh	-	text/html
+1700000056.265695	CVH5AO37krjgC2PEsl	10.10.0.27	1084	13.107.42.14	80	1	GET	portal.example.io	/	-	1.1	Mozilla/5.0	-	0	68	200	OK	-	-	(empty)	-	-	-	-	-	-	Fguidg48MLJxL769Qd	-	text/html
+1700000062.532174	Ck3wjE2Abjx0zm9oCb	10.10.0.29	1104	13.107.42.14	80	1	GET	portal.example.io	/index.html	-	1.1	Mozilla/5.0	-	0	97	200	OK	-	-	(empty)	-	-	-	-	-	-	FUc3Pk2KRSWzlLfWUl	-	text/html
+1700000067.601914	CoEIizBNj8TGuNfA1	10.10.0.26	1109	142.250.72.14	80	1	GET	www.example.org	/index.html	-	1.1	Mozilla/5.0	-	0	544	200	OK	-	-	(empty)	-	-	-	-	-	-	FEITfCxkyterfJDx4	-	text/html
+1700000078.093938	CPWdwB2JO4cEQsm9Zf	10.10.0.29	55004	140.82.121.4	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	F8dpmC9uu7ENLE8V6	-	text/plain
+1700000082.460179	C0sjJ14BaSBPpp13Ce	10.10.0.25	1114	142.250.72.14	80	1	GET	www.example.org	/	-	1.1	Mozilla/5.0	-	0	867	200	OK	-	-	(empty)	-	-	-	-	-	-	FpM4W44pYp4PnI2LS4	-	text/html
+1700000082.889869	CTp2ET2fJ15AO0oUii	10.10.0.29	1116	140.82.121.4	80	1	GET	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	0	123	200	OK	-	-	(empty)	-	-	-	-	-	-	F71dLm3W4gcG9LN6B6	-	text/html
+1700000085.059227	CFG7q11vRaBg7O9Jg5	10.10.0.26	1122	104.16.132.229	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	373	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FFFz7z1qvloGyy2ECk	-	text/html
+1700000090.149241	C7DfMO1U7qPpCfugK3	10.10.0.31	1125	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	33	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FPrnWg3nJakT3ghm46	-	text/plain
+1700000095.735717	C77qsy2BTxM15ARThb	10.10.0.20	1132	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000125.326766	CJV8gU2FnR9Z2TPSvk	10.10.0.28	1143	140.82.121.4	80	1	GET	api.github.com	/	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000129.551036	CZOcsj4WXsNnb6t6da	10.10.0.31	1151	151.101.1.140	80	1	GET	assets.example.co	/index.html	-	1.1	Mozilla/5.0	-	0	149	200	OK	-	-	(empty)	-	-	-	-	-	-	FthU3R28JqtrGZCNs5	-	text/html
+1700000131.988786	CQDIq43oyHV8XGRKfc	10.10.0.29	1153	140.82.121.4	80	1	GET	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	0	72	200	OK	-	-	(empty)	-	-	-	-	-	-	Fw2T7I1LN4XYIqKPN4	-	text/html
+1700000133.149252	CFR3qaerpsyjfhyY6	10.10.0.24	1154	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1570	200	OK	-	-	(empty)	-	-	-	-	-	-	FIZfE7zQlQOWowQk8	-	text/html
+1700000160.554832	CQOGoMyfXcLQmSFAd	10.10.0.25	1183	151.101.1.140	80	1	GET	assets.example.co	/index.html	-	1.1	Mozilla/5.0	-	0	87	200	OK	-	-	(empty)	-	-	-	-	-	-	FtzB7l1g7PwiqhhiB4	-	text/html
+1700000161.723646	CqBStRcNqIGyePEO	10.10.0.20	55007	13.107.42.14	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	FgMDC428590G8jYJfi	-	text/plain
+1700000163.509240	ClWzVc34dCJMXSz5L2	10.10.0.26	1189	142.250.72.14	80	1	GET	www.example.org	/	-	1.1	Mozilla/5.0	-	0	4060	200	OK	-	-	(empty)	-	-	-	-	-	-	Fqu3vb3iMMS5c7qom7	-	text/html
+1700000164.427874	CiRiHE45HB4CYT0qO3	10.10.0.31	1191	140.82.121.4	80	1	GET	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	0	1222	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FTbduy31flDdG6r7fa	-	text/html
+1700000164.612174	CDtatM2Gzfi7GHKEqk	10.10.0.31	1193	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	317	200	OK	-	-	(empty)	-	-	-	-	-	-	F1YOd717rmyNIHxmX2	-	text/html
+1700000168.418866	CRjaEn3qwWgaRNqv45	10.10.0.22	1198	140.82.121.4	80	1	GET	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1036	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FE3KAn2EL8DrlG3eu2	-	text/html
+1700000168.793460	C7sOSS1CaQQBzQFt4a	10.10.0.28	1199	142.250.72.14	80	1	GET	www.example.org	/	-	1.1	Mozilla/5.0	-	0	243	200	OK	-	-	(empty)	-	-	-	-	-	-	F5htqR3JTNqiwvIyj6	-	text/html
+1700000176.810851	CgawaUe2tqCZWCTa1	10.10.0.27	1202	152.199.19.161	80	1	GET	cdn.example.net	/api/v1/status	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000182.383156	CmM9ZI3HCRA3q8dBT8	10.10.0.22	1210	140.82.121.4	80	1	GET	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	76701	200	OK	-	-	(empty)	-	-	-	-	-	-	Funi6Q3t3RWqYugx0h	-	text/html
+#close	2026-07-18-00-54-19

@@ -1,0 +1,89 @@
+{
+  "title": "Cloud-storage exfil in azure-vnet",
+  "iocs": {
+    "victim": "10.1.0.40",
+    "provider": "azure",
+    "storage": "exfilstg.blob.core.windows.net"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Exfiltration",
+      "technique": "T1567.002 Exfiltration to Cloud Storage",
+      "flows": [
+        "atk-cx-dns",
+        "atk-cx-00",
+        "atk-cx-01",
+        "atk-cx-02",
+        "atk-cx-03",
+        "atk-cx-04",
+        "atk-cx-05"
+      ],
+      "description": "6 large HTTPS uploads from 10.1.0.40 to AZURE cloud storage (exfilstg.blob.core.windows.net) \u2014 data staged out through a trusted cloud endpoint.",
+      "iocs": {
+        "victim": "10.1.0.40",
+        "provider": "azure",
+        "storage": "exfilstg.blob.core.windows.net",
+        "expected_signal": "ssl.log server_name=exfilstg.blob.core.windows.net with large orig_bytes (upload-heavy)"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-cx-dns",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "168.63.129.16",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-00",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-01",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-02",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-03",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-04",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    },
+    {
+      "flow_id": "atk-cx-05",
+      "src_ip": "10.1.0.40",
+      "dst_ip": "203.0.113.90",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1567.002 Exfiltration to Cloud Storage"
+    }
+  ]
+}

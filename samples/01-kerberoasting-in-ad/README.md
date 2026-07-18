@@ -1,20 +1,13 @@
-# Kerberoasting in benign AD
+# Kerberoasting in Active Directory (T1558.003)
 
-An office network humming with normal Kerberos authentication, into which one principal
-runs a **Kerberoasting** burst: a run of TGS requests for service SPNs, each forcing
-**RC4-HMAC** so the tickets are offline-crackable.
+Synthetic, inert, deterministic — fake traffic with true labels; no real hosts, credentials,
+malware, or documents. Opens in Wireshark; the `zeek/` logs are what real Zeek 8.2 derives.
 
 **What to look for**
-- `zeek/kerberos.log` — the tell is the `cipher` column. Benign auth is
-  `aes256-cts-hmac-sha1-96`; the roast stands out as **`rc4-hmac`** on TGS requests
-  (here: 8 RC4 TGS standing out among the surrounding benign AES exchanges). No IOC
-  needed — it's the enctype.
-- `GROUND_TRUTH.md` — the malicious flows and the ATT&CK technique (T1558.003).
-- `zeek/x509.log`, `ssl.log`, `smb_mapping.log`, `ldap.log` — the ambient AD noise a
-  hunter has to separate the roast from.
+- `zeek/kerberos.log`: a normal AES TGT, then a burst of TGS-REQs each forcing **RC4** (`cipher=rc4-hmac`) for distinct SPNs — the offline-crackable downgrade. The fingerprint + burst is the tell, not any IOC.
+- Answer key: [`GROUND_TRUTH.md`](GROUND_TRUTH.md) — the labelled ATT&CK ground truth
 
 **Reproduce**
 ```
-packetforge scenario --env office --volume normal --texture realistic \
-  --attack kerberoasting --seed 11 -o capture.pcap
+scripts/make-samples.sh   # office AD noise + a Kerberoasting burst
 ```

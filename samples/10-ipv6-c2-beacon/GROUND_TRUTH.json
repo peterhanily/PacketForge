@@ -1,0 +1,90 @@
+{
+  "title": "IPv6 C2 beaconing in office",
+  "iocs": {
+    "victim": "2001:db8:1::40",
+    "c2_domain": "cdn.telemetry-sync.example",
+    "c2_ip": "2606:4700:8ac0::66"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Command and Control",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)",
+      "flows": [
+        "atk-6-dns",
+        "atk-6-beacon-00",
+        "atk-6-beacon-01",
+        "atk-6-beacon-02",
+        "atk-6-beacon-03",
+        "atk-6-beacon-04",
+        "atk-6-beacon-05"
+      ],
+      "description": "HTTPS beaconing to cdn.telemetry-sync.example (2606:4700:8ac0::66) over IPv6 \u2014 a v4-only detection misses it.",
+      "iocs": {
+        "victim": "2001:db8:1::40",
+        "c2_domain": "cdn.telemetry-sync.example",
+        "c2_ip": "2606:4700:8ac0::66",
+        "family": "ipv6",
+        "expected_signal": "ssl.log to 2606:4700:8ac0::66 (IPv6) with a curl JA3 at ~60s cadence"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-6-dns",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-00",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-01",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-02",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-03",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-04",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    },
+    {
+      "flow_id": "atk-6-beacon-05",
+      "src_ip": "2001:db8:1::40",
+      "dst_ip": "2606:4700:8ac0::66",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)"
+    }
+  ]
+}

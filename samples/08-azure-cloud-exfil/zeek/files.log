@@ -1,0 +1,24 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2026-07-18-00-54-33
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+1700000045.718463	F35RLjriW9sJQuTb1	C9g5C34VRAUznls5We	10.1.0.25	1058	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	408	408	0	0	F	-	-	-	-	-	-	-
+1700000045.814901	Fxs2XC1hnQCxJxxDG1	CO4Mg92LVEK1t1pnj3	10.1.0.26	1059	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	642	642	0	0	F	-	-	-	-	-	-	-
+1700000053.782971	FOz8f34F8OqWjcQ8h6	CkkMph3UztvPrLd4a	10.1.0.26	1082	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	147110	147110	0	0	F	-	-	-	-	-	-	-
+1700000065.307599	FoONrG1e3UVzRWgyU6	C4TqFS2VA3QXqokqYl	10.1.0.30	1106	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	130	130	0	0	F	-	-	-	-	-	-	-
+1700000068.439993	FpUIqJ23v4lhmdz2e6	CcygeR3CaAWuoidW8k	10.1.0.24	1109	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	165879	165879	0	0	F	-	-	-	-	-	-	-
+1700000072.639587	FR9lnsb1W7WqEnVYj	CWNbit2OxECNaFekib	10.1.0.29	1130	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	4757	4757	0	0	F	-	-	-	-	-	-	-
+1700000073.137434	FplghYuRTKhTSMUR6	CZapAoLoFQZbSv4c5	10.1.0.24	1132	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	40682	40682	0	0	F	-	-	-	-	-	-	-
+1700000073.673525	F3kFY82Doc16Mcrsu9	C5lEZz2IBf1wSdzxmj	10.1.0.31	1138	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	31829	31829	0	0	F	-	-	-	-	-	-	-
+1700000074.102355	FqIEsg2rV32gxinys4	CEmIMP1VUE0PM0rnBj	10.1.0.23	1145	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2962	2962	0	0	F	-	-	-	-	-	-	-
+1700000079.003844	F1BCpbgl6XaBInkX6	C4Ckkl3cRrJ0xsuEUh	10.1.0.24	1156	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	127	127	0	0	F	-	-	-	-	-	-	-
+1700000135.710002	FmnKk22kNsGSDipvgc	CDPDy74yusQgF0iO85	10.1.0.22	1179	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	70	70	0	0	F	-	-	-	-	-	-	-
+1700000158.723305	FzdvMF4SLP8hcvmKg	CFRVc3258q8QH8eJPg	10.1.0.27	55008	13.107.42.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000176.673142	FPzcNc1h8mYtjlVRej	CtDgya2GyQu7NakKWh	10.1.0.26	1200	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	293107	293107	0	0	F	-	-	-	-	-	-	-
+1700000181.928973	F2AShu4k121dutKDT9	CErdmU1UEmjXo3ig27	10.1.0.28	1211	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	12029	12029	0	0	F	-	-	-	-	-	-	-
+1700000195.216695	FaO8gU3vLuIWhxnOh6	Cpeyat28f6i4M3cTje	10.1.0.23	55009	152.199.19.161	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-18-00-54-33

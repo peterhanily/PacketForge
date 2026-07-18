@@ -1,0 +1,15 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	smb_mapping
+#open	2026-07-18-00-54-52
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	path	service	native_file_system	share_type
+#types	time	string	addr	port	addr	port	string	string	string	string
+1700000073.104323	CVV74K3Hsnt6XHGaIa	10.10.0.26	1037	10.10.0.25	445	\\\\FILESRV\\Share	-	-	DISK
+1700000083.214432	CTUv1J1fluPEXFe4ah	10.10.0.24	1041	10.10.0.29	445	\\\\FILESRV\\Share	-	-	DISK
+1700000268.172491	CCCpHH2APAso592mPd	10.10.0.30	1072	10.10.0.29	445	\\\\FILESRV\\Share	-	-	DISK
+1700000563.247917	Ct7jpW330C9UwlGryf	10.10.0.28	1088	10.10.0.25	445	\\\\FILESRV\\Share	-	-	DISK
+1700000569.613527	C41XhM7MRFPA40ONj	10.10.0.25	1090	10.10.0.21	445	\\\\FILESRV\\Share	-	-	DISK
+1700000580.902780	CZYWiw2H2tHUJvmTAl	10.10.0.22	1094	10.10.0.21	445	\\\\FILESRV\\Share	-	-	DISK
+#close	2026-07-18-00-54-52

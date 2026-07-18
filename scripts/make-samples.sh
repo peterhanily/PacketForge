@@ -1,72 +1,174 @@
 #!/usr/bin/env bash
-# Regenerate the sample captures under samples/ (deterministic). Needs zeek + tshark.
+# Regenerate the sample gallery under samples/ (deterministic). Needs zeek + tshark.
 #
-# Each sample folder keeps its hand-written README.md; this script regenerates the data:
-# capture.pcap, the real Zeek logs it produces (zeek/), and — for attacks — GROUND_TRUTH.*.
+# Each sample folder holds a generated capture.pcap, the real Zeek logs it produces (zeek/),
+# a short README, and — for attacks — a GROUND_TRUTH answer key. The gallery is a tour of what
+# PacketForge can render: classic AD/OT attacks, the lateral-movement and AiTM packs, cloud
+# (AWS/Azure + Kubernetes), IPv6, encrypted-DNS, multi-vantage capture, VXLAN mirroring, and
+# IDS-evasion fragmentation.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PYTHONPATH=src
 PY="${PYTHON:-.venv/bin/python}"
 
-zeek_of() {  # dir -> regenerate its zeek/ logs from capture.pcap (traffic logs only)
-  local dir=$1
+rm -rf samples/[0-9]*        # renumbered gallery — clear the old set first
+
+zeek_of() {  # dir [pcap] -> regenerate zeek/ from a capture (traffic logs only)
+  local dir=$1 pcap=${2:-capture.pcap}
   rm -rf "$dir/zeek"; mkdir -p "$dir/zeek"
-  ( cd "$dir/zeek" && zeek -C -r ../capture.pcap detect_filtered_trace=F )
-  # drop Zeek's diagnostic logs — they carry no traffic and analyzer.log embeds Zeek's
-  # own build path. Keep only the protocol logs a hunter reads.
+  ( cd "$dir/zeek" && zeek -C -r "../$pcap" detect_filtered_trace=F )
   rm -f "$dir/zeek/analyzer.log" "$dir/zeek/packet_filter.log" "$dir/zeek/reporter.log"
 }
 
-tidy_ground_truth() {  # scenario writes <base>.GROUND_TRUTH.*; samples want GROUND_TRUTH.*
+tidy_gt() {  # <base>.GROUND_TRUTH.* -> GROUND_TRUTH.*
   local dir=$1
   for ext in md json; do
-    if [ -f "$dir/capture.GROUND_TRUTH.$ext" ]; then
-      mv -f "$dir/capture.GROUND_TRUTH.$ext" "$dir/GROUND_TRUTH.$ext"
-    fi
-  done  # note: an `&& mv` one-liner returns 1 for no-attack samples and trips `set -e`
+    [ -f "$dir/capture.GROUND_TRUTH.$ext" ] && mv -f "$dir/capture.GROUND_TRUTH.$ext" "$dir/GROUND_TRUTH.$ext" || true
+  done
 }
 
-scenario() {  # dir, env, args...
+readme() {  # dir title lookfor reproduce
+  local dir=$1 title=$2 lookfor=$3 repro=$4 gt=""
+  [ -f "samples/$dir/GROUND_TRUTH.md" ] && gt=$'\n- Answer key: [`GROUND_TRUTH.md`](GROUND_TRUTH.md) — the labelled ATT&CK ground truth'
+  cat > "samples/$dir/README.md" <<EOF
+# $title
+
+Synthetic, inert, deterministic — fake traffic with true labels; no real hosts, credentials,
+malware, or documents. Opens in Wireshark; the \`zeek/\` logs are what real Zeek 8.2 derives.
+
+**What to look for**
+$lookfor$gt
+
+**Reproduce**
+\`\`\`
+$repro
+\`\`\`
+EOF
+}
+
+scenario() {  # dir env args...
   local dir=$1 env=$2; shift 2
   mkdir -p "samples/$dir"
-  # A short ambient window keeps the tour captures small; realistic per-minute volume and
-  # the full generator (heavy-tailed sizes, benign-FP surface, failures) are unchanged.
-  "$PY" -m packetforge scenario --env "$env" --duration 200 "$@" -o "samples/$dir/capture.pcap"
-  tidy_ground_truth "samples/$dir"
-  zeek_of "samples/$dir"
+  "$PY" -m packetforge scenario --env "$env" --duration 200 "$@" -o "samples/$dir/capture.pcap" >/dev/null
+  tidy_gt "samples/$dir"; zeek_of "samples/$dir"
 }
 
-compile() {  # dir, flowspec
-  local dir=$1 spec=$2
-  mkdir -p "samples/$dir"
-  "$PY" -m packetforge compile "$spec" -o "samples/$dir/capture.pcap"
-  zeek_of "samples/$dir"
-}
+# --------------------------------------------------------------------------- #
+# 1. Attack storylines — the classic ATT&CK-mapped kill chains.               #
+# --------------------------------------------------------------------------- #
+scenario 01-kerberoasting-in-ad office --volume normal --texture realistic --attack kerberoasting --seed 11
+readme 01-kerberoasting-in-ad "Kerberoasting in Active Directory (T1558.003)" \
+"- \`zeek/kerberos.log\`: a normal AES TGT, then a burst of TGS-REQs each forcing **RC4** (\`cipher=rc4-hmac\`) for distinct SPNs — the offline-crackable downgrade. The fingerprint + burst is the tell, not any IOC." \
+"scripts/make-samples.sh   # office AD noise + a Kerberoasting burst"
 
-beacon_reference() {  # dir -> the JA3-fingerprinted C2 reference (office noise + beacons)
-  local dir=$1
-  mkdir -p "samples/$dir"
-  "$PY" - "$dir" <<'PY'
-import sys
+scenario 02-phishing-kill-chain office --volume normal --texture realistic --attack phishing-intrusion --seed 7
+readme 02-phishing-kill-chain "Phishing to exfiltration — a full kill chain (T1566 -> T1048)" \
+"- The \`atk-*\` flows across \`smtp/dns/ssl/ldap/smb/http\` logs: phishing email -> HTTPS C2 beacons (non-browser JA3, fixed cadence) -> LDAP/SMB discovery -> ADMIN\$ lateral -> a 45 KB HTTP POST exfil." \
+"scripts/make-samples.sh   # the reference intrusion woven into office noise"
+
+scenario 03-ransomware-smb-theft office --volume normal --attack ransomware --seed 5
+readme 03-ransomware-smb-theft "Ransomware mass SMB document theft (T1486)" \
+"- \`zeek/smb_files.log\`: ~80 documents read off the share in a rapid sweep — each carved and extractable via Wireshark 'Export Objects > SMB' (inert filler content in real containers)." \
+"scripts/make-samples.sh   # office noise + a mass-SMB encryption sweep"
+
+scenario 04-dns-tunnel-exfil office --volume normal --attack dns-exfil --seed 3
+readme 04-dns-tunnel-exfil "DNS tunnelling exfiltration (T1048.003)" \
+"- \`zeek/dns.log\`: dozens of long base32-encoded subdomains under one parent, NXDOMAIN — the query length + volume + entropy is the signal." \
+"scripts/make-samples.sh   # a DNS-tunnel burst in office noise"
+
+scenario 05-bzar-lateral-movement office --volume normal --attack psexec-lateral --seed 6
+readme 05-bzar-lateral-movement "PsExec-style lateral movement — the BZAR pack (T1021.002 / T1569.002)" \
+"- \`zeek/dce_rpc.log\`: svcctl \`CreateServiceW\`/\`StartServiceW\` over a named pipe, plus an ADMIN\$ file write in \`smb_files.log\` — the combination MITRE **BZAR** raises \`ATTACK::Lateral_Movement_and_Execution\` on. Inert: the RPC argument stubs are zero filler, never a service binary or command." \
+"scripts/make-samples.sh   # remote service creation + admin-share tool drop"
+
+scenario 06-llmnr-poisoning office --volume normal --attack llmnr-poisoning --seed 4
+readme 06-llmnr-poisoning "LLMNR/NBT-NS poisoning -> NTLM (Responder-style, T1557.001)" \
+"- \`zeek/dns.log\`: LLMNR queries (incl. \`wpad\`) answered by a rogue host claiming **its own IP** — then the victim authenticates to that host over SMB. The tell is an LLMNR answer of a workstation IP from a non-DNS host, followed by SMB to it." \
+"scripts/make-samples.sh   # a broadcast-name poisoning + SMB auth capture"
+
+# --------------------------------------------------------------------------- #
+# 2. Cloud & modern — AWS/Azure, Kubernetes, IPv6, encrypted DNS.             #
+# --------------------------------------------------------------------------- #
+scenario 07-aws-imds-ssrf aws-vpc --volume normal --attack imds-ssrf --seed 6
+readme 07-aws-imds-ssrf "AWS IMDS credential theft via SSRF (T1552.005 — the Capital One shape)" \
+"- \`zeek/http.log\`: HTTP to the link-local metadata service **169.254.169.254** on \`/latest/meta-data/iam/security-credentials/...\` — instance-role credential theft. Captured host-side (Linux SLL, the realistic cloud vantage)." \
+"scripts/make-samples.sh   # aws-vpc: an instance pulling its IAM credentials off IMDS"
+
+scenario 08-azure-cloud-exfil azure-vnet --volume normal --attack cloud-exfil --seed 6
+readme 08-azure-cloud-exfil "Exfiltration to Azure Blob storage (T1567.002)" \
+"- \`zeek/ssl.log\`: large HTTPS uploads to \`*.blob.core.windows.net\` — data staged out through a trusted cloud endpoint (upload-heavy \`orig_bytes\` in \`conn.log\` is the signal)." \
+"scripts/make-samples.sh   # azure-vnet: ~440 KB uploads to Blob storage"
+
+# Kubernetes: the inner pod traffic, plus the same incident as a VXLAN traffic mirror sees it.
+mkdir -p samples/09-k8s-cluster-lateral
+"$PY" -m packetforge scenario --env k8s --duration 200 --volume normal --attack k8s-lateral --seed 6 --mirror \
+  -o samples/09-k8s-cluster-lateral/capture.pcap >/dev/null
+tidy_gt samples/09-k8s-cluster-lateral
+zeek_of samples/09-k8s-cluster-lateral
+# ship the mirror's decapsulated logs too, so the VXLAN-decap claim is proven in-artifact
+rm -rf samples/09-k8s-cluster-lateral/zeek-mirror; mkdir -p samples/09-k8s-cluster-lateral/zeek-mirror
+( cd samples/09-k8s-cluster-lateral/zeek-mirror && zeek -C -r ../capture.mirror.pcap )
+rm -f samples/09-k8s-cluster-lateral/zeek-mirror/analyzer.log \
+      samples/09-k8s-cluster-lateral/zeek-mirror/packet_filter.log \
+      samples/09-k8s-cluster-lateral/zeek-mirror/reporter.log
+readme 09-k8s-cluster-lateral "Kubernetes cluster lateral movement + a VXLAN traffic mirror (T1613 / T1021)" \
+"- \`zeek/\` (direct pod-network SPAN) plus \`capture.mirror.pcap\` — what an AWS VPC Traffic Mirror / GCP Packet Mirror sees: the same flows VXLAN-encapsulated to a collector VTEP. \`zeek-mirror/\` is what Zeek derives from that mirror: a \`tunnel.log\` (\`Tunnel::VXLAN\`, port 4789) **plus the identical inner conns** — decapsulation recovers the incident. The attack: a compromised pod hits the API server (10.96.0.1) then fans out mTLS across the mesh." \
+"scripts/make-samples.sh   # k8s pod-to-pod lateral, direct + VXLAN-mirrored"
+
+scenario 10-ipv6-c2-beacon office --volume normal --attack ipv6-c2 --seed 5
+readme 10-ipv6-c2-beacon "HTTPS C2 beaconing over IPv6 (T1071.001)" \
+"- \`zeek/ssl.log\`: AAAA resolution then HTTPS beacons to an IPv6 C2 with a curl JA3 at ~60s cadence — the identical C2 behaviour a v4-only detection silently misses." \
+"scripts/make-samples.sh   # a dual-stack network with an IPv6 C2 channel"
+
+scenario 11-encrypted-dns-doh office --volume normal --attack doh-tunnel --seed 3
+readme 11-encrypted-dns-doh "Encrypted-DNS C2 over DoH (T1071.004 / T1572)" \
+"- \`zeek/ssl.log\`: TLS 1.3 sessions to a public DoH resolver's SNI (\`cloudflare-dns.com\`) on :443 — encrypted-DNS that bypasses plaintext-DNS monitoring. The detection is the resolver SNI/IP + cadence, not DNS content." \
+"scripts/make-samples.sh   # a DoH tunnel in office noise"
+
+# --------------------------------------------------------------------------- #
+# 3. Capabilities & techniques — extraction, fingerprints, OT, vantage, evasion.
+# --------------------------------------------------------------------------- #
+mkdir -p samples/12-c2-beacon-ja3
+"$PY" - <<'PY'
 from packetforge.compile.timeline import write_pcap
 from packetforge.environments import load_environment
 from packetforge.malware_transfer import build_reference
-fs = build_reference("shadowbeacon", load_environment("office"), seed=0)
-write_pcap(fs, f"samples/{sys.argv[1]}/capture.pcap")
+write_pcap(build_reference("shadowbeacon", load_environment("office"), seed=0),
+           "samples/12-c2-beacon-ja3/capture.pcap")
 PY
-  zeek_of "samples/$dir"
-}
+zeek_of samples/12-c2-beacon-ja3
+readme 12-c2-beacon-ja3 "C2 beacon JA3 reference (transfer-proof)" \
+"- \`zeek/ssl.log\`: a recurring beacon SNI with a stable **JA3**. This is the reference \`packetforge malware-transfer\` profiles: rebuild an analog and a \`ja3.hash\` rule reaches the same verdict on both — realism that transfers." \
+"scripts/make-samples.sh   # the JA3 transfer-proof reference"
 
-scenario 01-kerberoasting-in-ad office --volume normal --texture realistic --attack kerberoasting --seed 11
-scenario 02-phishing-to-exfil   office --volume normal --texture realistic --attack phishing-intrusion --seed 7
-compile  03-artifact-extraction flows/extraction.yaml
-scenario 04-ransomware-smb-theft office --volume normal --attack ransomware --seed 5
-scenario 05-dns-tunnel-exfil    office --volume normal --attack dns-exfil --seed 3
-beacon_reference 06-c2-beacon-ja3
-scenario 07-ot-modbus-plant     ot --volume normal --seed 2
-scenario 08-cloud-vpc-sll       cloud --volume normal --texture realistic --attack phishing-intrusion --seed 8
+scenario 13-ot-modbus-plant ot --volume normal --seed 2
+readme 13-ot-modbus-plant "OT / ICS plant network — Modbus/TCP" \
+"- \`zeek/modbus.log\`: read/write function codes across a flat OT segment of legacy hosts, seen from a cell TAP." \
+"scripts/make-samples.sh   # an OT/ICS plant's ambient Modbus traffic"
+
+mkdir -p samples/14-artifact-extraction
+"$PY" -m packetforge compile flows/extraction.yaml -o samples/14-artifact-extraction/capture.pcap >/dev/null
+zeek_of samples/14-artifact-extraction
+readme 14-artifact-extraction "Forensic artifact extraction (HTTP / SMB / FTP / TLS)" \
+"- \`zeek/files.log\` + \`x509.log\`: pull a real (inert) EXE, PDF, XLSX and an X.509 certificate out of one capture — valid containers with synthetic content, recognised by \`file(1)\` and Wireshark 'Export Objects'." \
+"scripts/make-samples.sh   # one capture carrying extractable typed files"
+
+# Multi-vantage: one incident, three sensor placements.
+mkdir -p samples/15-multi-vantage
+"$PY" -m packetforge scenario --env office --duration 200 --volume normal --attack psexec-lateral --seed 6 --vantages \
+  -o samples/15-multi-vantage/capture.pcap >/dev/null
+tidy_gt samples/15-multi-vantage
+zeek_of samples/15-multi-vantage
+readme 15-multi-vantage "Multi-vantage capture — one incident, three sensors" \
+"- \`capture.pcap\` (core SPAN reference) plus \`capture.edge-tap.pcap\` (WAN TAP: every host **source-NAT'd** to one public IP, TTL -1 across the router hop), \`capture.core-span.pcap\` (802.1Q VLAN-tagged trunk), and \`capture.host-*.pcap\` (the victim's own tcpdump: its flows only, cooked SLL). Answers 'does my detection fire *given where my sensors are*.'" \
+"scripts/make-samples.sh   # the same intrusion projected through edge/core/host sensors"
+
+scenario 16-fragmented-ids-evasion office --volume normal --attack ransomware --seed 5 --fragment 400
+readme 16-fragmented-ids-evasion "IP fragmentation — a reassembly / IDS-evasion test" \
+"- The same ransomware SMB sweep, IP-fragmented to 400-byte fragments. Real Zeek **reassembles** to the identical flows (\`smb_files.log\` unchanged) — a per-packet signature engine, or one with a different overlap policy, can be evaded. A test that a rule survives reassembly." \
+"scripts/make-samples.sh   # the ransomware sweep, IP-fragmented"
 
 echo "samples regenerated:"
-for d in samples/0*/; do
-  printf "  %-26s %8sB pcap\n" "$(basename "$d")" "$(wc -c < "$d/capture.pcap")"
+for d in samples/[0-9]*/; do
+  printf "  %-28s %8sB pcap\n" "$(basename "$d")" "$(wc -c < "$d/capture.pcap")"
 done

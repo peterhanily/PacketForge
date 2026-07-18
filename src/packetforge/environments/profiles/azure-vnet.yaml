@@ -1,0 +1,21 @@
+name: azure-vnet
+description: An Azure VNet subnet seen from a per-VM capture agent (Linux SLL).
+link_type: linux_sll
+subnet: 10.1.0.0/16
+gateway: 10.1.0.1
+dns_server: 168.63.129.16      # Azure DNS / WireServer
+mac_oui: "00:0d:3a"            # Microsoft Azure (Hyper-V) OUI
+default_client_os: linux
+default_server_os: linux
+client_os_mix:
+  linux: 60
+  windows_10: 40               # Azure fleets skew more Windows
+sensor:
+  vantage: host
+  nat: source
+ambient:
+  - {service: tls, weight: 50}  # *.blob.core.windows.net, login.microsoftonline.com
+  - {service: dns, weight: 20}
+  - {service: http, weight: 8}
+  - {service: ssh, weight: 8}
+  - {service: ntp, weight: 3}

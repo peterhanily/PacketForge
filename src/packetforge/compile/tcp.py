@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from scapy.layers.inet import IP, TCP
+from scapy.layers.inet6 import IPv6
 from scapy.layers.l2 import Ether
 from scapy.packet import Packet, Raw
 
@@ -145,6 +146,8 @@ def build_tcp_flow(
     min_segments: int = 1,
 ) -> TcpResult:
     """Render one TCP conversation. See module docstring."""
+    _is_v6 = ":" in orig.ip
+    _L3 = IPv6 if _is_v6 else IP
     c_isn = rng.randint(0, 0xFFFFFFFF)
     s_isn = rng.randint(0, 0xFFFFFFFF)
     hist = _HistoryRecorder()
@@ -196,7 +199,13 @@ def build_tcp_flow(
             ts_last[from_orig] = tsval
         if opts:
             tcp.options = opts
-        p = Ether(src=s.mac, dst=d.mac) / IP(src=s.ip, dst=d.ip, id=_ipid(), ttl=s.ttl) / tcp
+        # IPv6 when the endpoints are v6 (same family both ways); IPv6 has no IP-id field and
+        # carries the same TTL value as the Hop Limit. Ethertype follows from the L3 layer.
+        if _is_v6:
+            l3 = IPv6(src=s.ip, dst=d.ip, hlim=s.ttl)
+        else:
+            l3 = IP(src=s.ip, dst=d.ip, id=_ipid(), ttl=s.ttl)
+        p = Ether(src=s.mac, dst=d.mac) / l3 / tcp
         if payload:
             p = p / Raw(payload)
         p.time = clock["t"]
@@ -285,7 +294,7 @@ def build_tcp_flow(
 
     # ----- measured summary, reconstructed purely from emitted packets -----
     def _is_orig(p: Packet) -> bool:
-        return p[IP].src == orig.ip
+        return p[_L3].src == orig.ip
 
     orig_pkts = sum(1 for p in pkts if _is_orig(p))
     resp_pkts = len(pkts) - orig_pkts
@@ -293,8 +302,8 @@ def build_tcp_flow(
     # add to orig_bytes/resp_bytes (they do add packets and IP bytes, which are raw).
     orig_bytes = data_bytes[True]
     resp_bytes = data_bytes[False]
-    orig_ip_bytes = sum(len(p[IP]) for p in pkts if _is_orig(p))
-    resp_ip_bytes = sum(len(p[IP]) for p in pkts if not _is_orig(p))
+    orig_ip_bytes = sum(len(p[_L3]) for p in pkts if _is_orig(p))
+    resp_ip_bytes = sum(len(p[_L3]) for p in pkts if not _is_orig(p))
     duration = round((pkts[-1].time - pkts[0].time), 6) if pkts else 0.0
 
     summary = {

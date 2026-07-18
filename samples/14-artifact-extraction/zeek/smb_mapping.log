@@ -1,0 +1,10 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	smb_mapping
+#open	2026-07-18-00-54-54
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	path	service	native_file_system	share_type
+#types	time	string	addr	port	addr	port	string	string	string	string
+1700000006.164123	C0FzVc3IocKRPDqE1d	10.10.0.30	50102	10.10.0.21	445	\\\\FILESRV\\Finance	-	-	DISK
+#close	2026-07-18-00-54-54

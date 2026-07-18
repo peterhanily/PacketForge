@@ -1,0 +1,24 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	ldap
+#open	2026-07-18-00-54-17
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
+#types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
+1700000038.563362	CJXgGx1tStKljm6w5j	10.10.0.29	1035	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000041.953299	CtEJ5B18F0jD98Fo0c	10.10.0.22	1050	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000042.188511	CH1RsV3PBX3l9ToRh	10.10.0.23	1052	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000042.308619	Cbq9z04wMMkxxDf293	10.10.0.30	1053	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000042.536015	CR3ygO1IkAiXs6INM	10.10.0.31	1055	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000047.309830	CKsE2E2zAwPm8CJGzj	10.10.0.28	1089	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000057.977930	CzDlx54fKbhFg3ADT2	10.10.0.26	1101	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000060.605464	CPUuM8jdZgbzeA8Ol	10.10.0.27	1106	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000065.178142	CrGymw4NPDkERcMlXj	10.10.0.22	1110	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000073.492974	CPfMpP3YMuUETf4AGk	10.10.0.28	1125	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000083.173030	CSo4u1McIBNnXsD	10.10.0.21	1138	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000114.972594	C6kxdV284tJV49gWC3	10.10.0.24	1152	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000122.053001	C4N4zO3eglGp1CV8K5	10.10.0.28	1169	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000161.783192	CrhtlcQyzzuzGYtFk	10.10.0.26	1196	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000164.757341	CgIG1Mb5EF9FVvQh8	10.10.0.22	1202	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+#close	2026-07-18-00-54-17

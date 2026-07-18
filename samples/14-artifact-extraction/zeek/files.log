@@ -1,0 +1,13 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2026-07-18-00-54-54
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+1700000000.073730	FY8YbaVNTMVIRxy8g	CC5LTE2f9EB2Eka2Aa	10.10.0.30	50100	10.10.0.20	80	HTTP	0	PE	application/x-dosexec	-	0.000000	T	F	24576	24576	0	0	F	-	-	-	-	-	-	-
+1700000003.072510	FGVMoD10fJjjjKA7w5	CjfZLulecGXWbygh	10.10.0.30	50101	10.10.0.20	80	HTTP	0	(empty)	application/pdf	-	0.000000	T	F	16384	16384	0	0	F	-	-	-	-	-	-	-
+1700000006.339348	FDtdTk3rBa5aDhLT3	C0FzVc3IocKRPDqE1d	10.10.0.30	50102	10.10.0.21	445	SMB	0	(empty)	application/zip	salaries.xlsx	0.000000	T	F	20480	20480	0	0	F	-	-	-	-	-	-	-
+1700000010.534032	FPBz4b1Q03Lr0VRd2g	ClDq7D1beCBEqKTGSk	10.10.0.30	50104	10.10.0.22	60313	FTP_DATA	0	(empty)	application/zip	-	0.000000	T	F	28672	-	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-18-00-54-54

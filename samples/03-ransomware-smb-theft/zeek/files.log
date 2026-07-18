@@ -1,0 +1,104 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	files
+#open	2026-07-18-00-54-17
+#fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
+#types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
+1700000038.570548	Flbrvh4rXpVKLwgl79	CzXOn9orEHartqq88	10.10.0.23	1034	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	569	569	0	0	F	-	-	-	-	-	-	-
+1700000040.112352	FSER4fhNSTcGI1X37	CvMjS737ORWbMm9M8b	10.10.0.21	1042	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	580	580	0	0	F	-	-	-	-	-	-	-
+1700000043.459889	FJg6hS2K7gLc6sWIpg	CkWWbv4fZT6cUoI0Oi	10.10.0.20	1061	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	204	204	0	0	F	-	-	-	-	-	-	-
+1700000044.110363	F917272t368yVNywq9	CZDIUY1kB5jOaXlTe8	10.10.0.26	55007	104.16.132.229	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000047.981743	FuRpE914C0uW0oGyC5	CQfqxc3k8rxKrFs9Gf	10.10.0.22	1091	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	4532	4532	0	0	F	-	-	-	-	-	-	-
+1700000048.874857	FrscYncJjOtqo3Pp	CvMgm5J50Vyj9TXia	10.10.0.31	1092	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	654	654	0	0	F	-	-	-	-	-	-	-
+1700000061.408818	FxmAus2iF65v8dLlCe	Coh2NmksZFqxMpgi8	10.10.0.25	1108	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	163	163	0	0	F	-	-	-	-	-	-	-
+1700000068.771109	FRh99CDgQuRUukfkh	CgUnWn2NMpPaWXJWY4	10.10.0.30	1116	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	643682	643682	0	0	F	-	-	-	-	-	-	-
+1700000073.757491	FNUgAj1neRyXVrRLwl	ChOYs22XjpkBzcA46	10.10.0.28	1126	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	262	262	0	0	F	-	-	-	-	-	-	-
+1700000113.509642	FYx5j01QZYRnQ9dmKh	CtmKPR22cX7zqdd4Pk	10.10.0.25	1145	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	2531	2531	0	0	F	-	-	-	-	-	-	-
+1700000116.736662	FgQrty32KkjZqiPB37	CWGXrY2me1UoI2ExO6	10.10.0.31	1157	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	196	196	0	0	F	-	-	-	-	-	-	-
+1700000128.802907	FXq9Mu3zpOaOwJE2Aj	CVeAMH1qbLaKpuq5E9	10.10.0.22	1185	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1372	1372	0	0	F	-	-	-	-	-	-	-
+1700000130.342833	FrU69MuFPaITN4lba	CnFBV33bdYRKJxeDvb	10.10.0.40	40001	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	8000	8000	0	0	F	-	-	-	-	-	-	-
+1700000130.458892	F2vHQ6WT3iKGsFYPd	CXZ5Up1NLxeLgj86V1	10.10.0.23	1191	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	632	632	0	0	F	-	-	-	-	-	-	-
+1700000130.757252	Fub9ZM32QsiNnCGMN9	CzpV131R1CXRXbigee	10.10.0.40	40002	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	8064	8064	0	0	F	-	-	-	-	-	-	-
+1700000131.153600	FmmkmH215fzUjhToIc	Cwd0Aw2Biqu9ipdAph	10.10.0.40	40003	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	8128	8128	0	0	F	-	-	-	-	-	-	-
+1700000131.554928	FeaIYF4NXo2NxG41f4	CCzjLH3PQkxHLBJ0r4	10.10.0.40	40004	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	8192	8192	0	0	F	-	-	-	-	-	-	-
+1700000131.968971	FABat5lGpk9xYOOjh	CMrxBJ3uIWdP7CXIPf	10.10.0.40	40005	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	8256	8256	0	0	F	-	-	-	-	-	-	-
+1700000132.356798	FuMJkh1ZUPTTorekri	CjIhnq1x8bKfZeH6G5	10.10.0.40	40006	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	8320	8320	0	0	F	-	-	-	-	-	-	-
+1700000132.755939	FQkdYTwejwfYPriL7	CD8gSt4vbC9uxWuIi6	10.10.0.40	40007	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	8384	8384	0	0	F	-	-	-	-	-	-	-
+1700000133.137397	Fv86HDgeZt05NpVh	CabxFC3QZeaanwmqW2	10.10.0.40	40008	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	8448	8448	0	0	F	-	-	-	-	-	-	-
+1700000133.545764	FqleDYdgxodlU0pj1	CH6ACy4KDkGeClRSDf	10.10.0.40	40009	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	8512	8512	0	0	F	-	-	-	-	-	-	-
+1700000133.954907	FnYfXq4dXXDekZuZck	CWxkUx32zOaTOLTvw	10.10.0.40	40010	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	8576	8576	0	0	F	-	-	-	-	-	-	-
+1700000134.353280	FOjakY2zMYYHhZJPy	CaYPgg1qHCkbSKRm87	10.10.0.40	40011	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	8640	8640	0	0	F	-	-	-	-	-	-	-
+1700000134.748229	FP3F9G49lBtpwtL2fh	C8xtrb2T4FinMiJczh	10.10.0.40	40012	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	8704	8704	0	0	F	-	-	-	-	-	-	-
+1700000135.157959	FCyiP82XMfduUZ9K73	Cg3Ja615toDEbjXtae	10.10.0.40	40013	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	8768	8768	0	0	F	-	-	-	-	-	-	-
+1700000135.532927	FJ1Wr237YTabprdxBd	CTwlDd2Z2aPUcAT9uk	10.10.0.40	40014	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	8832	8832	0	0	F	-	-	-	-	-	-	-
+1700000135.958239	Fyhw0F2AUcWGAaJtue	C5rvmN1G5lgTrWzvlj	10.10.0.40	40015	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	8896	8896	0	0	F	-	-	-	-	-	-	-
+1700000136.340843	Fx4GQD3hNsXXg9vnaf	CiLzEpToX55A3nM1g	10.10.0.40	40016	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	8960	8960	0	0	F	-	-	-	-	-	-	-
+1700000136.749952	FzEk9x2Dl6UmHJEn43	CMgfrg3USB84UJgby4	10.10.0.40	40017	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	9024	9024	0	0	F	-	-	-	-	-	-	-
+1700000137.147699	FXkdlK27XsD1wTKcPj	Cs24NH32qYKgfz70Ch	10.10.0.40	40018	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	9088	9088	0	0	F	-	-	-	-	-	-	-
+1700000137.548677	FdIf8G28pbcK0psMT	Cg2eAw1ien4OL9XpMe	10.10.0.40	40019	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	9152	9152	0	0	F	-	-	-	-	-	-	-
+1700000137.957174	Fmsw0v1j6gTI9mlOhd	CvfQ7PxOCiooJb3Oc	10.10.0.40	40020	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	9216	9216	0	0	F	-	-	-	-	-	-	-
+1700000138.350248	FC9DNGzfJnaiI4umd	CKo5mf44vW0BuNix9g	10.10.0.40	40021	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	9280	9280	0	0	F	-	-	-	-	-	-	-
+1700000138.749940	FRPmMU1eIpjxCMeVtl	CYExJy3ug6eDfnjamj	10.10.0.40	40022	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	9344	9344	0	0	F	-	-	-	-	-	-	-
+1700000139.157912	FS9rVh2Gmcyz4RTef6	CStRuC3fgHbMl7ZKGe	10.10.0.40	40023	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	9408	9408	0	0	F	-	-	-	-	-	-	-
+1700000139.545162	F7xzg74nlHBe3CTMs4	CEgljw1Yn0P0NwSDhl	10.10.0.40	40024	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	9472	9472	0	0	F	-	-	-	-	-	-	-
+1700000139.938633	Fkk8ePJrJlmeBf71a	C3Evwc1u5c1B0vkDUf	10.10.0.40	40025	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	9536	9536	0	0	F	-	-	-	-	-	-	-
+1700000140.356219	FBs2bo1fTpc0mH1Z5d	C5hsUg4i7n0Makd31i	10.10.0.40	40026	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	9600	9600	0	0	F	-	-	-	-	-	-	-
+1700000140.774370	FuBlF8gacAJ2M1Hra	CiAbuK1oJT5tVNxyR4	10.10.0.40	40027	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	9664	9664	0	0	F	-	-	-	-	-	-	-
+1700000141.147156	F6jIHY3LNLTkjzSoV8	CM433W1hQb3fTdx468	10.10.0.40	40028	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	9728	9728	0	0	F	-	-	-	-	-	-	-
+1700000141.564478	FRg44yxOzykCzxOT	CKEEpa1Ry57rLnu4q4	10.10.0.40	40029	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	9792	9792	0	0	F	-	-	-	-	-	-	-
+1700000141.953431	FlpDGWibvn6K3NOn6	CdBP404o6SNzlbKKU6	10.10.0.40	40030	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	9856	9856	0	0	F	-	-	-	-	-	-	-
+1700000142.372727	FIdx6u1C9Fxnh6FYl9	CqAwLS3qUtjx58hKB9	10.10.0.40	40031	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	9920	9920	0	0	F	-	-	-	-	-	-	-
+1700000142.753818	FJCP5i2unnCOywyN04	CYh0381zEzoq8gAt1l	10.10.0.40	40032	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	9984	9984	0	0	F	-	-	-	-	-	-	-
+1700000143.161555	FAR1eayzkEy82wjs8	CubiCV3ksN8u0Np2Og	10.10.0.40	40033	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	10048	10048	0	0	F	-	-	-	-	-	-	-
+1700000143.540282	Fl3biB2CC1V5uZ1sd1	CU0JzN3PL0RHDQB37c	10.10.0.40	40034	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	10112	10112	0	0	F	-	-	-	-	-	-	-
+1700000143.963852	FhJgXH9U3XlGfjbta	C2AbhN2NVwRS4eRHP3	10.10.0.40	40035	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	10176	10176	0	0	F	-	-	-	-	-	-	-
+1700000144.360547	FUz9bo1I9VaQ7dXvKj	CMVavg3iEOUHRvJyM9	10.10.0.40	40036	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	10240	10240	0	0	F	-	-	-	-	-	-	-
+1700000144.750072	Fc8DgX1wnNzAu7j39f	CqSZB22jiEzwEjt1Dj	10.10.0.40	40037	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	10304	10304	0	0	F	-	-	-	-	-	-	-
+1700000145.155104	FThLOz2SDAYNTMDlE7	CF486JolyKEiZvAp9	10.10.0.40	40038	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	10368	10368	0	0	F	-	-	-	-	-	-	-
+1700000145.547726	F0Yh994rDQYTbiVcde	Cjo69i4R3vuu0K63x3	10.10.0.40	40039	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	10432	10432	0	0	F	-	-	-	-	-	-	-
+1700000145.956663	FxA6ul16CDA3EntnWi	CQ4jXi4Pmujqdn4bwe	10.10.0.40	40040	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	10496	10496	0	0	F	-	-	-	-	-	-	-
+1700000146.341156	FtsHrs4MpdZH6lY3B2	CjXiTs315S9H2u1xqi	10.10.0.40	40041	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	10560	10560	0	0	F	-	-	-	-	-	-	-
+1700000146.754288	FYSzGn4kKXkAOaGKD8	CAShTV3lCpqNiFXOO9	10.10.0.40	40042	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	10624	10624	0	0	F	-	-	-	-	-	-	-
+1700000147.150479	FGZhbA3HL8OwmslNz8	CXmKOZ1TtPid933Yma	10.10.0.40	40043	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	10688	10688	0	0	F	-	-	-	-	-	-	-
+1700000147.562497	FoaRL3p0s7H4a6Ch5	CT2CuJ2mVv5OiXUg31	10.10.0.40	40044	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	10752	10752	0	0	F	-	-	-	-	-	-	-
+1700000147.960328	FX4SFBhPrO7tz522i	CPFbOo1hky803FZlTk	10.10.0.40	40045	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	10816	10816	0	0	F	-	-	-	-	-	-	-
+1700000148.356823	FBbr4I4TnKPeE1Cc5	Co5VZ84LODcsF72Vq8	10.10.0.40	40046	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	10880	10880	0	0	F	-	-	-	-	-	-	-
+1700000148.758345	FPN8ob3FqemHel2QA7	ClI5ae14GI01VlFF63	10.10.0.40	40047	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	10944	10944	0	0	F	-	-	-	-	-	-	-
+1700000149.154953	Ff02HC2phjTGcj6yll	CQBYZp05oZAotfr1	10.10.0.40	40048	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	11008	11008	0	0	F	-	-	-	-	-	-	-
+1700000149.421702	FoWrm7po6ZuZd5OJf	CMBKNxvPBnWGhKJCf	10.10.0.21	55009	142.250.72.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000149.566898	FVOrXP1oRJpv3QSF8	CO8HxT1HSlWhmFDvKi	10.10.0.40	40049	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	11072	11072	0	0	F	-	-	-	-	-	-	-
+1700000149.963219	F3G4152WoSu6ZekCRa	CQCSCX21m5pU8SrDp6	10.10.0.40	40050	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	11136	11136	0	0	F	-	-	-	-	-	-	-
+1700000150.353382	FZC94s2O7GCWnRzEx6	CzhHiH2xlKxQL0GeZd	10.10.0.40	40051	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	11200	11200	0	0	F	-	-	-	-	-	-	-
+1700000150.756780	FA6DOs1i1IVBnF16jc	Cz2bDw3Dm17Y4r3cYj	10.10.0.40	40052	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	11264	11264	0	0	F	-	-	-	-	-	-	-
+1700000151.152034	FQZ6vC0iPMUtEIoy5	CR7Qxr1JxYuAWnASk1	10.10.0.40	40053	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	11328	11328	0	0	F	-	-	-	-	-	-	-
+1700000151.568459	FYnvmn1cWc4NYQB9A4	Cqh0GE2KIjQNKBkJc3	10.10.0.40	40054	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	11392	11392	0	0	F	-	-	-	-	-	-	-
+1700000151.952704	F0KtIjXUroN219Kgf	CsmpYN1ctQ8sh13146	10.10.0.40	40055	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	11456	11456	0	0	F	-	-	-	-	-	-	-
+1700000152.341231	FrKgeR2bY77ReXLYOc	Cmxer61OQm8bi58cAd	10.10.0.40	40056	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	11520	11520	0	0	F	-	-	-	-	-	-	-
+1700000152.752147	FZDvTXGJmIbkitX55	CHZYg7Ix0SYa84Qta	10.10.0.40	40057	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	11584	11584	0	0	F	-	-	-	-	-	-	-
+1700000153.164201	FJHHy5pNEo9hbEs99	Cdb0GF3rVlKUen96j3	10.10.0.40	40058	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	11648	11648	0	0	F	-	-	-	-	-	-	-
+1700000153.567483	FkXmuMtK4QFfn4Zk9	CnzQhT3rbVbDFykUp7	10.10.0.40	40059	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	11712	11712	0	0	F	-	-	-	-	-	-	-
+1700000153.944007	FrpNF84cXF04TSsB1l	CbNVoa3urgFJEeHqvb	10.10.0.40	40060	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	11776	11776	0	0	F	-	-	-	-	-	-	-
+1700000154.341900	FWrM9a1SqkJyA1zROd	CHQPGG3Z1E3W17dmPh	10.10.0.40	40061	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	11840	11840	0	0	F	-	-	-	-	-	-	-
+1700000154.766522	FZZ9o2S9T02wA3ye1	CiImQn389EZfLBDKJg	10.10.0.40	40062	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	11904	11904	0	0	F	-	-	-	-	-	-	-
+1700000155.150712	FENSXO1bRU6QwJkuN1	C1B7fGq0bXXcpL5Q8	10.10.0.40	40063	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	11968	11968	0	0	F	-	-	-	-	-	-	-
+1700000155.562062	FuILCz4PP7CBmAdojk	CWk25i2NZNo9Nsc9d4	10.10.0.40	40064	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	12032	12032	0	0	F	-	-	-	-	-	-	-
+1700000155.951776	FBOqsA7KOjsxNOi94	CzaqzUcoyDqKWgVY1	10.10.0.40	40065	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	12096	12096	0	0	F	-	-	-	-	-	-	-
+1700000156.354733	FSo9rt1KkYo4kEJ6Xg	CQdyju2NzIf0XyOxAf	10.10.0.40	40066	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	12160	12160	0	0	F	-	-	-	-	-	-	-
+1700000156.759729	FHX09SGT0SL3JPJQb	CjjPuvlu7cw5Jqwe6	10.10.0.40	40067	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	12224	12224	0	0	F	-	-	-	-	-	-	-
+1700000157.157158	FUuBDm3mSufafoIBvc	CmsRbX2swuTJe3yuEf	10.10.0.40	40068	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	12288	12288	0	0	F	-	-	-	-	-	-	-
+1700000157.549333	FbIwxe3oMjNIAW632j	CeZnuU37ZjIQtMpc6h	10.10.0.40	40069	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	12352	12352	0	0	F	-	-	-	-	-	-	-
+1700000157.956361	FsVEev1jO4256B5mSj	ChTPdo4NUnfww4fbc8	10.10.0.40	40070	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	12416	12416	0	0	F	-	-	-	-	-	-	-
+1700000158.345892	FGGMhup7rByynvhTl	CbC8h9rQhdoxuEUa2	10.10.0.40	40071	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	12480	12480	0	0	F	-	-	-	-	-	-	-
+1700000158.757093	FWpiY22dsQWBDiQd7e	C6Wr1M2eKHZJ2ro0Z7	10.10.0.40	40072	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	12544	12544	0	0	F	-	-	-	-	-	-	-
+1700000159.151897	FBsFVmJl2YxdeUUy9	CTjQ9w4JZkLtAiI4O5	10.10.0.40	40073	10.10.0.41	445	SMB	0	(empty)	application/zip	Q3-financials.xlsx	0.000000	T	F	12608	12608	0	0	F	-	-	-	-	-	-	-
+1700000159.541493	FrCEvh1VKsmXLYqA0k	CTyR40358VVtovvj2b	10.10.0.40	40074	10.10.0.41	445	SMB	0	(empty)	application/zip	payroll.xlsx	0.000000	T	F	12672	12672	0	0	F	-	-	-	-	-	-	-
+1700000159.966556	Fb9O222rEWlvXRwo7l	C9SkYZ32406W9RLmR6	10.10.0.40	40075	10.10.0.41	445	SMB	0	(empty)	application/zip	contract.docx	0.000000	T	F	12736	12736	0	0	F	-	-	-	-	-	-	-
+1700000160.354955	FBzayG2o2Ck6HVUVQ5	Cu7JFBWXuJuBBSPq4	10.10.0.40	40076	10.10.0.41	445	SMB	0	(empty)	application/zip	roadmap.pptx	0.000000	T	F	12800	12800	0	0	F	-	-	-	-	-	-	-
+1700000160.666236	F3itQC3znJXzGMq848	CWZK8M9vQdJS0QH32	10.10.0.30	1195	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	97	97	0	0	F	-	-	-	-	-	-	-
+1700000160.759094	Fw7mTm3KuvnvgQedwi	C5mH6ElE3het9C7s2	10.10.0.40	40077	10.10.0.41	445	SMB	0	(empty)	application/zip	customers.zip	0.000000	T	F	12864	12864	0	0	F	-	-	-	-	-	-	-
+1700000161.174072	FZR1PV1Zrol9Esasc	Cndp9a3i2Rbt4pHQec	10.10.0.40	40078	10.10.0.41	445	SMB	0	(empty)	application/zip	backup.zip	0.000000	T	F	12928	12928	0	0	F	-	-	-	-	-	-	-
+1700000161.557880	FmrWao1W3iKT4kg5D1	CoocgjpFSdXDQRTTh	10.10.0.40	40079	10.10.0.41	445	SMB	0	(empty)	application/zip	passwords.docx	0.000000	T	F	12992	12992	0	0	F	-	-	-	-	-	-	-
+1700000161.954906	FbrnXt2P6Iv6rYcs1h	CtqdgL5h9U1pDj9qg	10.10.0.40	40080	10.10.0.41	445	SMB	0	(empty)	application/pdf	invoice.pdf	0.000000	T	F	13056	13056	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-18-00-54-17

@@ -1,0 +1,21 @@
+name: gcp-vpc
+description: A GCP VPC subnet seen from a per-instance capture agent (Linux SLL).
+link_type: linux_sll
+subnet: 10.128.0.0/20          # GCP default subnet range
+gateway: 10.128.0.1
+dns_server: 169.254.169.254    # metadata.google.internal also serves DNS
+mac_oui: "42:01:0a"            # GCP instance NICs (locally administered)
+default_client_os: linux
+default_server_os: linux
+client_os_mix:
+  linux: 90
+  windows_10: 10
+sensor:
+  vantage: host
+  nat: source
+ambient:
+  - {service: tls, weight: 52}  # *.googleapis.com, storage.googleapis.com
+  - {service: dns, weight: 18}
+  - {service: http, weight: 8}
+  - {service: ssh, weight: 10}
+  - {service: ntp, weight: 3}

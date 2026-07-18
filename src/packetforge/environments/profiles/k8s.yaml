@@ -1,0 +1,19 @@
+name: k8s
+description: A Kubernetes cluster pod network (VXLAN CNI overlay), seen at a mirror collector.
+link_type: ethernet
+subnet: 10.244.0.0/16          # pod CIDR (Flannel/Calico VXLAN)
+gateway: 10.244.0.1
+dns_server: 10.96.0.10         # CoreDNS (kube-dns ClusterIP)
+mac_oui: "0a:58:0a"            # CNI veth MACs (0a:58 + pod IP, Flannel/Calico convention)
+default_client_os: linux
+default_server_os: linux
+client_os_mix:
+  linux: 100
+sensor:
+  vantage: span
+  nat: none
+ambient:                       # mostly service-mesh mTLS east-west, CoreDNS, sidecar HTTP
+  - {service: tls, weight: 55}
+  - {service: dns, weight: 22}
+  - {service: http, weight: 15}
+  - {service: ntp, weight: 2}

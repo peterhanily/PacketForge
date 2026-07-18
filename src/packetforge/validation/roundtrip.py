@@ -116,10 +116,12 @@ def _zeek_answers(v: str) -> set:
 # External tool runners                                                         #
 # --------------------------------------------------------------------------- #
 def _run_zeek(pcap: Path, workdir: Path) -> None:
-    # detect_filtered_trace=F silences Zeek's "looks pre-filtered" heuristic, which
-    # fires on small synthetic traces and is not a packet defect.
+    # detect_filtered_trace=F silences Zeek's "looks pre-filtered" heuristic, which fires on
+    # small synthetic traces and is not a packet defect. Read the pcap by absolute path: Zeek
+    # runs with cwd=workdir (where its logs land), and the pcap may live outside workdir (the
+    # evaluator) or be given via a relative dir (bundles) — an absolute path resolves in all cases.
     subprocess.run(
-        ["zeek", "-r", str(pcap), "detect_filtered_trace=F"],
+        ["zeek", "-r", str(pcap.resolve()), "detect_filtered_trace=F"],
         cwd=str(workdir), capture_output=True, text=True, check=False,
     )
 

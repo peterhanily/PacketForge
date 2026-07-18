@@ -16,7 +16,8 @@ from dataclasses import dataclass, field
 
 from packetforge.environments import Environment
 from packetforge.models.flowspec import (
-    DceRpcL7, DnsL7, Flow, HttpL7, KerberosL7, LdapL7, OpaqueTcpL7, SmbL7, SmtpL7, SshL7, TlsL7,
+    DceRpcL7, DnsL7, Flow, HttpL7, KerberosL7, LdapL7, NameQueryL7, OpaqueTcpL7, SmbL7,
+    SmtpL7, SshL7, TlsL7,
 )
 
 
@@ -217,6 +218,285 @@ def build_dns_exfil(env: Environment, start_time: float, rng, *, intensity: floa
                            {"exfil_domain": domain, "query_count": n})]
     return Intrusion(flows, gt, f"DNS-tunnel exfiltration in {env.name}",
                      {"exfil_domain": domain, "victim": victim})
+
+
+# Public DoH/DoT resolvers (server_name, ip) — the SNI/IP a defender blocklists.
+_DOH_RESOLVERS = [("cloudflare-dns.com", "1.1.1.1"), ("dns.google", "8.8.8.8"),
+                  ("dns.quad9.net", "9.9.9.9")]
+
+
+def build_doh_tunnel(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """DNS-over-HTTPS tunneling — encrypted-DNS C2/exfil to a public DoH resolver.
+
+    On the wire DoH is indistinguishable from HTTPS except by destination: TLS 1.3 (ALPN
+    h2) to a known DoH provider's SNI/IP on 443. It defeats plaintext-DNS monitoring, so
+    the detection is the resolver SNI/IP + a beacon cadence, not DNS content (T1071.004
+    Application Layer Protocol: DNS / T1572 Protocol Tunneling)."""
+    victim = _hosts(env, 1)[0]
+    resolver, rip = _DOH_RESOLVERS[0]
+    n = max(8, int(40 * intensity))
+    sp = _sports()
+    flows, ids = [], []
+    for i in range(n):
+        fid = f"atk-doh-{i:03d}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=victim, dst_ip=rip,
+                          src_port=next(sp), dst_port=443, conn_state="SF",
+                          start_time=start_time + i * (3.0 / max(0.1, intensity)),
+                          src_os=env.default_client_os,
+                          l7=TlsL7(server_name=resolver, version="TLS1.3", client_profile="curl",
+                                   alpn=["h2"], app_data_orig_bytes=rng.randint(80, 160),
+                                   app_data_resp_bytes=rng.randint(200, 700))))
+    gt = [GroundTruthEntry(
+        "Command and Control", "T1071.004 Application Layer Protocol: DNS / T1572 Protocol Tunneling",
+        ids, f"{n} DoH sessions to {resolver} ({rip}) — encrypted-DNS C2/exfil that bypasses "
+        f"plaintext-DNS monitoring.",
+        {"victim": victim, "resolver": resolver, "resolver_ip": rip, "channel": "doh",
+         "expected_signal": f"ssl.log server_name={resolver} to :443 (known DoH provider)"})]
+    return Intrusion(flows, gt, f"DoH tunnel from {victim} in {env.name}",
+                     {"victim": victim, "resolver": resolver, "channel": "doh"})
+
+
+def build_dot_tunnel(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """DNS-over-TLS tunneling — encrypted-DNS on the dedicated TLS/853 port (T1071.004 / T1572).
+
+    Unlike DoH, DoT has its own port, so it stands out: TLS on 853 with ALPN ``dot`` (which
+    Zeek records as ssl.log next_protocol). Detection = TLS on 853 to a resolver."""
+    victim = _hosts(env, 1)[0]
+    resolver, rip = _DOH_RESOLVERS[0]
+    n = max(8, int(40 * intensity))
+    sp = _sports()
+    flows, ids = [], []
+    for i in range(n):
+        fid = f"atk-dot-{i:03d}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=victim, dst_ip=rip,
+                          src_port=next(sp), dst_port=853, conn_state="SF",
+                          start_time=start_time + i * (3.0 / max(0.1, intensity)),
+                          src_os=env.default_client_os,
+                          l7=TlsL7(server_name=resolver, version="TLS1.2", client_profile="curl",
+                                   alpn=["dot"], app_data_orig_bytes=rng.randint(80, 160),
+                                   app_data_resp_bytes=rng.randint(200, 700))))
+    gt = [GroundTruthEntry(
+        "Command and Control", "T1071.004 Application Layer Protocol: DNS / T1572 Protocol Tunneling",
+        ids, f"{n} DoT sessions to {resolver} ({rip}) on tcp/853 — encrypted-DNS off the "
+        f"standard resolver path.",
+        {"victim": victim, "resolver": resolver, "resolver_ip": rip, "channel": "dot",
+         "expected_signal": "ssl.log to :853 with next_protocol=dot"})]
+    return Intrusion(flows, gt, f"DoT tunnel from {victim} in {env.name}",
+                     {"victim": victim, "resolver": resolver, "channel": "dot"})
+
+
+def build_ipv6_c2(env: Environment, start_time: float, rng, *, intensity: float = 1.0,
+                  c2_domain: str = "cdn.telemetry-sync.example") -> Intrusion:
+    """HTTPS C2 beaconing over IPv6 — tests whether a detection is address-family-blind (T1071.001).
+
+    Many detections are written against IPv4 5-tuples and silently miss the identical
+    behaviour over v6. The victim resolves the C2 to an AAAA record, then beacons to it over
+    IPv6 with a non-browser JA3 at a fixed cadence — the same C2 tell, one address family over."""
+    victim = "2001:db8:1::40"
+    c2_ip = "2606:4700:8ac0::66"
+    dc = env.dns_server
+    sp = _sports()
+    flows = []
+    # AAAA resolution of the C2 (over the v4 resolver — mixed-stack is realistic).
+    flows.append(Flow(flow_id="atk-6-dns", transport="udp", src_ip="10.10.0.40", dst_ip=dc,
+                      src_port=next(sp), dst_port=53, start_time=start_time,
+                      src_os=env.default_client_os,
+                      l7=DnsL7(qname=c2_domain + ".", qtype="AAAA", answers=[c2_ip])))
+    beacon_ids = []
+    for i in range(max(3, int(6 * intensity))):
+        fid = f"atk-6-beacon-{i:02d}"
+        beacon_ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=victim, dst_ip=c2_ip,
+                          src_port=next(sp), dst_port=443, conn_state="SF",
+                          start_time=start_time + 30 + i * 60 + rng.uniform(-4, 4),
+                          src_os=env.default_client_os,
+                          l7=TlsL7(server_name=c2_domain, version="TLS1.3", client_profile="curl",
+                                   app_data_orig_bytes=rng.randint(120, 200),
+                                   app_data_resp_bytes=rng.randint(300, 900))))
+    gt = [GroundTruthEntry(
+        "Command and Control", "T1071.001 Application Layer Protocol: Web Protocols (over IPv6)",
+        ["atk-6-dns"] + beacon_ids,
+        f"HTTPS beaconing to {c2_domain} ({c2_ip}) over IPv6 — a v4-only detection misses it.",
+        {"victim": victim, "c2_domain": c2_domain, "c2_ip": c2_ip, "family": "ipv6",
+         "expected_signal": f"ssl.log to {c2_ip} (IPv6) with a curl JA3 at ~60s cadence"})]
+    return Intrusion(flows, gt, f"IPv6 C2 beaconing in {env.name}",
+                     {"victim": victim, "c2_domain": c2_domain, "c2_ip": c2_ip})
+
+
+# --------------------------------------------------------------------------- #
+# Cloud (AWS/Azure/GCP/OCI) north-south attacks. The provider is inferred from   #
+# the environment name so one builder renders the right metadata endpoint,       #
+# headers, and storage SNI per cloud.                                            #
+# --------------------------------------------------------------------------- #
+_METADATA_IP = "169.254.169.254"  # the link-local instance-metadata address (all clouds)
+
+# provider -> (metadata host, credential path, required request headers)
+_IMDS = {
+    "aws": ("169.254.169.254", "/latest/meta-data/iam/security-credentials/ec2-app-role", {}),
+    "gcp": ("metadata.google.internal",
+            "/computeMetadata/v1/instance/service-accounts/default/token",
+            {"Metadata-Flavor": "Google"}),
+    "azure": ("169.254.169.254",
+              "/metadata/identity/oauth2/token?api-version=2021-02-01&resource=https://management.azure.com/",
+              {"Metadata": "true"}),
+    "oci": ("169.254.169.254", "/opc/v2/instance/", {"Authorization": "Bearer Oracle"}),
+}
+_CLOUD_STORAGE = {
+    "aws": "exfil-staging.s3.amazonaws.com",
+    "azure": "exfilstg.blob.core.windows.net",
+    "gcp": "storage.googleapis.com",
+    "oci": "objectstorage.us-ashburn-1.oraclecloud.com",
+}
+
+
+def _cloud_provider(env: Environment) -> str:
+    for p in ("aws", "azure", "gcp", "oci"):
+        if p in env.name:
+            return p
+    return "aws"
+
+
+def build_imds_ssrf(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Cloud instance-metadata credential theft via SSRF — T1552.005 (the Capital One shape).
+
+    A compromised/SSRF-abused instance reaches the link-local metadata service (169.254.169.254)
+    and pulls the instance's IAM role credentials/token. The detection is traffic to the
+    metadata IP on the credential path from a host that shouldn't be calling it."""
+    victim = _hosts(env, 1)[0]
+    provider = _cloud_provider(env)
+    host, cred_path, headers = _IMDS[provider]
+    sp = _sports()
+    flows = []
+    for i, path in enumerate(["/latest/meta-data/" if provider == "aws" else "/", cred_path]):
+        flows.append(Flow(flow_id=f"atk-imds-{i}", transport="tcp", src_ip=victim, dst_ip=_METADATA_IP,
+                          src_port=next(sp), dst_port=80, conn_state="SF",
+                          start_time=start_time + i * 0.5, src_os=env.default_client_os,
+                          l7=HttpL7(method="GET", host=host, uri=path, request_headers=headers,
+                                    status=200, response_body_len=rng.randint(400, 1200))))
+    gt = [GroundTruthEntry(
+        "Credential Access", "T1552.005 Unsecured Credentials: Cloud Instance Metadata API",
+        [f.flow_id for f in flows],
+        f"{victim} queried the instance metadata service ({_METADATA_IP}) for {provider.upper()} "
+        f"IAM credentials — SSRF-to-IMDS theft (the Capital One pattern).",
+        {"victim": victim, "provider": provider, "metadata_ip": _METADATA_IP, "cred_path": cred_path,
+         "expected_signal": f"http.log to {_METADATA_IP} uri={cred_path}"})]
+    return Intrusion(flows, gt, f"IMDS SSRF credential theft in {env.name}",
+                     {"victim": victim, "provider": provider, "metadata_ip": _METADATA_IP})
+
+
+def build_cloud_exfil(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Exfiltration to cloud storage — T1567.002. Large HTTPS uploads to a provider bucket/blob."""
+    victim = _hosts(env, 1)[0]
+    provider = _cloud_provider(env)
+    sni = _CLOUD_STORAGE[provider]
+    sp = _sports()
+    flows = [Flow(flow_id="atk-cx-dns", transport="udp", src_ip=victim, dst_ip=env.dns_server,
+                 src_port=next(sp), dst_port=53, start_time=start_time, src_os=env.default_client_os,
+                 l7=DnsL7(qname=sni + ".", answers=["203.0.113.90"]))]
+    n = max(3, int(6 * intensity))
+    ids = []
+    for i in range(n):
+        fid = f"atk-cx-{i:02d}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=victim, dst_ip="203.0.113.90",
+                          src_port=next(sp), dst_port=443, conn_state="SF",
+                          start_time=start_time + 5 + i * 2.0, src_os=env.default_client_os,
+                          l7=TlsL7(server_name=sni, version="TLS1.3", client_profile="curl",
+                                   app_data_orig_bytes=rng.randint(220_000, 480_000),
+                                   app_data_resp_bytes=rng.randint(120, 300))))
+    gt = [GroundTruthEntry(
+        "Exfiltration", "T1567.002 Exfiltration to Cloud Storage",
+        ["atk-cx-dns"] + ids,
+        f"{n} large HTTPS uploads from {victim} to {provider.upper()} cloud storage ({sni}) — "
+        f"data staged out through a trusted cloud endpoint.",
+        {"victim": victim, "provider": provider, "storage": sni,
+         "expected_signal": f"ssl.log server_name={sni} with large orig_bytes (upload-heavy)"})]
+    return Intrusion(flows, gt, f"Cloud-storage exfil in {env.name}",
+                     {"victim": victim, "provider": provider, "storage": sni})
+
+
+def build_k8s_lateral(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """Lateral movement inside a Kubernetes cluster — T1613 / T1552.007 / T1021 (in-cluster).
+
+    A compromised pod discovers cluster services via CoreDNS, reaches the API server (using its
+    mounted service-account token), then fans out mutual-TLS across the service mesh to other
+    pods. Captured at a mirror collector, this is all VXLAN-encapsulated east-west traffic."""
+    attacker_pod = "10.244.1.13"
+    api = "10.96.0.1"  # kubernetes.default.svc ClusterIP
+    coredns = env.dns_server
+    sp = _sports()
+    flows = []
+    t = start_time
+    for svc in ["kubernetes.default.svc.cluster.local", "vault.default.svc.cluster.local"]:
+        flows.append(Flow(flow_id=f"atk-k8s-dns-{len(flows)}", transport="udp", src_ip=attacker_pod,
+                          dst_ip=coredns, src_port=next(sp), dst_port=53, start_time=t, src_os="linux",
+                          l7=DnsL7(qname=svc + ".", answers=["10.96.0.1"])))
+        t += 1.0
+    flows.append(Flow(flow_id="atk-k8s-api", transport="tcp", src_ip=attacker_pod, dst_ip=api,
+                      src_port=next(sp), dst_port=443, start_time=t, conn_state="SF", src_os="linux",
+                      seg_bytes=1350,  # VXLAN CNI reduces the pod MTU to leave room for encapsulation
+                      l7=TlsL7(server_name="kubernetes.default.svc", version="TLS1.3",
+                               client_profile="curl", app_data_orig_bytes=rng.randint(400, 900),
+                               app_data_resp_bytes=rng.randint(2000, 8000))))
+    t += 2.0
+    pods = ["10.244.2.20", "10.244.3.7", "10.244.2.44", "10.244.4.11"]
+    ids = []
+    for i, pod in enumerate(pods):
+        fid = f"atk-k8s-lat-{i}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=attacker_pod, dst_ip=pod,
+                          src_port=next(sp), dst_port=8443, conn_state="SF", start_time=t + i * 1.5,
+                          src_os="linux", seg_bytes=1350,
+                          l7=TlsL7(server_name=f"svc-{i}.default.svc", version="TLS1.3",
+                                   client_profile="curl", app_data_orig_bytes=rng.randint(200, 500),
+                                   app_data_resp_bytes=rng.randint(300, 900))))
+    gt = [GroundTruthEntry(
+        "Lateral Movement", "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)",
+        [f.flow_id for f in flows],
+        f"A compromised pod ({attacker_pod}) discovered cluster services via CoreDNS, reached the "
+        f"API server ({api}), then fanned out mTLS to {len(pods)} pods across the service mesh.",
+        {"attacker_pod": attacker_pod, "api_server": api, "pod_count": len(pods),
+         "expected_signal": f"a pod talking to {api}:443 then mTLS fan-out to many pods (VXLAN-decapped)"})]
+    return Intrusion(flows, gt, f"K8s cluster lateral movement in {env.name}",
+                     {"attacker_pod": attacker_pod, "api_server": api})
+
+
+def build_llmnr_poisoning(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """LLMNR/NBT-NS poisoning -> SMB/NTLM capture (Responder-style) — T1557.001.
+
+    A victim's failed name lookups fall back to LLMNR broadcast; a rogue internal host
+    answers every one (including the classic ``wpad`` proxy-autodiscovery name) claiming
+    its own IP, then the victim authenticates to it over SMB — handing over an NTLMv2 hash.
+    The tell: an LLMNR answer whose rdata is a workstation, from a non-DNS host, immediately
+    followed by SMB to that host."""
+    victim, attacker = _hosts(env, 2)
+    sp = _sports()
+    names = ["wpad", "fileserverr", "sharepoin"]  # wpad first: the highest-value Responder target
+    flows, ids = [], []
+    for i, name in enumerate(names):
+        fid = f"atk-llmnr-{i:02d}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="udp", src_ip=victim, dst_ip="224.0.0.252",
+                          src_port=next(sp), dst_port=5355, start_time=start_time + i * 4.0,
+                          src_os=env.default_client_os,
+                          l7=NameQueryL7(protocol="llmnr", qname=name, poison_from=attacker)))
+    smb_id = "atk-llmnr-smb"
+    flows.append(Flow(flow_id=smb_id, transport="tcp", src_ip=victim, dst_ip=attacker,
+                      src_port=next(sp), dst_port=445, conn_state="SF",
+                      start_time=start_time + len(names) * 4.0 + 2.0, src_os=env.default_client_os,
+                      l7=SmbL7(share=f"\\\\{attacker}\\wpad")))
+    gt = [GroundTruthEntry(
+        "Credential Access", "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay",
+        ids + [smb_id],
+        f"{victim} broadcast LLMNR lookups (incl. wpad); {attacker} poisoned each with its own "
+        f"IP, then {victim} authenticated to {attacker} over SMB — a Responder-style NTLM capture.",
+        {"victim": victim, "attacker": attacker,
+         "expected_signal": f"dns.log LLMNR answer={attacker} (a workstation) from a non-DNS host, "
+                            f"then SMB {victim}->{attacker}"})]
+    return Intrusion(flows, gt, f"LLMNR poisoning in {env.name}",
+                     {"victim": victim, "attacker": attacker})
 
 
 def build_ddos_syn_flood(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
@@ -628,6 +908,13 @@ BZAR_PACK = {
 ATTACKS = {
     "phishing-intrusion": build_intrusion,
     "dns-exfil": build_dns_exfil,
+    "doh-tunnel": build_doh_tunnel,
+    "dot-tunnel": build_dot_tunnel,
+    "llmnr-poisoning": build_llmnr_poisoning,
+    "ipv6-c2": build_ipv6_c2,
+    "imds-ssrf": build_imds_ssrf,
+    "cloud-exfil": build_cloud_exfil,
+    "k8s-lateral": build_k8s_lateral,
     "ddos-syn-flood": build_ddos_syn_flood,
     "port-scan": build_port_scan,
     "brute-force": build_brute_force,

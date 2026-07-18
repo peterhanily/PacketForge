@@ -1,0 +1,60 @@
+{
+  "title": "LLMNR poisoning in office",
+  "iocs": {
+    "victim": "10.10.0.40",
+    "attacker": "10.10.0.41"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Credential Access",
+      "technique": "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay",
+      "flows": [
+        "atk-llmnr-00",
+        "atk-llmnr-01",
+        "atk-llmnr-02",
+        "atk-llmnr-smb"
+      ],
+      "description": "10.10.0.40 broadcast LLMNR lookups (incl. wpad); 10.10.0.41 poisoned each with its own IP, then 10.10.0.40 authenticated to 10.10.0.41 over SMB \u2014 a Responder-style NTLM capture.",
+      "iocs": {
+        "victim": "10.10.0.40",
+        "attacker": "10.10.0.41",
+        "expected_signal": "dns.log LLMNR answer=10.10.0.41 (a workstation) from a non-DNS host, then SMB 10.10.0.40->10.10.0.41"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-llmnr-00",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "224.0.0.252",
+      "dst_port": 5355,
+      "proto": "udp",
+      "technique": "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay"
+    },
+    {
+      "flow_id": "atk-llmnr-01",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "224.0.0.252",
+      "dst_port": 5355,
+      "proto": "udp",
+      "technique": "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay"
+    },
+    {
+      "flow_id": "atk-llmnr-02",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "224.0.0.252",
+      "dst_port": 5355,
+      "proto": "udp",
+      "technique": "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay"
+    },
+    {
+      "flow_id": "atk-llmnr-smb",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 445,
+      "proto": "tcp",
+      "technique": "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay"
+    }
+  ]
+}

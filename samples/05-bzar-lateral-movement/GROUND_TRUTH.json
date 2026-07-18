@@ -1,0 +1,53 @@
+{
+  "title": "PsExec-style lateral movement to 10.10.0.41",
+  "iocs": {
+    "attacker": "10.10.0.40",
+    "target": "10.10.0.41"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Lateral Movement",
+      "technique": "T1021.002 SMB/Windows Admin Shares / T1570 / T1569.002 Service Execution",
+      "flows": [
+        "atk-psexec-drop",
+        "atk-psexec-svc"
+      ],
+      "description": "PsExec-style lateral movement to 10.10.0.41: ADMIN$ tool transfer (SMB write of svc.exe) then svcctl CreateServiceW/StartServiceW \u2014 the combination BZAR flags.",
+      "iocs": {
+        "attacker": "10.10.0.40",
+        "target": "10.10.0.41",
+        "smb_files": {
+          "share": "ADMIN$",
+          "name": "svc.exe"
+        },
+        "dce_rpc": {
+          "endpoint": "svcctl",
+          "operations": [
+            "CreateServiceW",
+            "StartServiceW"
+          ]
+        },
+        "expected_notice": "ATTACK::Lateral_Movement_and_Execution"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-psexec-drop",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 445,
+      "proto": "tcp",
+      "technique": "T1021.002 SMB/Windows Admin Shares / T1570 / T1569.002 Service Execution"
+    },
+    {
+      "flow_id": "atk-psexec-svc",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 445,
+      "proto": "tcp",
+      "technique": "T1021.002 SMB/Windows Admin Shares / T1570 / T1569.002 Service Execution"
+    }
+  ]
+}

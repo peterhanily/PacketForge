@@ -40,6 +40,7 @@ def test_all_renderers_byte_identical_across_runs():
         "ldap": (m.LdapL7(), 389, "tcp"),
         "smb": (m.SmbL7(read_file="report.pdf", file_bytes=3000), 445, "tcp"),
         "dcerpc": (m.DceRpcL7(interface="svcctl", pipe="svcctl", operations=[15, 12, 19, 0]), 445, "tcp"),
+        "namequery": (m.NameQueryL7(protocol="llmnr", qname="x", poison_from="10.0.0.9"), 5355, "udp"),
         "kerberos": (m.KerberosL7(request_type="TGS", service="HTTP/x@R"), 88, "tcp"),
         "icmp": (m.IcmpL7(), 0, "icmp"),
         "opaque_tcp": (m.OpaqueTcpL7(orig_bytes=50, resp_bytes=50), 9000, "tcp"),

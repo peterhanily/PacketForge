@@ -81,7 +81,8 @@ _TLS13_CIPHERS = [4865, 4866, 4867]
 CIPHER_ID_BY_NAME = {name: cid for cid, name in _CIPHER_ZEEK.items()}
 
 
-def _build_extension(ext_type: int, profile: dict, server_name: str, grease: bool = False):
+def _build_extension(ext_type: int, profile: dict, server_name: str, grease: bool = False,
+                     alpn: list = None):
     if is_grease(ext_type):
         return TLS_Ext_Unknown(type=ext_type, val=b"")
     if ext_type == 0:
@@ -102,8 +103,8 @@ def _build_extension(ext_type: int, profile: dict, server_name: str, grease: boo
     if ext_type == 13:
         return TLS_Ext_SignatureAlgorithms(sig_algs=list(profile["signature_algorithms"]))
     if ext_type == 16:  # ALPN must carry a protocol list to be well-formed
-        return TLS_Ext_ALPN(protocols=[ProtocolName(protocol=b"h2"),
-                                       ProtocolName(protocol=b"http/1.1")])
+        names = alpn or ["h2", "http/1.1"]
+        return TLS_Ext_ALPN(protocols=[ProtocolName(protocol=n.encode()) for n in names])
     # Any other advertised extension (from an arbitrary reproduced JA3) rides as an
     # opaque extension of the right type — JA3/JA4 key on the type, not the content.
     return TLS_Ext_Unknown(type=ext_type, val=b"")
@@ -149,6 +150,8 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
     if is13:
         cipher_list = _TLS13_CIPHERS + cipher_list
         ext_types = ext_types + [43]  # supported_versions advertises 1.3
+    if spec.alpn and 16 not in ext_types:
+        ext_types.append(16)  # advertise ALPN even if the base profile omits it
     if grease:
         cipher_list = [_GREASE] + cipher_list
         ext_types = [_GREASE] + ext_types
@@ -158,17 +161,22 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         if t == 43:
             exts.append(TLS_Ext_SupportedVersion_CH(versions=[0x0304, 0x0303]))
         else:
-            exts.append(_build_extension(t, profile, spec.server_name, grease))
+            exts.append(_build_extension(t, profile, spec.server_name, grease, alpn=spec.alpn))
     client_hello = TLSClientHello(
         version=legacy, gmt_unix_time=int(flow.start_time),
         random_bytes=rng.randbytes(28), ciphers=cipher_list, ext=exts)
 
     default_cipher = _TLS13_CIPHERS[0] if is13 else int(profile["server_cipher"])
     chosen_cipher = spec.server_cipher if spec.server_cipher is not None else default_cipher
+    # The server selects one ALPN protocol; for TLS 1.2 it rides in the clear ServerHello,
+    # so Zeek records it as ssl.log next_protocol (in 1.3 it is in encrypted extensions).
+    selected_alpn = spec.alpn[0] if spec.alpn else None
+    sh_ext = [TLS_Ext_SupportedVersion_SH(version=0x0304)] if is13 else []
+    if selected_alpn and not is13:
+        sh_ext.append(TLS_Ext_ALPN(protocols=[ProtocolName(protocol=selected_alpn.encode())]))
     server_hello = TLSServerHello(
         version=legacy, gmt_unix_time=int(flow.start_time), random_bytes=rng.randbytes(28),
-        cipher=chosen_cipher,
-        ext=[TLS_Ext_SupportedVersion_SH(version=0x0304)] if is13 else [])
+        cipher=chosen_cipher, ext=sh_ext)
 
     ch_rec = _msg_record(22, 0x0301, [client_hello])
     sh_rec = _msg_record(22, legacy, [server_hello])
@@ -234,6 +242,8 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
             "cipher": _CIPHER_ZEEK.get(chosen_cipher, ""),
             "server_name": spec.server_name,
             "ja3": ja3,  # Zeek does not log JA3 without an add-on; carried as ground truth
+            # Server-selected ALPN — Zeek's ssl.log next_protocol for TLS 1.2 (blank in 1.3).
+            "next_protocol": selected_alpn if (selected_alpn and not is13) else "",
         },
     }
     return RenderResult(packets=result.packets, expected=expected)

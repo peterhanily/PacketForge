@@ -1,0 +1,21 @@
+name: aws-vpc
+description: An AWS VPC subnet seen from a per-instance capture agent (Linux SLL).
+link_type: linux_sll
+subnet: 172.31.0.0/16          # AWS default-VPC range
+gateway: 172.31.0.1
+dns_server: 172.31.0.2         # AmazonProvidedDNS (VPC base + 2)
+mac_oui: "0a:58:ac"            # AWS ENIs use locally-administered MACs
+default_client_os: linux
+default_server_os: linux
+client_os_mix:
+  linux: 82
+  windows_10: 18
+sensor:
+  vantage: host
+  nat: source                  # egress via a NAT gateway
+ambient:
+  - {service: tls, weight: 48}  # API calls to *.amazonaws.com, all TLS
+  - {service: dns, weight: 20}
+  - {service: http, weight: 10}
+  - {service: ssh, weight: 10}
+  - {service: ntp, weight: 3}

@@ -19,6 +19,7 @@ from packetforge.renderers.kerberos import render_kerberos
 from packetforge.renderers.ldap import render_ldap
 from packetforge.renderers.line_apps import render_imap, render_irc, render_pop3
 from packetforge.renderers.modbus import render_modbus
+from packetforge.renderers.namequery import render_namequery
 from packetforge.renderers.ntp import render_ntp
 from packetforge.renderers.opaque_tcp import render_opaque_tcp
 from packetforge.renderers.opaque_udp import render_opaque_udp
@@ -49,6 +50,7 @@ RENDERERS = {
     "ldap": render_ldap,
     "smb": render_smb,
     "dcerpc": render_dcerpc,
+    "namequery": render_namequery,
     "kerberos": render_kerberos,
     "pop3": render_pop3,
     "imap": render_imap,

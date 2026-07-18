@@ -1,0 +1,88 @@
+{
+  "title": "K8s cluster lateral movement in k8s",
+  "iocs": {
+    "attacker_pod": "10.244.1.13",
+    "api_server": "10.96.0.1"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Lateral Movement",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)",
+      "flows": [
+        "atk-k8s-dns-0",
+        "atk-k8s-dns-1",
+        "atk-k8s-api",
+        "atk-k8s-lat-0",
+        "atk-k8s-lat-1",
+        "atk-k8s-lat-2",
+        "atk-k8s-lat-3"
+      ],
+      "description": "A compromised pod (10.244.1.13) discovered cluster services via CoreDNS, reached the API server (10.96.0.1), then fanned out mTLS to 4 pods across the service mesh.",
+      "iocs": {
+        "attacker_pod": "10.244.1.13",
+        "api_server": "10.96.0.1",
+        "pod_count": 4,
+        "expected_signal": "a pod talking to 10.96.0.1:443 then mTLS fan-out to many pods (VXLAN-decapped)"
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-k8s-dns-0",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.96.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-dns-1",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.96.0.10",
+      "dst_port": 53,
+      "proto": "udp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-api",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.96.0.1",
+      "dst_port": 443,
+      "proto": "tcp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-lat-0",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.244.2.20",
+      "dst_port": 8443,
+      "proto": "tcp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-lat-1",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.244.3.7",
+      "dst_port": 8443,
+      "proto": "tcp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-lat-2",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.244.2.44",
+      "dst_port": 8443,
+      "proto": "tcp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    },
+    {
+      "flow_id": "atk-k8s-lat-3",
+      "src_ip": "10.244.1.13",
+      "dst_ip": "10.244.4.11",
+      "dst_port": 8443,
+      "proto": "tcp",
+      "technique": "T1613 Container/Cluster Discovery / T1021 Remote Services (in-cluster)"
+    }
+  ]
+}

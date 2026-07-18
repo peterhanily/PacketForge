@@ -56,7 +56,28 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="capture texture: 'realistic' adds RTT jitter, retransmits, dup-ACKs")
     s.add_argument("--evasion", action="append", default=None, dest="evasions",
                    help="apply an evasion modifier (repeatable; see list-evasions)")
+    s.add_argument("--vantages", action="store_true",
+                   help="also emit per-sensor captures of the same incident: an edge TAP "
+                        "(source-NAT + a router hop), a core SPAN (802.1Q trunk), and — with "
+                        "--attack — the victim's host tcpdump (cooked, its flows only)")
+    s.add_argument("--mirror", action="store_true",
+                   help="also emit a VXLAN-encapsulated capture as a cloud traffic mirror "
+                        "(AWS/GCP/Azure) or K8s CNI overlay collector would see it")
+    s.add_argument("--fragment", type=int, default=None, metavar="BYTES",
+                   help="IP-fragment the capture (max bytes/fragment) — a reassembly / IDS-evasion "
+                        "test; Zeek still reassembles to the same flows")
     s.add_argument("--validate", action="store_true", help="also run the Zeek round-trip")
+
+    bd = sub.add_parser("bundle", help="write a self-contained detection-CI bundle: the pcap, "
+                                       "its Zeek logs, ground truth, and a manifest")
+    bd.add_argument("--env", required=True, help="environment name")
+    bd.add_argument("-o", "--out", required=True, help="output directory for the bundle")
+    bd.add_argument("--flows", type=int, default=120, help="number of ambient noise flows")
+    bd.add_argument("--attack", nargs="?", const="phishing-intrusion", default=None,
+                    help="weave in an attack (name from list-attacks)")
+    bd.add_argument("--intensity", type=float, default=1.0)
+    bd.add_argument("--start", type=float, default=1_700_000_000.0)
+    bd.add_argument("--seed", type=int, default=0)
 
     ev = sub.add_parser("eval", help="score a .pcap for realism (blind-panel heuristics)")
     ev.add_argument("pcap")
@@ -589,7 +610,13 @@ def _dispatch(args) -> int:
         fs = compose_scenario(env, start_time=args.start, duration_s=args.duration,
                               noise_flows=n_flows, seed=args.seed, storyline=storyline,
                               texture=args.texture)
-        write_pcap(fs, args.out)
+        if args.fragment:
+            from packetforge.compile.fragment import fragment_packets
+            from packetforge.compile.timeline import compile_flowset
+            from scapy.utils import wrpcap
+            wrpcap(args.out, fragment_packets(compile_flowset(fs).packets, args.fragment))
+        else:
+            write_pcap(fs, args.out)
         vol = f", volume={args.volume}" if args.volume else ""
         print(f"wrote {args.out}: {len(fs.flows)} flows ({env.name}, link={env.link_type}{vol})")
         if intrusion is not None:
@@ -597,11 +624,56 @@ def _dispatch(args) -> int:
             base = str(Path(args.out).with_suffix(""))
             write_ground_truth(intrusion, base + ".GROUND_TRUTH.md", base + ".GROUND_TRUTH.json")
             print(f"wrote {base}.GROUND_TRUTH.md — {len(intrusion.ground_truth)} ATT&CK stages")
+        if args.vantages:
+            from packetforge.compile.timeline import compile_flowset
+            from packetforge.compile.vantage import render_vantages, standard_vantages
+            from scapy.utils import wrpcap
+            base = str(Path(args.out).with_suffix(""))
+            # Project the same incident through each sensor from a common Ethernet render.
+            fs.capture.link_type = "ethernet"
+            packets = compile_flowset(fs).packets
+            victim = intrusion.flows[0].src_ip if intrusion is not None else None
+            for vname, pkts in render_vantages(packets, standard_vantages(env.subnet, host=victim)).items():
+                out = f"{base}.{vname}.pcap"
+                wrpcap(out, pkts)
+                print(f"wrote {out}: {len(pkts)} packets (vantage {vname})")
+        if args.mirror:
+            from packetforge.compile.timeline import compile_flowset
+            from packetforge.compile.vantage import mirror_vantage, render_vantage
+            from scapy.utils import wrpcap
+            base = str(Path(args.out).with_suffix(""))
+            fs.capture.link_type = "ethernet"
+            pkts = render_vantage(compile_flowset(fs).packets, mirror_vantage())
+            wrpcap(f"{base}.mirror.pcap", pkts)
+            print(f"wrote {base}.mirror.pcap: {len(pkts)} packets (VXLAN traffic mirror)")
         if args.validate:
             if not validators_available():
                 print("ERROR: need zeek + tshark on PATH to validate", file=sys.stderr)
                 return 2
             print(validate_flowset(fs).summary())
+        return 0
+
+    if args.cmd == "bundle":
+        import random
+
+        from packetforge.bundle import write_bundle
+        from packetforge.compose import compose_scenario
+        from packetforge.environments import load_environment
+        env = load_environment(args.env)
+        intrusion = None
+        storyline = None
+        if args.attack:
+            from packetforge.scenarios import build_attack
+            intrusion = build_attack(args.attack, env, args.start + 100.0,
+                                     random.Random(args.seed), intensity=args.intensity)
+            storyline = intrusion.flows
+        fs = compose_scenario(env, start_time=args.start, noise_flows=args.flows,
+                              seed=args.seed, storyline=storyline)
+        manifest = write_bundle(fs, args.out, intrusion=intrusion)
+        c = manifest.get("consistency")
+        status = "consistent" if (c and c["ok"]) else ("no zeek" if c is None else "MISMATCH")
+        print(f"wrote bundle {args.out}/ — {manifest['flows']} flows, "
+              f"{len(manifest['zeek_logs'])} Zeek logs, ground truth, [{status}]")
         return 0
 
     return 2

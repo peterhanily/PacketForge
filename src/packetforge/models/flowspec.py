@@ -72,6 +72,9 @@ class TlsL7(_L7Base):
     client_profile: str = "generic_browser"  # -> fingerprints/ja3/<profile>.yaml
     ja3: Optional[str] = None  # explicit JA3 string to reproduce (overrides client_profile)
     server_cipher: Optional[int] = None  # override the negotiated cipher (IANA id)
+    # ALPN protocols the ClientHello advertises (e.g. ["h2","http/1.1"], ["dot"], ["h3"]).
+    # None -> the browser default. Zeek records the first as ssl.log `next_protocol`.
+    alpn: Optional[list[str]] = None
     app_data_orig_bytes: int = 0
     app_data_resp_bytes: int = 0
 
@@ -208,6 +211,23 @@ class LdapL7(_L7Base):
     searches: list[str] = Field(default_factory=list)  # base DNs to search
 
 
+class NameQueryL7(_L7Base):
+    """A broadcast/multicast name-resolution query, and optionally a *poisoned* answer.
+
+    LLMNR (udp/5355, 224.0.0.252), NBT-NS (udp/137, subnet broadcast), and mDNS (udp/5353,
+    224.0.0.251) let a host resolve a name its DNS server didn't answer — by asking every
+    host on the segment. An attacker (Responder-style) races a spoofed reply that claims a
+    name for its own IP, becoming the machine-in-the-middle (T1557.001). Set ``poison_from``
+    to the attacker IP to render that reply; Zeek logs both to ``dns.log`` (the poisoned
+    answer's rdata is the attacker's address)."""
+
+    kind: Literal["namequery"] = "namequery"
+    protocol: Literal["llmnr", "nbns", "mdns"] = "llmnr"
+    qname: str
+    qtype: str = "A"
+    poison_from: Optional[str] = None  # attacker IP that answers with a spoofed reply
+
+
 class SmbL7(_L7Base):
     """An SMB2/3 session: negotiate -> session setup -> tree connect to a share.
 
@@ -308,7 +328,7 @@ class SipL7(_L7Base):
 L7Spec = Annotated[
     Union[DnsL7, HttpL7, TlsL7, SmtpL7, IcmpL7, OpaqueTcpL7, OpaqueUdpL7,
           DhcpL7, NtpL7, SshL7, FtpL7, SnmpL7, ModbusL7, RadiusL7, LdapL7, SmbL7,
-          DceRpcL7, KerberosL7, Pop3L7, ImapL7, IrcL7, SipL7],
+          DceRpcL7, NameQueryL7, KerberosL7, Pop3L7, ImapL7, IrcL7, SipL7],
     Field(discriminator="kind"),
 ]
 
@@ -390,6 +410,7 @@ class Flow(BaseModel):
             "ldap": {"tcp"},
             "smb": {"tcp"},
             "dcerpc": {"tcp"},
+            "namequery": {"udp"},
             "kerberos": {"tcp"},
             "pop3": {"tcp"},
             "imap": {"tcp"},

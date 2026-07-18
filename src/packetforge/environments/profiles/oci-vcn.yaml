@@ -1,0 +1,21 @@
+name: oci-vcn
+description: An Oracle Cloud (OCI) VCN subnet seen from a per-instance capture agent (Linux SLL).
+link_type: linux_sll
+subnet: 10.0.0.0/16
+gateway: 10.0.0.1
+dns_server: 169.254.169.254    # OCI instance metadata / resolver
+mac_oui: "02:00:17"            # OCI virtual NIC (locally administered)
+default_client_os: linux
+default_server_os: linux
+client_os_mix:
+  linux: 88
+  windows_10: 12
+sensor:
+  vantage: host
+  nat: source
+ambient:
+  - {service: tls, weight: 50}  # *.oraclecloud.com, objectstorage.*.oci.customer-oci.com
+  - {service: dns, weight: 20}
+  - {service: http, weight: 8}
+  - {service: ssh, weight: 10}
+  - {service: ntp, weight: 3}
