@@ -55,6 +55,28 @@ def test_flow_sizes_are_heavy_tailed():
     assert max(sizes) > 50_000, "no elephant flows — the full-size packet mode is missing"
 
 
+def test_ambient_is_self_similar_and_non_stationary():
+    """The activity envelope makes ambient traffic self-similar (bursty across timescales) and
+    non-stationary (properties drift across the capture) — what a uniform/Poisson generator misses
+    and the within-source heterogeneity of real captures shows."""
+    import statistics
+
+    from packetforge.realism import hurst_aggvar
+    fs = compose_scenario(load_environment("home"), start_time=1_700_000_000.0,
+                          duration_s=600.0, noise_flows=900, seed=11)
+    arrivals = sorted(f.start_time for f in fs.flows)
+    # self-similar arrivals: H well above the Poisson/uniform 0.5
+    assert hurst_aggvar(arrivals) > 0.55, "ambient arrivals are ~Poisson, not self-similar"
+    # non-stationary volume: the resp byte scale drifts between the first and second half
+    web = sorted((f for f in fs.flows if getattr(f.l7, "kind", "") in ("tls", "http")),
+                 key=lambda f: f.start_time)
+    resp = [getattr(f.l7, "app_data_resp_bytes", 0) or getattr(f.l7, "response_body_len", 0)
+            for f in web]
+    h = len(resp) // 2
+    a, b = statistics.mean(resp[:h]) + 1, statistics.mean(resp[h:]) + 1
+    assert max(a, b) / min(a, b) > 1.25, f"resp size stationary across halves ({a:.0f} vs {b:.0f})"
+
+
 def test_ambient_clients_send_varied_originator_bytes():
     """Real clients don't send ~0 app bytes: request headers/cookies and the odd upload give
     the originator a spread. A near-constant orig volume is an easy synthetic tell (l_orig_bytes)."""
@@ -105,6 +127,18 @@ def test_analog_reproduces_reference_failure_rate():
     # and the S0:REJ ratio follows the reference (~3:1), not the built-in 6:4
     s0, rej = sum(f.conn_state == "S0" for f in failed), sum(f.conn_state == "REJ" for f in failed)
     assert s0 > rej, f"S0:REJ ratio not conditioned (S0={s0} REJ={rej})"
+
+
+def test_analog_fp_surface_is_reference_conditioned():
+    """The detection-matched analog scales its benign FP surface (dyndns/IP-lookup flows that
+    trip ET INFO rules) to the reference's rate: a clean reference (fp_per_hour=0) gets no
+    fabricated FP flows, so it can't over-alert against a reference that trips nothing."""
+    from packetforge.transfer import Profile, synthesize_analog
+    prof = Profile(services={"tls": 40, "dns": 30, "http": 20}, total_conns=90, duration=600.0)
+    clean = synthesize_analog(prof, load_environment("home"), seed=3, fp_per_hour=0.0)
+    assert not [f for f in clean.flows if "fp" in f.flow_id], "clean analog still fabricated FP flows"
+    noisy = synthesize_analog(prof, load_environment("home"), seed=3, fp_per_hour=180.0)
+    assert [f for f in noisy.flows if "fp" in f.flow_id], "conditioned FP surface not emitted"
 
 
 def test_originator_bytes_are_conditioned_on_the_reference():

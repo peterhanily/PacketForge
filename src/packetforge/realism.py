@@ -265,6 +265,35 @@ def temporal_split_auc(rows: list) -> float:
     return c2st_auc_between(rows[:n], rows[n:])
 
 
+def hurst_aggvar(times: list, base_bins: int = 512) -> float:
+    """Hurst exponent of an event-arrival series by the aggregated-variance method — a measure
+    of self-similarity / long-range dependence (burstiness that persists across timescales).
+    H ~ 0.5 = no LRD (Poisson/uniform arrivals — the classic synthetic tell); 0.5 < H < 1 =
+    self-similar, as real aggregate traffic is (Leland-Willinger). Returns NaN if too few events.
+
+    Bin the arrival times into a fine count series, aggregate at geometric block sizes m, and fit
+    Var(X^(m)) ~ m^(2H-2); the slope gives H. Used as a first-class realism signal so within-capture
+    heterogeneity is measured, not assumed.
+    """
+    import numpy as np
+    t = np.sort(np.asarray(list(times), dtype=float))
+    if len(t) < 128 or t[-1] <= t[0]:
+        return float("nan")
+    counts = np.histogram(t, bins=base_bins, range=(t[0], t[-1]))[0].astype(float)
+    ms, vs = [], []
+    m = 1
+    while base_bins // m >= 8:
+        trimmed = counts[: (len(counts) // m) * m].reshape(-1, m).mean(axis=1)
+        v = float(trimmed.var())
+        if v > 0:
+            ms.append(m); vs.append(v)
+        m *= 2
+    if len(ms) < 3:
+        return float("nan")
+    slope = float(np.polyfit(np.log(ms), np.log(vs), 1)[0])
+    return 1.0 + slope / 2.0
+
+
 def audit(real_workdir: str | Path, synth_workdir: str | Path,
           real_pcap=None, synth_pcap=None) -> RealismReport:
     """Score how distinguishable the synthetic capture is from the real one.

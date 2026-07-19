@@ -3,15 +3,10 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ldap
-#open	2026-07-19-20-03-46
+#open	2026-07-19-22-47-25
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
 #types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
-1700000039.716676	CoKxlzsPrCAkLlr7l	10.10.0.29	1037	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000040.374717	CANc1eKHw0Zuws67e	10.10.0.20	1043	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000043.816469	CRIBZY3S5RZ0Gp9Z25	10.10.0.26	1064	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000065.180686	CnBQzH1sEXArISq6jk	10.10.0.28	1110	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000111.599649	CUhEPHfIyMRJdVhjb	10.10.0.28	1141	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000121.983460	CENaCK1Q9Z3XFYygP2	10.10.0.22	1168	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000161.785479	CYV3rN1hpsiC38ROp4	10.10.0.20	1196	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000174.009947	CyVXmO1U4i1WfSOQrc	10.10.0.30	1209	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-#close	2026-07-19-20-03-46
+1700000150.221202	C5G4cX1mNurAmdn5C	10.10.0.31	1070	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000155.375349	CsDMne2vGiHRSTKmQb	10.10.0.29	1085	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000158.480989	CRUhex2p6DR8RzwHB9	10.10.0.22	1117	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+#close	2026-07-19-22-47-25

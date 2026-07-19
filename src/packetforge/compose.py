@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+import math
 import random
 from dataclasses import dataclass
 
@@ -57,22 +58,92 @@ def _seeded(env_name: str, seed: int) -> random.Random:
     return random.Random(int.from_bytes(h[:8], "big"))
 
 
-def _bursty_times(n: int, start: float, duration: float, rng: random.Random) -> list:
-    """Self-exciting-ish arrival times: flows cluster into bursts, not uniform noise.
+def _activity_envelope(duration: float, rng: random.Random):
+    """A seeded, non-stationary activity envelope over the capture window.
 
-    Uniform-random start times (mean gap ~= stdev) are the classic synthetic tell;
-    real user/host activity comes in bursts. We scatter a few burst centers over the
-    window and draw each flow tightly around one, so gaps are bursty (mean << stdev).
+    Real traffic is not stationary across its timespan — there are browsing lulls, busy
+    periods, and bulk/backup windows — so the first half of a real capture is measurably
+    distinguishable from the second (the within-source ``temporal_split_auc`` baseline sits
+    at ~0.7 for real captures, ~0.5 for a stationary generator). The key is *low-frequency*
+    structure: an i.i.d. per-phase jitter averages out across the two halves, so we build a
+    smooth signal from a strong fundamental (period ~= the whole capture, random phase) plus
+    two harmonics. It drives a ``bulk`` bias (transfer volume) and a ``webish`` bias (service
+    mix leans web/bulk vs chatty) so *multiple* feature axes drift together across the span.
+    Arrivals still get heavy-tailed per-phase activity for burstiness. Fully seeded.
+    """
+    def _walk(k: int = 16):
+        """A seeded, smooth random-walk signal over [0,1], normalized to zero-mean/unit-std.
+        A random walk has dominant low-frequency power, so its endpoints reliably drift apart —
+        the first half of the capture systematically differs from the second (what a random-phase
+        sinusoid fails at, because it averages out across the two halves)."""
+        acc, pts = 0.0, []
+        for _ in range(k):
+            acc += rng.gauss(0.0, 1.0)
+            pts.append(acc)
+        m = sum(pts) / k
+        pts = [p - m for p in pts]
+        sd = (sum(p * p for p in pts) / k) ** 0.5 or 1.0
+        pts = [p / sd for p in pts]
+
+        def f(pos01: float) -> float:
+            x = max(0.0, min(1.0, pos01)) * (k - 1)
+            i = int(x); j = min(k - 1, i + 1)
+            return pts[i] * (1 - (x - i)) + pts[j] * (x - i)
+        return f
+
+    def _sig(z: float) -> float:
+        return 1.0 / (1.0 + math.exp(-z))
+
+    w_bulk, w_web, w_dir, w_fail = _walk(), _walk(), _walk(), _walk()
+    n_phase = max(2, min(10, round(duration / 45.0)))
+    activity = [rng.paretovariate(1.5) for _ in range(n_phase)]  # heavy-tailed arrival density
+
+    def envelope(pos01: float) -> dict:
+        return {
+            "bulk": math.exp(1.1 * w_bulk(pos01)),      # ~[0.3, 3.0] transfer-volume trend
+            "web": _sig(1.8 * w_web(pos01)),            # 0..1 web/bulk vs chatty service lean
+            "dir": _sig(2.2 * w_dir(pos01)),            # 0..1 resp-heavy (downloads) vs orig-heavy
+            "fail": _sig(1.9 * w_fail(pos01)),          # 0..1 connection-failure intensity (scan-ish)
+        }
+
+    return envelope, activity
+
+
+def _bursty_times(n: int, start: float, duration: float, rng: random.Random,
+                  activity: list | None = None) -> list:
+    """Non-stationary, self-exciting arrival times: flows cluster into bursts *and* the
+    burst density varies across the window per the activity envelope.
+
+    Uniform-random start times (mean gap ~= stdev) are the classic synthetic tell, and a
+    stationary burst model still leaves the two halves of a capture statistically identical.
+    We allot the n flows across phases in proportion to a heavy-tailed activity weight (so
+    some periods are far busier than others — non-stationary), then scatter each phase's
+    flows into local bursts. Returns exactly n times.
     """
     if n <= 0:
         return []
-    n_bursts = max(1, round(n ** 0.5))
-    centers = [rng.uniform(0, duration) for _ in range(n_bursts)]
-    spread = max(0.5, duration / (n_bursts * 6.0))  # tight clusters
+    n_phase = len(activity) if activity else max(1, round(n ** 0.5))
+    if not activity:                                    # flat fallback (no envelope given)
+        activity = [1.0] * n_phase
+    phase_len = duration / n_phase
+    total_w = sum(activity) or 1.0
+    # deterministic allotment of exactly n flows across phases, largest-remainder method
+    raw = [n * w / total_w for w in activity]
+    counts = [int(x) for x in raw]
+    rem = n - sum(counts)
+    for i in sorted(range(n_phase), key=lambda j: raw[j] - counts[j], reverse=True)[:rem]:
+        counts[i] += 1
     out = []
-    for _ in range(n):
-        t = rng.choice(centers) + rng.gauss(0.0, spread)
-        out.append(start + min(duration, max(0.0, t)))
+    for i, k in enumerate(counts):
+        if k <= 0:
+            continue
+        base = i * phase_len
+        n_bursts = max(1, round(k ** 0.5))
+        centers = [base + rng.uniform(0, phase_len) for _ in range(n_bursts)]
+        spread = max(0.5, phase_len / (n_bursts * 6.0))  # tight clusters within a phase
+        for _ in range(k):
+            t = rng.choice(centers) + rng.gauss(0.0, spread)
+            out.append(start + min(duration, max(0.0, t)))
     return sorted(out)
 
 
@@ -85,7 +156,14 @@ _SERVICE_CONN_STATES = ["SF"] * 88 + ["RSTO"] * 8 + ["RSTR"] * 4
 _FAILED_CONN_STATES = ["S0"] * 6 + ["REJ"] * 4   # relative weights; ~15% of ambient volume
 
 
-def _benign_conn_state(rng: random.Random) -> str:
+def _benign_conn_state(rng: random.Random, fail_bias: float = 0.0) -> str:
+    # ``fail_bias`` (from the activity envelope) raises the reset rate in congested phases, so
+    # the SF fraction drifts across the capture — a top discriminator of real captures' first vs
+    # second half. Service flows use RSTO/RSTR (established-then-reset — the L7 service is still
+    # on the wire and Zeek names it); pure never-established S0/REJ stay in the _failed_flow path,
+    # so this never orphans an L7 service claim. fail_bias=0 is the old behaviour.
+    if fail_bias and rng.random() < 0.4 * fail_bias:
+        return rng.choice(("RSTO", "RSTR"))
     return rng.choice(_SERVICE_CONN_STATES)
 
 
@@ -135,23 +213,26 @@ def _conn_state_plan(conn_states: dict) -> _ConnPlan | None:
     )
 
 
-def _resp_size(rng: random.Random) -> int:
+def _resp_size(rng: random.Random, bulk: float = 1.0) -> int:
     """A heavy-tailed transfer size: mostly small ("mice"), a heavy tail of bulk
     transfers ("elephants"). Real captures are ~1/3 full-size (MTU) packets because a
     few large flows dominate the bytes; uniform small bodies never produce that mode.
+    ``bulk`` (the per-phase activity-envelope bias) makes bulk transfers cluster in
+    transfer-heavy phases, so flow sizes vary across the capture's timespan.
     """
-    if rng.random() < 0.14:                              # elephant: a bulk transfer
-        return min(700_000, int(rng.paretovariate(0.9) * 22_000))
+    if rng.random() < min(0.5, 0.14 * bulk):             # elephant: a bulk transfer
+        return min(700_000, int(rng.paretovariate(0.9) * 22_000 * bulk))
     return max(0, int(rng.lognormvariate(6.0, 1.3)))     # mouse: small/medium body
 
 
-def _req_size(rng: random.Random) -> int:
+def _req_size(rng: random.Random, bulk: float = 1.0) -> int:
     """Client-side request volume: mostly small (request headers, cookies — a few hundred
     bytes), a thin tail of uploads (POSTs, form/file submits). Lighter than _resp_size. Real
     ambient has a non-trivial spread of originator bytes; a fixed ~0 makes orig_bytes a tell.
+    ``bulk`` (the activity-envelope bias) makes uploads cluster in transfer-heavy phases.
     """
-    if rng.random() < 0.06:                              # an upload
-        return min(200_000, int(rng.paretovariate(1.1) * 8_000))
+    if rng.random() < min(0.4, 0.06 * bulk):             # an upload
+        return min(200_000, int(rng.paretovariate(1.1) * 8_000 * bulk))
     return max(64, int(rng.lognormvariate(6.2, 0.9)))    # ~500-byte median request
 
 
@@ -252,9 +333,15 @@ def _host_os_map(env: Environment, clients: list) -> dict:
 
 def _ambient_flow(env: Environment, service: str, clients: list, fid: str,
                   start: float, rng: random.Random, sport: int,
-                  host_os: dict | None = None) -> Flow | None:
+                  host_os: dict | None = None, bulk: float = 1.0,
+                  direction: float = 0.5, fail_bias: float = 0.0) -> Flow | None:
     client = rng.choice(clients)
-    cstate = _benign_conn_state(rng)  # most flows succeed (SF); a realistic minority fail
+    cstate = _benign_conn_state(rng, fail_bias)  # SF fraction drifts with the envelope
+    # ``direction`` (0..1) shifts the resp/orig byte balance across the capture: download-heavy
+    # phases (dir->1) carry big responses + small requests; interactive/upload phases (dir->0)
+    # the reverse. This makes l_byte_ratio/l_pkt_ratio drift — the strongest real within-source tell.
+    resp_bulk = bulk * (0.4 + 1.2 * direction)
+    orig_bulk = bulk * (0.4 + 1.2 * (1.0 - direction))
     # Internet-facing services (web, IRC) run on Linux, which enables TCP Timestamps;
     # internal AD/file services keep the environment's server OS. So a TS-capable client
     # negotiates timestamps only with the hosts that really would — matching real captures
@@ -288,13 +375,13 @@ def _ambient_flow(env: Environment, service: str, clients: list, fid: str,
         # varied byte volume instead of a near-constant ~0 (an easy synthetic tell).
         _post = rng.random() < 0.18
         l7 = (TlsL7(server_name=name, client_profile=_prof, version=_ver,
-                    alpn=["h2", "http/1.1"], app_data_orig_bytes=_req_size(rng),
-                    app_data_resp_bytes=_resp_size(rng))
+                    alpn=["h2", "http/1.1"], app_data_orig_bytes=_req_size(rng, orig_bulk),
+                    app_data_resp_bytes=_resp_size(rng, resp_bulk))
               if service == "tls" else
               HttpL7(host=name, method="POST" if _post else "GET",
                      uri=rng.choice(["/", "/api/v1/status", "/index.html"]),
-                     request_body_len=_req_size(rng) if _post else 0,
-                     status=rng.choice([200, 200, 304, 404]), response_body_len=_resp_size(rng)))
+                     request_body_len=_req_size(rng, orig_bulk) if _post else 0,
+                     status=rng.choice([200, 200, 304, 404]), response_body_len=_resp_size(rng, resp_bulk)))
         return Flow(**common, transport="tcp", src_port=sport, dst_port=port, dst_ip=ip,
                     conn_state=cstate, l7=l7)
     if service == "ssh":
@@ -417,14 +504,27 @@ def compose_scenario(env: Environment, *, start_time: float, duration_s: float =
     host_os = _host_os_map(env, clients)
     services = [a.service for a in env.ambient]
     weights = [a.weight for a in env.ambient]
-    times = _bursty_times(noise_flows, start_time, duration_s, rng)
+    # A seeded non-stationary activity envelope makes flow density AND transfer volume vary
+    # across the capture's timespan, so the first half is measurably distinct from the second
+    # (the within-source heterogeneity real captures show and a stationary generator misses).
+    envelope, activity = _activity_envelope(duration_s, rng)
+    times = _bursty_times(noise_flows, start_time, duration_s, rng, activity)
 
+    web_services = {"tls", "http"}
     flows: list = []
     for i in range(noise_flows):
-        service = _weighted_choice(rng, services, weights)
         sport = 1025 + (i % 64000)  # unique per flow -> unique 5-tuple
+        pos = (times[i] - start_time) / duration_s if duration_s else 0.0
+        e = envelope(pos)
+        # Service mix drifts with the envelope: web/bulk services up-weighted in transfer-heavy
+        # phases, chatty services in quiet phases — so service one-hots, conn shapes, sizes AND
+        # the resp/orig balance all shift together across the timespan (not just sizes).
+        w = [wt * (1.0 + 1.6 * e["web"] if s in web_services else 1.0 + 1.2 * (1.0 - e["web"]))
+             for s, wt in zip(services, weights)]
+        service = _weighted_choice(rng, services, w)
         flow = _ambient_flow(env, service, clients, f"noise-{i:04d}-{service}", times[i],
-                             rng, sport, host_os)
+                             rng, sport, host_os, bulk=e["bulk"], direction=e["dir"],
+                             fail_bias=e["fail"])
         if flow is not None:
             flows.append(flow)
 

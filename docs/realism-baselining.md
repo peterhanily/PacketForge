@@ -67,12 +67,16 @@ Panel of 5 independent real captures (smallFlows, bigFlows, Ultimate PCAP, two I
 ```
 real-vs-real floor:  0.998   (10 pairs, range 0.963–1.000)
 synth home (ambient): 0.999  (floor + 0.002)
-within-source:       real 0.65–0.83   synth ~0.53
+within-source:       real 0.65–0.83   synth ~0.65–0.71 (was ~0.53)
+arrival self-similarity (Hurst): real ~0.62   synth ~0.78 (was ~0.5 Poisson)
 ```
 
 **Read:** the improved ambient sits ~+0.002 above the real-vs-real floor — essentially at it. The
-metric is near-saturated (any two reals ~0.99), so the remaining honest signal is the within-source
-gap: **real captures vary more across their own timespan than ours do** — the next fidelity frontier.
+cross-capture metric is near-saturated (any two reals ~0.99). The sharper signal is the within-source
+baseline (how much a capture varies across its own timespan): a seeded non-stationary activity
+envelope (heavy-tailed ON/OFF arrivals + drifting service mix / resp-orig balance / reset rate) moved
+synth from a stationary ~0.53 into the real band, and `hurst_aggvar` confirms the arrival process is
+now self-similar rather than Poisson. Measured, not assumed.
 
 ### What this measurement retired
 The measure→fix→re-measure loop closed several tells against this panel:
@@ -88,7 +92,16 @@ Bulk C2ST needs volume; single-technique captures are better compared **field-fo
 Zeek log the detection keys on. Example — real PsExec (sbousseaden/OTRF) vs `psexec-lateral`, on
 `dce_rpc.log` `endpoint::operation`: after enriching the svcctl sequence and adding the
 `epmapper::ept_map` endpoint-mapper lookup, PacketForge's operation set matches the real capture
-exactly (bar `CreateServiceW` vs a WOW64 variant).
+exactly (bar `CreateServiceW` vs a WOW64 variant). Anchoring against `sbousseaden/PCAP-ATTACK` also
+drove `dcsync` (the real capture is Kerberos-sealed so Zeek sees nothing; the inert build reproduces
+the `drsuapi::DRSGetNCChanges` signal over a clean channel) and confirmed `kerberoasting` emits the
+`rc4-hmac`/etype-23 TGS-REP roast signature structurally.
+
+**Detection-outcome gate.** `packetforge realism-detection` compares the ET-rule alert distribution
+of a synthetic analog to the real reference (Jensen-Shannon divergence). The analog's benign
+false-positive surface is now **conditioned on the reference's own measured alert rate** — a clean
+reference that trips no rules gets no fabricated FP surface, rather than a hardcoded 180/hr that made
+the analog over-alert (`alert_js` 1.0 → 0.0 on a clean reference).
 
 ## The cloud gap
 

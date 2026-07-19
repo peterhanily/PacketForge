@@ -180,6 +180,38 @@ def test_psexec_resolves_endpoint_via_epmapper(name):
         assert opnum in svc.l7.operations, f"{name}: svcctl missing opnum {opnum}"
 
 
+@pytest.mark.skipif(not validators_available(), reason="requires zeek + tshark")
+def test_dcsync_emits_drsuapi_getncchanges(tmp_path):
+    # DCSync's Zeek signal is drsuapi::DRSGetNCChanges over ncacn_ip_tcp from a non-DC host,
+    # preceded by an epmapper endpoint lookup. (Real DCSync often Kerberos-seals the channel so
+    # a real capture yields no dce_rpc.log; the inert build reproduces the detection signal.)
+    from packetforge.validation import validate_flowset
+    from packetforge.validation.roundtrip import _parse_zeek_log
+    intr = _build("dcsync")
+    fs = FlowSet(capture=CaptureMeta(), flows=intr.flows)
+    report = validate_flowset(fs, keep_dir=str(tmp_path))
+    assert report.zeek_weird == 0 and report.zeek_reporter == 0, report.summary()
+    assert report.matched_flows == report.total_flows, report.summary()
+    rows = {(r["endpoint"], r["operation"], r.get("id.orig_h", ""))
+            for r in _parse_zeek_log(tmp_path / "dce_rpc.log")}
+    attacker = intr.iocs["attacker"]
+    assert any(ep == "drsuapi" and op == "DRSGetNCChanges" and oh == attacker
+               for ep, op, oh in rows), f"no DCSync signal from {attacker}: {sorted(rows)}"
+    assert any(op == "ept_map" for _, op, _ in rows), "DCSync should resolve the endpoint first"
+
+
+def test_dcsync_flow_is_inert():
+    # No replicated secret / capability on the wire: drsuapi request stubs are zero filler.
+    flows = _dcerpc_flows(_build("dcsync"))
+    drs = [f for f in flows if f.l7.interface == "drsuapi"]
+    assert drs and 3 in drs[0].l7.operations  # DRSGetNCChanges opnum
+    pkts = compile_flowset(FlowSet(capture=CaptureMeta(), flows=_build("dcsync").flows)).packets
+    for p in pkts:
+        if Raw in p:
+            body = bytes(p[Raw].load)
+            assert not any(tok.lower() in body.lower() for tok in _FORBIDDEN)
+
+
 @pytest.mark.parametrize("name", sorted(BZAR_PACK))
 def test_dcerpc_stubs_are_inert_zero_filler(name):
     intr = _build(name)

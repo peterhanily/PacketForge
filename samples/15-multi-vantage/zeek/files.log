@@ -3,30 +3,29 @@
 #empty_field	(empty)
 #unset_field	-
 #path	files
-#open	2026-07-19-20-03-40
+#open	2026-07-19-22-47-13
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-1700000040.463484	F3r3et2NntZa4ntF2k	CqrEFt2T3SD7p2Idfe	10.10.0.28	1033	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1326	1326	0	0	F	-	-	-	-	-	-	-
-1700000041.272929	FnkLmr4MRugVg4oEXa	C4aNSc4AMUPxhVsjjc	10.10.0.26	1036	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1223	1223	0	0	F	-	-	-	-	-	-	-
-1700000058.371733	FWJ3Jx29r9TcnOE9aa	CLGnl6401S268heLFb	10.10.0.27	1048	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	217	217	0	0	F	-	-	-	-	-	-	-
-1700000065.257285	Fnv0mY1HB3gNuYTjf1	CIu8T23UKsYRJl0FA3	10.10.0.22	1055	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	125	125	0	0	F	-	-	-	-	-	-	-
-1700000070.586714	FwrvZJ3YMHsF4pV7a	C160G122YX4zHWOcqa	10.10.0.28	1069	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	532	532	0	0	F	-	-	-	-	-	-	-
-1700000071.497068	Fjnkrs1LGFfkvi2xw	C74AjeSH0U5uxbpNk	10.10.0.21	1073	140.82.121.4	80	HTTP	0	(empty)	-	-	0.000000	T	T	1107	1107	0	0	F	-	-	-	-	-	-	-
-1700000071.532970	FU3OgD3xLBFkmjdu0d	C74AjeSH0U5uxbpNk	10.10.0.21	1073	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	6671	6671	0	0	F	-	-	-	-	-	-	-
-1700000073.067346	FIuKFu1shy26ASdb08	Cq2Lib1W9heVCPmUbd	10.10.0.24	1076	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	140	140	0	0	F	-	-	-	-	-	-	-
-1700000073.455119	FgOdJd13ctO1sWy4cf	CuO0Lf4EFEmK67uBa2	10.10.0.25	1079	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	628	628	0	0	F	-	-	-	-	-	-	-
-1700000100.323118	F4SZijAUFrICfcJK2	CbnVE14VsIoPCuMr4	10.10.0.40	40000	10.10.0.41	445	SMB	0	PE	application/x-dosexec	svc.exe	0.000000	T	T	6144	6144	0	0	F	-	-	-	-	-	-	-
-1700000117.450323	FyNrjZN3wyoellmM	CUofbeFYBGKNLQczl	10.10.0.29	1107	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	750	750	0	0	F	-	-	-	-	-	-	-
-1700000122.634256	FokZsI3o2qnVVNT013	CGICpK1W290c4WUtO4	10.10.0.31	55007	13.107.42.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
-1700000129.081280	FeKfGr9fmp2Q3A3Zk	CwfLDo3nvFr4RwtfV5	10.10.0.24	1130	104.16.132.229	80	HTTP	0	(empty)	-	-	0.000000	T	T	3209	3209	0	0	F	-	-	-	-	-	-	-
-1700000134.389501	FAKU74itNaD7eQd2j	CxYDjqyZxulsv9Wcg	10.10.0.26	1147	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1053	1053	0	0	F	-	-	-	-	-	-	-
-1700000161.965430	FahxwP1odkuICBtrc1	C6CPNm2r46GTxlDzq1	10.10.0.26	1159	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	387	387	0	0	F	-	-	-	-	-	-	-
-1700000164.279819	FpmOjdQwZ2TAQZ2Ee	CoYXQj3pHFx6LJtggi	10.10.0.22	1170	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	206	206	0	0	F	-	-	-	-	-	-	-
-1700000170.880976	FfDMlh29v2AUakIBb3	CNCPuk1OmnbSBQHYJ7	10.10.0.26	1190	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	35685	35685	0	0	F	-	-	-	-	-	-	-
-1700000171.441729	Ff9bGb1XTDQeHHhKM6	CSjEt765BfCcshwQ7	10.10.0.25	1191	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	3538	3538	0	0	F	-	-	-	-	-	-	-
-1700000171.898245	F3YD2vbJtet8eqt01	CyxMvd3UhQZNDsls61	10.10.0.21	1192	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	78	78	0	0	F	-	-	-	-	-	-	-
-1700000172.904925	F2GFPv217AmBDZHXMk	CvO4Cp3uGYoJfsLCx1	10.10.0.31	1194	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	548	548	0	0	F	-	-	-	-	-	-	-
-1700000173.399357	FqxY9Gph4mkhnu6Z3	CtomRA420pGfWf5ZZc	10.10.0.27	1195	13.107.42.14	80	HTTP	0	(empty)	-	-	0.000000	T	T	1208	1208	0	0	F	-	-	-	-	-	-	-
-1700000173.438501	FdCpwznClkOpsKl8f	CtomRA420pGfWf5ZZc	10.10.0.27	1195	13.107.42.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	62	62	0	0	F	-	-	-	-	-	-	-
-1700000195.303624	FHtUnMuHhY6UjqJpk	CtywF81euisdVitDl9	10.10.0.24	1215	142.250.72.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	22	22	0	0	F	-	-	-	-	-	-	-
-#close	2026-07-19-20-03-40
+1700000021.547820	Ftbi651ayDJYnlf8rg	CIzOEC2G5NkmvrXa75	10.10.0.29	55003	13.107.42.14	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000050.414964	F86b0h1MFPd5fMRbUg	CHiXhqfLXkdGWKte8	10.10.0.27	1048	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	4212	4212	0	0	F	-	-	-	-	-	-	-
+1700000050.502345	FGc9Gc4PcU1gVDvXIi	C66RTr1tu2csJofgqc	10.10.0.23	1049	13.107.42.14	80	HTTP	0	(empty)	-	-	0.000000	T	T	1243	1243	0	0	F	-	-	-	-	-	-	-
+1700000050.539579	FVl6DqG1gNSny47Rg	C66RTr1tu2csJofgqc	10.10.0.23	1049	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	418	418	0	0	F	-	-	-	-	-	-	-
+1700000050.624244	FFvgAsilfzTcODzWk	CS1dPO2QhipeiGCI8i	10.10.0.21	1050	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	373	373	0	0	F	-	-	-	-	-	-	-
+1700000052.310458	FCb5IHgioYt9ujNv2	CplXeH2IporxVz5ub3	10.10.0.26	1082	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	846	846	0	0	F	-	-	-	-	-	-	-
+1700000056.603473	FFLoom27TFeEHzJxFc	CCj2223YXXzVVYaTVc	10.10.0.24	1094	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	209	209	0	0	F	-	-	-	-	-	-	-
+1700000057.180502	FfPCmG4Il4XlFwFXQa	CRs3Sm1XuwasLgbxi1	10.10.0.22	1107	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	546	546	0	0	F	-	-	-	-	-	-	-
+1700000058.948812	FqO9yAP40rDsvAQhf	CLHTKJ34M2yXrCFu98	10.10.0.26	1121	152.199.19.161	80	HTTP	0	(empty)	-	-	0.000000	T	T	411	411	0	0	F	-	-	-	-	-	-	-
+1700000058.981306	FnjvlH3o9eKjwD070g	CLHTKJ34M2yXrCFu98	10.10.0.26	1121	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	645	645	0	0	F	-	-	-	-	-	-	-
+1700000067.352004	FB7bGv4oKegE3ucQfc	CxjoKL3gwy8Eq4qQQ8	10.10.0.28	1153	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	240	240	0	0	F	-	-	-	-	-	-	-
+1700000067.848160	FF7spd23UP09IsU6Xg	C3wR0LbpEKcO3cGna	10.10.0.26	1156	152.199.19.161	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	271	271	0	0	F	-	-	-	-	-	-	-
+1700000068.143482	FmiQfl1jeCD4eqDgoh	CDjoOM9bkfY3cA4D9	10.10.0.20	1157	151.101.1.140	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	1493	1493	0	0	F	-	-	-	-	-	-	-
+1700000068.423721	FZcoon29mB2MhDVVr6	C8875X3clWkvVuM7I9	10.10.0.23	1159	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	763	763	0	0	F	-	-	-	-	-	-	-
+1700000074.475369	FoOtf01Of5uOcAZeN9	C9r6yl35REDovEmswk	10.10.0.21	1167	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	241	241	0	0	F	-	-	-	-	-	-	-
+1700000074.588548	Fe4ZNc1Zcto7InRAVd	CpqhP41Y36ruaQ5dM2	10.10.0.27	1168	13.107.42.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	702	702	0	0	F	-	-	-	-	-	-	-
+1700000082.056273	F5N5ne1jez2SAYowS7	Cmz6Dd1Ec0QYeYUkH3	10.10.0.23	1176	140.82.121.4	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	27261	27261	0	0	F	-	-	-	-	-	-	-
+1700000100.323118	F4SZijAUFrICfcJK2	C3YR6g1k0LRRH6O85c	10.10.0.40	40000	10.10.0.41	445	SMB	0	PE	application/x-dosexec	svc.exe	0.000000	T	T	6144	6144	0	0	F	-	-	-	-	-	-	-
+1700000125.371506	FSAApugfHCaYtd9h3	C2K0Z7468H4ucArQ91	10.10.0.26	55005	140.82.121.4	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000137.968760	Fps6xBj3WlR4yVGB	CL02h23vvRg9y0wLW1	10.10.0.28	55007	152.199.19.161	80	HTTP	0	(empty)	text/plain	-	0.000000	F	F	50	50	0	0	F	-	-	-	-	-	-	-
+1700000144.526989	FtTzSq1HPlo5T70YF3	CQVrbp38rOZbuFm6E5	10.10.0.29	1207	104.16.132.229	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	80	80	0	0	F	-	-	-	-	-	-	-
+1700000191.238791	F3fBSu44JBCCU7DP41	CFAFxK2CUSbNx3hwH	10.10.0.27	1213	142.250.72.14	80	HTTP	0	(empty)	text/html	-	0.000000	F	F	316	316	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-19-22-47-13

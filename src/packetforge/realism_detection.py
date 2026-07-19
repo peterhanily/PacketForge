@@ -111,10 +111,12 @@ def profile_reference(real_pcap: Path, workdir: Path):
 
 
 def matched_synthetic(profile, env: Environment, *, seed: int = 0,
-                      start_time: float = 1_700_000_000.0):
-    """A synthetic capture matching the reference profile (mix, duration, fingerprints)."""
+                      start_time: float = 1_700_000_000.0, fp_per_hour: float | None = None):
+    """A synthetic capture matching the reference profile (mix, duration, fingerprints, and —
+    when ``fp_per_hour`` is given — its benign alert rate)."""
     from packetforge.transfer import synthesize_analog
-    return synthesize_analog(profile, env, seed=seed, start_time=start_time)
+    return synthesize_analog(profile, env, seed=seed, start_time=start_time,
+                             fp_per_hour=fp_per_hour)
 
 
 def _alert_histogram(pcap: Path, rules: Path, workdir: Path) -> dict:
@@ -209,14 +211,22 @@ def detection_outcome(real_pcap: str | Path, env: Environment, rules: str | Path
         # as JS=0.0 / coverage=1.0 — a vacuous "perfect match". Refuse it.
         raise ValueError(f"reference capture {real_pcap.name} has no parseable flows — "
                          f"is it a valid, non-empty pcap?")
-    analog = matched_synthetic(prof, env, seed=seed)
+    # Measure the reference's OWN benign alert rate first, then condition the analog's
+    # false-positive surface to it. A fixed FP rate makes the analog trip ET INFO/DYN_DNS rules
+    # a clean reference never trips (real=0, synth>0 -> JS=1.0); matching the rate to the
+    # reference is what makes the detection surfaces comparable rather than fabricated.
+    real_hist = _alert_histogram(real_pcap, rules, base / "suri_real")
+    ref_hours = max(prof.duration, 1.0) / 3600.0
+    ref_fp_per_hour = sum(real_hist.values()) / ref_hours if ref_hours else 0.0
+
+    analog = matched_synthetic(prof, env, seed=seed, fp_per_hour=ref_fp_per_hour)
     synth_pcap = base / "synth.pcap"
     write_pcap(analog, synth_pcap)
 
     rep = DetectionOutcomeReport(ruleset=str(rules), service_counts=prof.services,
                                  real_duration=prof.duration,
                                  synth_duration=_pcap_duration(synth_pcap))
-    rep.real_hist = _alert_histogram(real_pcap, rules, base / "suri_real")
+    rep.real_hist = real_hist
     rep.synth_hist = _alert_histogram(synth_pcap, rules, base / "suri_synth")
     rep.real_alerts = sum(rep.real_hist.values())
     rep.synth_alerts = sum(rep.synth_hist.values())

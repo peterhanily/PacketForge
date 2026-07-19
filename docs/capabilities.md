@@ -46,7 +46,7 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
 | Tactic | Attacks |
 |---|---|
 | Initial Access / C2 | `phishing-intrusion`, `ipv6-c2`, `doh-tunnel`, `dot-tunnel` |
-| Credential Access | `kerberoasting`, `asrep-roasting`, `brute-force`, **`llmnr-poisoning`** (Responder AiTM, T1557.001), **`imds-ssrf`** (cloud IMDS, T1552.005) |
+| Credential Access | `kerberoasting` (TGS-REP RC4/etype23 for service SPNs), `asrep-roasting`, `brute-force`, **`dcsync`** (drsuapi DRSGetNCChanges from a non-DC host, T1003.006), **`llmnr-poisoning`** (Responder AiTM, T1557.001), **`imds-ssrf`** (cloud IMDS, T1552.005) |
 | Discovery | `port-scan`, `share-discovery`, `account-discovery` |
 | Lateral Movement / Execution | **`remote-service`, `scheduled-task`, `wmi-exec`, `admin-share-transfer`, `remote-registry`, `psexec-lateral`** (the BZAR pack), **`k8s-lateral`** |
 | Exfiltration / Impact | `dns-exfil`, `cloud-exfil` (T1567.002), `ransomware`, `ddos-syn-flood` |

@@ -857,6 +857,32 @@ def build_account_discovery(env: Environment, start_time: float, rng, *, intensi
                      {"attacker": attacker, "target": target})
 
 
+def build_dcsync(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """DCSync: replicate directory secrets from a DC over drsuapi (DRSGetNCChanges) from a
+    non-DC host — T1003.006. The Zeek signal is ``drsuapi::DRSGetNCChanges`` sourced from a
+    host that is not a domain controller. Inert: the RPC stubs are zero filler, never any
+    replicated secret. Real DCSync often Kerberos-seals this DCE-RPC channel (so a real capture
+    yields no dce_rpc.log); we reproduce the detection *signal* over a clean channel by design."""
+    attacker, dc = _hosts(env, 2)
+    sp = _sports()
+    epm = _epmapper_flow("atk-dcsync-epm", attacker, dc, next(sp), start_time, env.default_client_os)
+    # drsuapi rides ncacn_ip_tcp on a dynamic port (resolved via the epmapper lookup): DRSBind
+    # then DRSGetNCChanges (typically twice — object then group memberships).
+    drs = _dcerpc_flow("atk-dcsync-drs", attacker, dc, next(sp), start_time + 0.2,
+                       pipe="drsuapi", interface="drsuapi", share="",
+                       operations=[0, 3, 3], op_names=["DRSBind", "DRSGetNCChanges", "DRSGetNCChanges"],
+                       src_os=env.default_client_os, dst_port=49200, transport="ncacn_ip_tcp")
+    gt = [GroundTruthEntry(
+        "Credential Access", "T1003.006 OS Credential Dumping: DCSync",
+        ["atk-dcsync-epm", "atk-dcsync-drs"],
+        f"DCSync against DC {dc}: an epmapper lookup then drsuapi DRSGetNCChanges from non-DC "
+        f"host {attacker} — directory replication of secrets. Inert (zero stubs, no secrets).",
+        {"attacker": attacker, "target": dc,
+         "dce_rpc": {"endpoint": "drsuapi", "operations": ["DRSGetNCChanges"]}})]
+    return Intrusion([epm, drs], gt, f"DCSync against {dc}",
+                     {"attacker": attacker, "target": dc})
+
+
 def build_remote_registry(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
     """Remote registry modification over \\winreg — T1112."""
     attacker, target = _hosts(env, 2)
@@ -941,6 +967,7 @@ ATTACKS = {
     "ransomware": build_ransomware,
     "kerberoasting": build_kerberoasting,
     "asrep-roasting": build_asrep_roasting,
+    "dcsync": build_dcsync,
     **BZAR_PACK,
 }
 

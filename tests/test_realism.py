@@ -59,6 +59,23 @@ def test_audit_refuses_empty_captures_instead_of_claiming_0_5(tmp_path):
         audit(a, b)
 
 
+def test_hurst_distinguishes_self_similar_from_poisson():
+    # The aggregated-variance Hurst estimate must read ~0.5 for uniform/Poisson arrivals (the
+    # synthetic tell) and clearly above 0.5 for a bursty, self-similar arrival series.
+    import random as _r
+
+    from packetforge.realism import hurst_aggvar
+    rng = _r.Random(1)
+    uniform = sorted(rng.uniform(0, 600) for _ in range(6000))
+    assert 0.4 < hurst_aggvar(uniform) < 0.6, "Hurst mis-scores Poisson arrivals"
+    # a clustered (heavy-tailed ON/OFF-like) series: a few dense bursts -> long-range dependence
+    bursty = []
+    centers = [rng.uniform(0, 600) for _ in range(8)]
+    for _ in range(6000):
+        bursty.append(min(600, max(0, rng.choice(centers) + rng.gauss(0, 3))))
+    assert hurst_aggvar(sorted(bursty)) > 0.65, "Hurst fails to detect self-similar burstiness"
+
+
 def test_underpowered_audit_reads_as_inconclusive_not_a_pass():
     # A short real capture (few flows) can't train the adversary; the report defaults to
     # AUC 0.5 / MMD 0. That must surface as "inconclusive", never as "indistinguishable" —

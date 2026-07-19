@@ -80,6 +80,9 @@ _INTERFACES = {
     # MS-RPCE endpoint mapper over ncacn_ip_tcp/135 -> Zeek endpoint "epmapper". Real tools
     # ept_map here to resolve a dynamic endpoint before the service RPC.
     "epmapper": ("e1af8308-5d1f-11c9-91a4-08002b14a0fa", (3, 0)),
+    # MS-DRSR directory replication over ncacn_ip_tcp -> Zeek endpoint "drsuapi". DRSGetNCChanges
+    # (opnum 3) from a non-DC host is the DCSync signal (T1003.006).
+    "drsuapi": ("e3514235-4b06-11d1-ab04-00c04fc2dcd2", (4, 0)),
 }
 
 # Inert filler sizes (bytes) standing in for the NDR argument / return stubs. Zero bytes:

@@ -94,8 +94,14 @@ def profile_pcap(pcap: str | Path, workdir: str | None = None) -> Profile:
 
 
 def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
-                      start_time: float = 1_700_000_000.0) -> FlowSet:
-    """Build a FlowSet reproducing the profile's service mix in the given environment."""
+                      start_time: float = 1_700_000_000.0,
+                      fp_per_hour: float | None = None) -> FlowSet:
+    """Build a FlowSet reproducing the profile's service mix in the given environment.
+
+    ``fp_per_hour`` sets the benign false-positive surface rate (dyndns/IP-lookup flows that
+    trip ET INFO rules). None uses the default enterprise rate; pass the *reference's own*
+    measured alert rate for a detection-matched analog — a clean reference that trips no rules
+    then gets no fabricated FP surface (otherwise the analog over-alerts, JS -> 1.0)."""
     rng = random.Random(seed)
     clients = _internal_hosts(env, 12)
     host_os = _host_os_map(env, clients)
@@ -171,7 +177,8 @@ def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
     # Benign false-positive surface (both paths): specific dyndns / noisy-TLD / IP-lookup flows
     # that trip ET INFO/DYN_DNS rules, giving the analog the benign alert surface real networks
     # have (the generic cloned flows carry no rule-tripping content of their own).
-    for k in range(round(_FP_PER_HOUR * duration / 3600.0)):
+    _fp_rate = _FP_PER_HOUR if fp_per_hour is None else fp_per_hour
+    for k in range(round(_fp_rate * duration / 3600.0)):
         flows.append(_benign_fp_flow(env, clients, f"analog-fp-{k:04d}",
                      start_time + rng.uniform(0, duration), rng, 55000 + (k % 4000), host_os))
     # SYN window/TTL are per-SYN fingerprints; a marginal draw matches them well (both paths).
