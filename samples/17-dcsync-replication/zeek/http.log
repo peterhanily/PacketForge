@@ -1,0 +1,30 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	http
+#open	2026-07-19-23-55-39
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
+#types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
+1700000021.512071	CQXRrn3ryiJ4pvQByk	10.10.0.29	55003	13.107.42.14	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	Ftbi651ayDJYnlf8rg	-	text/plain
+1700000050.379032	C0mbrA2BmoC8ZhfCba	10.10.0.27	1048	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	4212	404	Not Found	-	-	(empty)	-	-	-	-	-	-	F86b0h1MFPd5fMRbUg	-	text/html
+1700000050.502345	CusysJ1Szg3MNi9zR9	10.10.0.23	1049	13.107.42.14	80	1	POST	portal.example.io	/	-	1.1	Mozilla/5.0	-	1243	418	200	OK	-	-	(empty)	-	-	-	FGc9Gc4PcU1gVDvXIi	-	-	FVl6DqG1gNSny47Rg	-	text/html
+1700000050.590951	CrgCSn1M6HvMP8iYT1	10.10.0.21	1050	140.82.121.4	80	1	GET	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	373	200	OK	-	-	(empty)	-	-	-	-	-	-	FFvgAsilfzTcODzWk	-	text/html
+1700000050.738275	CLt7XGnlNstvgxdl1	10.10.0.21	1056	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000052.270876	CkMdaR2W0Qhis5Xac2	10.10.0.26	1082	142.250.72.14	80	1	GET	www.example.org	/index.html	-	1.1	Mozilla/5.0	-	0	846	200	OK	-	-	(empty)	-	-	-	-	-	-	FCb5IHgioYt9ujNv2	-	text/html
+1700000056.565088	CxlwIf1GUF2E8yGWW	10.10.0.24	1094	152.199.19.161	80	1	GET	cdn.example.net	/index.html	-	1.1	Mozilla/5.0	-	0	209	200	OK	-	-	(empty)	-	-	-	-	-	-	FFLoom27TFeEHzJxFc	-	text/html
+1700000057.148808	CaKLw04sYvt6lOUCCe	10.10.0.22	1107	152.199.19.161	80	1	GET	cdn.example.net	/api/v1/status	-	1.1	Mozilla/5.0	-	0	546	200	OK	-	-	(empty)	-	-	-	-	-	-	FfPCmG4Il4XlFwFXQa	-	text/html
+1700000058.948812	ChnjsE4XjifOuHcrX9	10.10.0.26	1121	152.199.19.161	80	1	POST	cdn.example.net	/index.html	-	1.1	Mozilla/5.0	-	411	645	200	OK	-	-	(empty)	-	-	-	FqO9yAP40rDsvAQhf	-	-	FnjvlH3o9eKjwD070g	-	text/html
+1700000067.319652	CvLJSC05CK78zbkch	10.10.0.28	1153	151.101.1.140	80	1	GET	assets.example.co	/api/v1/status	-	1.1	Mozilla/5.0	-	0	240	200	OK	-	-	(empty)	-	-	-	-	-	-	FB7bGv4oKegE3ucQfc	-	text/html
+1700000067.814103	Ci2BH5Mg8I0Myc4Wh	10.10.0.26	1156	152.199.19.161	80	1	GET	cdn.example.net	/api/v1/status	-	1.1	Mozilla/5.0	-	0	271	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FF7spd23UP09IsU6Xg	-	text/html
+1700000068.104692	C236yI2zLbnCh6dOMf	10.10.0.20	1157	151.101.1.140	80	1	GET	assets.example.co	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1493	200	OK	-	-	(empty)	-	-	-	-	-	-	FmiQfl1jeCD4eqDgoh	-	text/html
+1700000068.392564	CnAZFr4kAfWncXuAD4	10.10.0.23	1159	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	763	200	OK	-	-	(empty)	-	-	-	-	-	-	FZcoon29mB2MhDVVr6	-	text/html
+1700000074.440941	CRA3rR11tN9jZwteM4	10.10.0.21	1167	13.107.42.14	80	1	GET	portal.example.io	/	-	1.1	Mozilla/5.0	-	0	241	200	OK	-	-	(empty)	-	-	-	-	-	-	FoOtf01Of5uOcAZeN9	-	text/html
+1700000074.553483	CD6Fc74Eg0mawLxEy4	10.10.0.27	1168	13.107.42.14	80	1	GET	portal.example.io	/index.html	-	1.1	Mozilla/5.0	-	0	702	200	OK	-	-	(empty)	-	-	-	-	-	-	Fe4ZNc1Zcto7InRAVd	-	text/html
+1700000082.018801	CWRIHP2IIUeUKVSiwj	10.10.0.23	1176	140.82.121.4	80	1	GET	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	27261	404	Not Found	-	-	(empty)	-	-	-	-	-	-	F5N5ne1jez2SAYowS7	-	text/html
+1700000117.239222	C7TndH2aAyyOozxEg6	10.10.0.25	1195	152.199.19.161	80	1	GET	cdn.example.net	/index.html	-	1.1	Mozilla/5.0	-	0	0	304	Not Modified	-	-	(empty)	-	-	-	-	-	-	-	-	-
+1700000125.336784	COZY332nFeOCY2uYTk	10.10.0.26	55005	140.82.121.4	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	FSAApugfHCaYtd9h3	-	text/plain
+1700000137.933109	Cc9vNs3wExAldU6oY9	10.10.0.28	55007	152.199.19.161	80	1	GET	api.ipify.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	Fps6xBj3WlR4yVGB	-	text/plain
+1700000144.489214	C9E4go2TdrZav7xwp6	10.10.0.29	1207	104.16.132.229	80	1	GET	updates.example.com	/index.html	-	1.1	Mozilla/5.0	-	0	80	200	OK	-	-	(empty)	-	-	-	-	-	-	FtTzSq1HPlo5T70YF3	-	text/html
+1700000191.207320	CF5oqP22soTrqLypN3	10.10.0.27	1213	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	316	200	OK	-	-	(empty)	-	-	-	-	-	-	F3fBSu44JBCCU7DP41	-	text/html
+#close	2026-07-19-23-55-39

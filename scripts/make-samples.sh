@@ -168,6 +168,11 @@ readme 16-fragmented-ids-evasion "IP fragmentation — a reassembly / IDS-evasio
 "- The same ransomware SMB sweep, IP-fragmented to 400-byte fragments. Real Zeek **reassembles** to the identical flows (\`smb_files.log\` unchanged) — a per-packet signature engine, or one with a different overlap policy, can be evaded. A test that a rule survives reassembly." \
 "scripts/make-samples.sh   # the ransomware sweep, IP-fragmented"
 
+scenario 17-dcsync-replication office --volume normal --attack dcsync --seed 6
+readme 17-dcsync-replication "DCSync — directory replication credential theft (T1003.006)" \
+"- \`zeek/dce_rpc.log\`: an \`epmapper::ept_map\` lookup then the full drsuapi sequence (\`DRSBind\` -> \`DRSDomainControllerInfo\` -> \`DRSCrackNames\` -> \`DRSBind\` -> \`DRSGetNCChanges\` -> \`DRSUnbind\`) over ncacn_ip_tcp — matching a real Empire DCSync capture field-for-field. The tell BZAR-style analytics key on: \`drsuapi::DRSGetNCChanges\` sourced from a host that is **not** a domain controller. Inert: zero-filler stubs, never a replicated secret." \
+"scripts/make-samples.sh   # replicate secrets from a DC over drsuapi"
+
 echo "samples regenerated:"
 for d in samples/[0-9]*/; do
   printf "  %-28s %8sB pcap\n" "$(basename "$d")" "$(wc -c < "$d/capture.pcap")"

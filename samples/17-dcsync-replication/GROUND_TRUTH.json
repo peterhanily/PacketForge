@@ -1,0 +1,47 @@
+{
+  "title": "DCSync against 10.10.0.41",
+  "iocs": {
+    "attacker": "10.10.0.40",
+    "target": "10.10.0.41"
+  },
+  "evasions": [],
+  "kill_chain": [
+    {
+      "stage": "Credential Access",
+      "technique": "T1003.006 OS Credential Dumping: DCSync",
+      "flows": [
+        "atk-dcsync-epm",
+        "atk-dcsync-drs"
+      ],
+      "description": "DCSync against DC 10.10.0.41: an epmapper lookup then drsuapi DRSGetNCChanges from non-DC host 10.10.0.40 \u2014 directory replication of secrets. Inert (zero stubs, no secrets).",
+      "iocs": {
+        "attacker": "10.10.0.40",
+        "target": "10.10.0.41",
+        "dce_rpc": {
+          "endpoint": "drsuapi",
+          "operations": [
+            "DRSGetNCChanges"
+          ]
+        }
+      }
+    }
+  ],
+  "malicious_flows": [
+    {
+      "flow_id": "atk-dcsync-epm",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 135,
+      "proto": "tcp",
+      "technique": "T1003.006 OS Credential Dumping: DCSync"
+    },
+    {
+      "flow_id": "atk-dcsync-drs",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 49200,
+      "proto": "tcp",
+      "technique": "T1003.006 OS Credential Dumping: DCSync"
+    }
+  ]
+}

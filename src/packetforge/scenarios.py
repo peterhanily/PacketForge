@@ -866,11 +866,16 @@ def build_dcsync(env: Environment, start_time: float, rng, *, intensity: float =
     attacker, dc = _hosts(env, 2)
     sp = _sports()
     epm = _epmapper_flow("atk-dcsync-epm", attacker, dc, next(sp), start_time, env.default_client_os)
-    # drsuapi rides ncacn_ip_tcp on a dynamic port (resolved via the epmapper lookup): DRSBind
-    # then DRSGetNCChanges (typically twice — object then group memberships).
+    # drsuapi rides ncacn_ip_tcp on a dynamic port (resolved via the epmapper lookup). The full
+    # Empire/Covenant DCSync sequence, matched to a real capture (OTRF empire_dcsync): bind, locate
+    # the DC (DRSDomainControllerInfo), resolve the target principal (DRSCrackNames), re-bind, then
+    # DRSGetNCChanges (the replication that dumps the secret) and unbind.
+    ops = [0, 16, 12, 0, 3, 1]
+    names = ["DRSBind", "DRSDomainControllerInfo", "DRSCrackNames", "DRSBind",
+             "DRSGetNCChanges", "DRSUnbind"]
     drs = _dcerpc_flow("atk-dcsync-drs", attacker, dc, next(sp), start_time + 0.2,
                        pipe="drsuapi", interface="drsuapi", share="",
-                       operations=[0, 3, 3], op_names=["DRSBind", "DRSGetNCChanges", "DRSGetNCChanges"],
+                       operations=ops, op_names=names,
                        src_os=env.default_client_os, dst_port=49200, transport="ncacn_ip_tcp")
     gt = [GroundTruthEntry(
         "Credential Access", "T1003.006 OS Credential Dumping: DCSync",

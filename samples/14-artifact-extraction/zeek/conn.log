@@ -3,13 +3,13 @@
 #empty_field	(empty)
 #unset_field	-
 #path	conn
-#open	2026-07-19-22-47-06
+#open	2026-07-19-23-55-17
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents	ip_proto
 #types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]	count
-1700000000.000000	CkVuxU2ifVg5J4IWh	10.10.0.30	50100	10.10.0.20	80	tcp	http	0.288552	108	24673	SF	T	T	0	ShADadFf	6	360	20	25485	-	6
-1700000003.000000	CN3cP22cMW5AtAdLrj	10.10.0.30	50101	10.10.0.20	80	tcp	http	0.170182	104	16472	SF	T	T	0	ShADadFf	6	356	15	17084	-	6
-1700000006.000000	C41FKF3dhcySPgK8If	10.10.0.30	50102	10.10.0.21	445	tcp	smb	0.606830	671	21140	SF	T	T	0	ShADadFf	16	1323	28	22272	-	6
-1700000012.000000	CY6QQR4KPBQrPZYj7	10.10.0.30	50104	10.10.0.23	443	tcp	ssl	0.378226	281	1210	SF	T	T	0	ShADadFf	8	613	6	1462	-	6
-1700000010.500000	C4qHQb2YXmYIxjNPA6	10.10.0.30	50104	10.10.0.22	60313	tcp	ftp-data	0.143756	0	28672	SF	T	T	0	ShAdFf	5	212	22	29564	-	6
-1700000009.000000	CgQjiu1tzhyyN09Bif	10.10.0.30	50103	10.10.0.22	21	tcp	ftp	0.726485	80	265	SF	T	T	0	ShAdDaFf	22	972	20	1077	-	6
-#close	2026-07-19-22-47-06
+1700000000.000000	CX0pt81SAVAfnWcVK6	10.10.0.30	50100	10.10.0.20	80	tcp	http	0.288552	108	24673	SF	T	T	0	ShADadFf	6	360	20	25485	-	6
+1700000003.000000	CBDYeh2KLX2QEnTLs9	10.10.0.30	50101	10.10.0.20	80	tcp	http	0.170182	104	16472	SF	T	T	0	ShADadFf	6	356	15	17084	-	6
+1700000006.000000	CW5ldZ16WP3LvJHiIh	10.10.0.30	50102	10.10.0.21	445	tcp	smb	0.606830	671	21140	SF	T	T	0	ShADadFf	16	1323	28	22272	-	6
+1700000012.000000	Cd5Sje1WKi9Ef6cKt	10.10.0.30	50104	10.10.0.23	443	tcp	ssl	0.378226	281	1210	SF	T	T	0	ShADadFf	8	613	6	1462	-	6
+1700000009.000000	CZQigf232SuxuAhgO6	10.10.0.30	50103	10.10.0.22	21	tcp	ftp	0.726485	80	265	SF	T	T	0	ShAdDaFf	22	972	20	1077	-	6
+1700000010.500000	CHboW63mUpqVVZwFgh	10.10.0.30	50104	10.10.0.22	60313	tcp	ftp-data	0.143756	0	28672	SF	T	T	0	ShAdFf	5	212	22	29564	-	6
+#close	2026-07-19-23-55-17

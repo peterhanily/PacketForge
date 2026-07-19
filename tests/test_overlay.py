@@ -27,6 +27,21 @@ def test_mirror_vxlan_encapsulates_every_frame():
     assert pkts and all(VXLAN in p and p[VXLAN].vni == 5001 for p in pkts)
 
 
+def test_mirror_excludes_link_local_imds_traffic():
+    """A cloud traffic mirror never carries link-local (169.254/16): the IMDS is host-terminated
+    and link-scoped, so IMDS-SSRF traffic must appear only on an on-host vantage, never a mirror.
+    (AWS VPC Traffic Mirroring / GCP Packet Mirroring exclude 169.254/16 by construction.)"""
+    from packetforge.compile.vantage import Vantage
+    intr = build_attack("imds-ssrf", load_environment("aws-vpc"), 1_700_000_000.0, random.Random(1))
+    base = compile_flowset(FlowSet(flows=intr.flows)).packets
+    imds = b"\xa9\xfe\xa9\xfe"  # 169.254.169.254
+    assert any(imds in bytes(p) for p in base), "scenario should contain IMDS traffic"
+    mirror = render_vantage(base, mirror_vantage())
+    assert not any(imds in bytes(p) for p in mirror), "IMDS leaked into the mirror capture"
+    on_host = render_vantage(base, Vantage("host", link_type="ethernet"))
+    assert any(imds in bytes(p) for p in on_host), "IMDS missing from the on-host vantage"
+
+
 def test_mirror_is_deterministic():
     a, _ = _mirror("k8s-lateral", env="k8s")
     b, _ = _mirror("k8s-lateral", env="k8s")

@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smb_files
-#open	2026-07-19-22-47-06
+#open	2026-07-19-23-55-17
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	action	path	name	size	prev_name	times.modified	times.accessed	times.created	times.changed
 #types	time	string	addr	port	addr	port	string	enum	string	string	count	string	time	time	time	time
-1700000006.252519	C41FKF3dhcySPgK8If	10.10.0.30	50102	10.10.0.21	445	-	SMB::FILE_OPEN	\\\\FILESRV\\Finance	salaries.xlsx	20480	-	1700000006.000000	1700000006.000000	1700000006.000000	1700000006.000000
-#close	2026-07-19-22-47-06
+1700000006.252519	CW5ldZ16WP3LvJHiIh	10.10.0.30	50102	10.10.0.21	445	-	SMB::FILE_OPEN	\\\\FILESRV\\Finance	salaries.xlsx	20480	-	1700000006.000000	1700000006.000000	1700000006.000000	1700000006.000000
+#close	2026-07-19-23-55-17

@@ -93,6 +93,16 @@ def _to_sll(pkt: Packet) -> Packet:
     return sll
 
 
+_LINK_LOCAL = ipaddress.ip_network("169.254.0.0/16")
+
+
+def _is_link_local(ip: str) -> bool:
+    try:
+        return ipaddress.ip_address(ip) in _LINK_LOCAL
+    except ValueError:
+        return False
+
+
 def render_vantage(packets: list, v: Vantage) -> list:
     """Project a rendered packet list through one vantage -> that sensor's packet list."""
     net = ipaddress.ip_network(v.nat_subnet, strict=False) if v.nat_subnet else None
@@ -100,6 +110,12 @@ def render_vantage(packets: list, v: Vantage) -> list:
     for p in packets:
         if v.sees_host and IP in p and v.sees_host not in (p[IP].src, p[IP].dst):
             continue  # a host sensor never sees flows it is not an endpoint of
+        # A traffic mirror / CNI overlay never carries link-local (169.254/16): the instance
+        # metadata service is host-terminated and link-scoped, so IMDS/SSRF traffic can't traverse
+        # a mirrorable or overlay path — it appears only on an on-host vantage. (AWS VPC Traffic
+        # Mirroring / GCP Packet Mirroring exclude 169.254/16 by construction.)
+        if v.vxlan_vni is not None and IP in p and (_is_link_local(p[IP].src) or _is_link_local(p[IP].dst)):
+            continue
         q = p.copy()
         _project_ip(q, v, net)
         if v.vlan is not None and Ether in q:

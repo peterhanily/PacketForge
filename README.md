@@ -54,8 +54,11 @@ the honest C2ST verdict.)
   sensors you actually run: an edge TAP (source-NAT + router hop), a core SPAN (802.1Q VLAN),
   a host `tcpdump`, or a **VXLAN traffic mirror** (AWS VPC Traffic Mirroring / GCP Packet
   Mirroring / K8s CNI overlay, which Zeek decapsulates). Answers "does my detection fire
-  *given where my sensors are*." Plus **IP fragmentation** as a reassembly / IDS-evasion test.
-- **ATT&CK attack library** — phishing kill chains, Kerberoasting/AS-REP roasting, ransomware,
+  *given where my sensors are*." The mirror honors the real cloud invariant that **link-local
+  169.254/16 is excluded from mirroring** — IMDS traffic appears only on an on-host vantage.
+  Plus **IP fragmentation** as a reassembly / IDS-evasion test.
+- **ATT&CK attack library** — phishing kill chains, Kerberoasting/AS-REP roasting, **DCSync**
+  (drsuapi `DRSGetNCChanges` from a non-DC host, matched to a real Empire capture), ransomware,
   DNS/DoH tunnelling, an inert **BZAR lateral-movement pack** (remote service creation,
   scheduled task, WMI, admin-share, discovery, PsExec co-detect), **LLMNR/NBT-NS poisoning**
   (Responder-style AiTM), and **cloud** attacks — IMDS credential theft (the Capital One

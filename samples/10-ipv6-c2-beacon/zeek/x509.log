@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-22-46-59
+#open	2026-07-19-23-55-11
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000017.273049	f8589a5ae050f1cbb5168f0a4b311474b3b1d33276938e2292fdeb0c8da52305	3	11E8683C	CN=portal.example.io	CN=portal.example.io	1697408017.000000	1728944017.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
@@ -19,4 +19,4 @@
 1700000170.080653	1f4fbfd07ad94fd72f550d42a2a6dd4d68e07e39d0b022be37e12750a44e65ff	3	1A2098E7	CN=cdn.example.net	CN=cdn.example.net	1697408170.000000	1728944170.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
 1700000175.305696	6c92daaee359484a0fb31d9c720844dfb72c503940e36db593da2dbbb1e14b4f	3	3D65D20E	CN=updates.example.com	CN=updates.example.com	1697408175.000000	1728944175.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
 1700000175.364445	6f73bca423d2ebbf3bd4c47b321b78ea3905b055fcac063bedce697533c9ec3c	3	5BDC7840	CN=portal.example.io	CN=portal.example.io	1697408175.000000	1728944175.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-#close	2026-07-19-22-46-59
+#close	2026-07-19-23-55-11

@@ -198,6 +198,10 @@ def test_dcsync_emits_drsuapi_getncchanges(tmp_path):
     assert any(ep == "drsuapi" and op == "DRSGetNCChanges" and oh == attacker
                for ep, op, oh in rows), f"no DCSync signal from {attacker}: {sorted(rows)}"
     assert any(op == "ept_map" for _, op, _ in rows), "DCSync should resolve the endpoint first"
+    # the full Empire DCSync sequence, matched field-for-field to a real capture (OTRF empire_dcsync)
+    drs_ops = {op for ep, op, _ in rows if ep == "drsuapi"}
+    assert {"DRSBind", "DRSDomainControllerInfo", "DRSCrackNames", "DRSGetNCChanges",
+            "DRSUnbind"} <= drs_ops, f"DCSync sequence incomplete: {sorted(drs_ops)}"
 
 
 def test_dcsync_flow_is_inert():

@@ -35,7 +35,9 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
   VLAN), or a host `tcpdump` (only its flows, cooked SLL). CLI: `scenario --vantages`.
 - **VXLAN traffic mirroring / CNI overlay** — a VPC Traffic Mirror (AWS), Packet Mirroring
   (GCP), vTAP (Azure), or a K8s VXLAN overlay: each frame encapsulated to a collector VTEP,
-  which Zeek decapsulates to the inner conn + a `tunnel.log`. CLI: `scenario --mirror`.
+  which Zeek decapsulates to the inner conn + a `tunnel.log`. CLI: `scenario --mirror`. Enforces
+  the real cloud invariant that **link-local 169.254/16 is excluded from mirroring** — so IMDS/SSRF
+  traffic renders only on an on-host vantage, never in a mirror capture (as AWS/GCP mirroring does).
 - **IP fragmentation** — a reassembly / IDS-evasion primitive; Zeek reassembles to the same
   flows. CLI: `scenario --fragment BYTES`.
 - **Capture texture** — `clean`, `realistic` (RTT jitter, retransmits, dup-ACKs), and

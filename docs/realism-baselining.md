@@ -92,10 +92,17 @@ Bulk C2ST needs volume; single-technique captures are better compared **field-fo
 Zeek log the detection keys on. Example — real PsExec (sbousseaden/OTRF) vs `psexec-lateral`, on
 `dce_rpc.log` `endpoint::operation`: after enriching the svcctl sequence and adding the
 `epmapper::ept_map` endpoint-mapper lookup, PacketForge's operation set matches the real capture
-exactly (bar `CreateServiceW` vs a WOW64 variant). Anchoring against `sbousseaden/PCAP-ATTACK` also
-drove `dcsync` (the real capture is Kerberos-sealed so Zeek sees nothing; the inert build reproduces
-the `drsuapi::DRSGetNCChanges` signal over a clean channel) and confirmed `kerberoasting` emits the
-`rc4-hmac`/etype-23 TGS-REP roast signature structurally.
+exactly (bar `CreateServiceW` vs a WOW64 variant). Anchoring against real captures also
+drove `dcsync`: a real Empire DCSync capture (OTRF `empire_dcsync`, over an unsealed dynamic-port
+channel where Zeek does log the ops) field-diffed against the renderer showed the full real sequence
+(`DRSBind → DRSDomainControllerInfo → DRSCrackNames → DRSBind → DRSGetNCChanges → DRSUnbind`), which
+`build_dcsync` now reproduces **field-for-field** (same Zeek `dce_rpc` operation multiset, still inert).
+`kerberoasting` was confirmed to emit the `rc4-hmac`/etype-23 TGS-REP roast signature structurally.
+
+Cloud attacks were baselined against real cloud/container captures (a k8s cryptojacking honeypot, real
+Istio mesh, real Azure/AWS VNet captures — see the cloud gaps below): `k8s-lateral`'s attack shape
+(API-server → `/apis/apps` DaemonSet → `kube-system`) matches the real capture, though a real cluster's
+API traffic is opaque mTLS so it's a structural, not byte-level, anchor.
 
 **Detection-outcome gate.** `packetforge realism-detection` compares the ET-rule alert distribution
 of a synthetic analog to the real reference (Jensen-Shannon divergence). The analog's benign

@@ -53,6 +53,16 @@ Read the number the way the rest of the calibration does: **compare synth-vs-rea
 real-vs-real floor, not to 0.5.** Capture at least two independent real cloud references so a floor
 exists; a single one is reported INCONCLUSIVE by design.
 
+## A real k8s reference without a cloud account
+For the `k8s` env specifically, a real container-network reference exists: the eBPF/XDP veth
+capture corpus from **arXiv 2410.18332** (Google-Drive folder linked in the paper). It anchors the
+overlay *substrate* only — its attacks are DoS/Heartbleed, not the IMDS/S3/k8s-lateral techniques —
+so decode its outer encapsulation to pin the CNI (flannel VXLAN/8472 vs cilium Geneve/6081), match
+`k8s.yaml`, and compute a real-vs-real floor for `build_k8s_lateral` with `scripts/baseline_panel.py`.
+The AWS/Azure/GCP VM envs have **no** real public attack pcap (structural, not a search miss:
+providers expose only flow logs, and native mirroring excludes 169.254/16 — which PacketForge now
+enforces as a generator invariant), so validate those structurally and self-capture the rest here.
+
 ## VPC Traffic Mirroring (optional, for the `--mirror` path)
 The scripts capture host-side (tcpdump on the instance), which matches PacketForge's cloud env
 (per-instance agent, Linux SLL). To also baseline the **mirrored** view (`scenario --mirror`, the
