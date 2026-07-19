@@ -50,6 +50,13 @@ def event_to_flow(event) -> dict | None:
     if proto == "tcp":
         cs = getattr(net, "conn_state", "SF")
         flow["conn_state"] = cs if cs in _SUPPORTED_CONN_STATES else "SF"
+    # Carry the canonical event's duration when it has one. PacketForge renders the flow to this
+    # (spacing packets so real Zeek recomputes the same conn.log duration), so the pcap agrees with
+    # EF's own duration rather than diverging from it. Requires the duration to live on the canonical
+    # event (the single source of truth) — see PREPARED-PR.md, the one EF-side alignment item.
+    dur = getattr(net, "duration", None)
+    if dur is not None:
+        flow["duration"] = float(dur)
 
     dns = getattr(event, "dns", None)
     http = getattr(event, "http", None)
@@ -60,10 +67,12 @@ def event_to_flow(event) -> dict | None:
                       "answers": [a for a in getattr(dns, "answers", []) if _is_ip(a)],
                       "rcode": dns.rcode}
     elif proto == "tcp" and http is not None:
-        flow["l7"] = {"kind": "http", "method": http.method, "host": http.host, "uri": http.uri,
-                      "user_agent": http.user_agent, "status": http.status_code,
-                      "request_body_len": http.request_body_len,
-                      "response_body_len": http.response_body_len}
+        l7 = {"kind": "http", "method": http.method, "host": http.host, "uri": http.uri,
+              "status": http.status_code, "request_body_len": http.request_body_len,
+              "response_body_len": http.response_body_len}
+        if getattr(http, "user_agent", ""):   # omit rather than emit an empty UA header
+            l7["user_agent"] = http.user_agent
+        flow["l7"] = l7
     elif proto == "tcp" and ssl is not None:
         ver = _TLS_VERSION.get(getattr(ssl, "version", ""), "TLS1.2")
         flow["l7"] = {"kind": "tls", "server_name": getattr(ssl, "server_name", "") or "unknown.invalid",

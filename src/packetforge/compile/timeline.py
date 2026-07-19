@@ -99,6 +99,16 @@ def _compile_flows(fs: FlowSet, salt: str, result: CompileResult) -> None:
             rendered = RENDERERS[kind](flow, orig, resp, rng)
         finally:
             _SEG_BYTES.reset(seg_token)
+        # Exact-duration control: linearly rescale this flow's packet times to span the target
+        # duration, so real Zeek recomputes exactly flow.duration (used to agree with an upstream
+        # source of truth). Only touches timestamps — byte counts, conn_state and history are intact.
+        if flow.duration is not None and len(rendered.packets) >= 2:
+            t0 = min(float(p.time) for p in rendered.packets)
+            span = max(float(p.time) for p in rendered.packets) - t0
+            if span > 0:
+                scale = flow.duration / span
+                for p in rendered.packets:
+                    p.time = t0 + (float(p.time) - t0) * scale
         result.packets.extend(rendered.packets)
         result.flows.append(
             CompiledFlow(

@@ -385,6 +385,11 @@ class Flow(BaseModel):
     # this to the reference's bytes-per-packet matches its packet counts (orig_pkts, resp_bpp).
     seg_bytes: Optional[int] = None
     rtt: float = 0.03  # seconds; used to space handshake/data/teardown
+    # Exact target duration (seconds) for the flow. When set, the compiler linearly rescales the
+    # rendered packet timestamps so real Zeek recomputes exactly this conn.log duration. Lets a
+    # flow carry a duration from an upstream source of truth (e.g. an EvidenceForge event whose
+    # own logs assert that duration) so the pcap agrees with it instead of diverging.
+    duration: Optional[float] = None
     conn_state: str = "SF"  # target Zeek conn_state for TCP flows
     l7: L7Spec
     expect: Optional[ExpectZeek] = None
