@@ -3,11 +3,11 @@
 #empty_field	(empty)
 #unset_field	-
 #path	files
-#open	2026-07-18-02-04-53
+#open	2026-07-19-20-03-33
 #fields	ts	fuid	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	source	depth	analyzers	mime_type	filename	duration	local_orig	is_orig	seen_bytes	total_bytes	missing_bytes	overflow_bytes	timedout	parent_fuid	md5	sha1	sha256	extracted	extracted_cutoff	extracted_size
 #types	time	string	string	addr	port	addr	port	string	count	set[string]	string	string	interval	bool	bool	count	count	count	count	bool	string	string	string	string	string	bool	count
-1700000000.064425	FY8YbaVNTMVIRxy8g	Cba5l419PYmDRuOqph	10.10.0.30	50100	10.10.0.20	80	HTTP	0	PE	application/x-dosexec	-	0.000000	T	F	24576	24576	0	0	F	-	-	-	-	-	-	-
-1700000003.065012	FGVMoD10fJjjjKA7w5	CUEJK524JcNwDJpU21	10.10.0.30	50101	10.10.0.20	80	HTTP	0	(empty)	application/pdf	-	0.000000	T	F	16384	16384	0	0	F	-	-	-	-	-	-	-
-1700000006.362139	FDtdTk3rBa5aDhLT3	CIUbe21eyCop06Zr49	10.10.0.30	50102	10.10.0.21	445	SMB	0	(empty)	application/zip	salaries.xlsx	0.000000	T	F	20480	20480	0	0	F	-	-	-	-	-	-	-
-1700000010.533747	FPBz4b1Q03Lr0VRd2g	C0IFjE2gM2ECKKenbi	10.10.0.30	50104	10.10.0.22	60313	FTP_DATA	0	(empty)	application/zip	-	0.000000	T	F	28672	-	0	0	F	-	-	-	-	-	-	-
-#close	2026-07-18-02-04-53
+1700000000.064425	FY8YbaVNTMVIRxy8g	CIxhEo2PuwKTJoVial	10.10.0.30	50100	10.10.0.20	80	HTTP	0	PE	application/x-dosexec	-	0.000000	T	F	24576	24576	0	0	F	-	-	-	-	-	-	-
+1700000003.065012	FGVMoD10fJjjjKA7w5	C5G8Pd3uhFzB0TLsj3	10.10.0.30	50101	10.10.0.20	80	HTTP	0	(empty)	application/pdf	-	0.000000	T	F	16384	16384	0	0	F	-	-	-	-	-	-	-
+1700000006.362139	FDtdTk3rBa5aDhLT3	CxGiuErxJLyE6ubfk	10.10.0.30	50102	10.10.0.21	445	SMB	0	(empty)	application/zip	salaries.xlsx	0.000000	T	F	20480	20480	0	0	F	-	-	-	-	-	-	-
+1700000010.533747	FPBz4b1Q03Lr0VRd2g	CChITV8Xo7sMyaDj6	10.10.0.30	50104	10.10.0.22	60313	FTP_DATA	0	(empty)	application/zip	-	0.000000	T	F	28672	-	0	0	F	-	-	-	-	-	-	-
+#close	2026-07-19-20-03-33

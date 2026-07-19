@@ -3,16 +3,20 @@
 #empty_field	(empty)
 #unset_field	-
 #path	kerberos
-#open	2026-07-18-02-04-50
+#open	2026-07-19-20-03-31
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	request_type	client	service	success	error_msg	from	till	cipher	forwardable	renewable	client_cert_subject	client_cert_fuid	server_cert_subject	server_cert_fuid
 #types	time	string	addr	port	addr	port	string	string	string	bool	string	time	time	string	bool	bool	string	string	string	string
-1700000028.692109	CuMb2f2H9KBhosT2C4	10.10.0.27	1025	10.10.0.10	88	AS	user25/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036028.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000048.258075	C0hzBK3Ok2v8iMMdUa	10.10.0.27	1033	10.10.0.10	88	TGS	user33/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036048.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000067.278083	Cji1PP3oAWQh55aUfj	10.10.0.24	1034	10.10.0.10	88	AS	user34/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036067.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000076.681637	ClMrye34I0vgbQdFXj	10.10.0.27	1039	10.10.0.10	88	AS	user39/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036076.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000159.870287	Cyzw23vDvZI0AcKal	10.10.0.30	1043	10.10.0.10	88	TGS	user43/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036159.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000258.857723	CuJpZf2XKlRBLQiudc	10.10.0.26	1064	10.10.0.10	88	TGS	user14/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036258.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000562.790901	Cq1DWE2ycR9cddziv4	10.10.0.24	1087	10.10.0.10	88	AS	user37/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036562.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000580.601835	CMklXw43wlC9vjZsAj	10.10.0.28	1093	10.10.0.10	88	TGS	user43/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036580.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-1700000590.029174	CiMfHp4nqUciETEvp2	10.10.0.26	1096	10.10.0.10	88	TGS	user46/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036589.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
-#close	2026-07-18-02-04-50
+1700000028.692109	C4LpvU35Q0UOHNdAvi	10.10.0.27	1025	10.10.0.10	88	AS	user25/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036028.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000079.923583	CsFugf3mwI0jCU0S8a	10.10.0.30	1040	10.10.0.10	88	TGS	user40/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036079.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000180.713802	CU5c7s1EZTrwxz6QCc	10.10.0.27	1052	10.10.0.10	88	AS	user2/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036180.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000234.641754	CMIDnl1usvQ1pxLdY2	10.10.0.28	1056	10.10.0.10	88	AS	user6/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036234.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000236.202796	CLB4Or1UDJgrjS1qVe	10.10.0.31	1057	10.10.0.10	88	AS	user7/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036236.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000240.328893	C5jFyo4BldH0XfkvHc	10.10.0.20	1059	10.10.0.10	88	TGS	user9/CORP.EXAMPLE	host/dc01.corp.example	T	-	-	1700036240.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000262.161653	CJIOObUo7U2v32PM2	10.10.0.27	1067	10.10.0.10	88	TGS	user17/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036262.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000283.744667	CPcKno1EQ9Ww9yWVI7	10.10.0.24	1077	10.10.0.10	88	AS	user27/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036283.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000578.078278	CYqJUF1NTTjwcWOiV	10.10.0.27	1091	10.10.0.10	88	TGS	user41/CORP.EXAMPLE	host/dc01.corp.example	T	-	-	1700036578.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000585.102505	Cyu0Qf1uFyLZTNE4D9	10.10.0.30	1095	10.10.0.10	88	AS	user45/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036585.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000590.029447	Cz1BFc1rTy5N5RML8h	10.10.0.21	1096	10.10.0.10	88	AS	user46/CORP.EXAMPLE	krbtgt/CORP.EXAMPLE	T	-	-	1700036589.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000596.233410	CiD4C51T1DJKjj7WJ3	10.10.0.22	1100	10.10.0.10	88	TGS	user0/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036596.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+1700000600.039384	CtciQf53n7h3dtBB4	10.10.0.31	1102	10.10.0.10	88	TGS	user2/CORP.EXAMPLE	cifs/fileserver.corp.example	T	-	-	1700036600.000000	aes256-cts-hmac-sha1-96	T	T	-	-	-	-
+#close	2026-07-19-20-03-31

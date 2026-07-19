@@ -78,7 +78,7 @@ readme 04-dns-tunnel-exfil "DNS tunnelling exfiltration (T1048.003)" \
 
 scenario 05-bzar-lateral-movement office --volume normal --attack psexec-lateral --seed 6
 readme 05-bzar-lateral-movement "PsExec-style lateral movement — the BZAR pack (T1021.002 / T1569.002)" \
-"- \`zeek/dce_rpc.log\`: svcctl \`CreateServiceW\`/\`StartServiceW\` over a named pipe, plus an ADMIN\$ file write in \`smb_files.log\` — the combination MITRE **BZAR** raises \`ATTACK::Lateral_Movement_and_Execution\` on. Inert: the RPC argument stubs are zero filler, never a service binary or command." \
+"- \`zeek/dce_rpc.log\`: an \`epmapper::ept_map\` endpoint lookup on 135, then the full svcctl service-install sequence (\`OpenSCManagerW\` -> \`CreateServiceW\` -> \`QueryServiceStatus\` -> \`OpenServiceW\` -> \`StartServiceW\` -> \`CloseServiceHandle\`) over a named pipe — matching a real PsExec capture — plus an ADMIN\$ file write in \`smb_files.log\`. The combination MITRE **BZAR** raises \`ATTACK::Lateral_Movement_and_Execution\` on. Inert: the RPC argument stubs are zero filler, never a service binary or command." \
 "scripts/make-samples.sh   # remote service creation + admin-share tool drop"
 
 scenario 06-llmnr-poisoning office --volume normal --attack llmnr-poisoning --seed 4

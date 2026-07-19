@@ -487,9 +487,16 @@ def _dispatch(args) -> int:
         base = Path(tempfile.mkdtemp(prefix="pf_realism_"))
         wds = {}
         for label, pcap in (("real", args.real), ("synthetic", args.synthetic)):
+            # Resolve to an absolute path: Zeek runs with cwd set to the per-label workdir,
+            # so a relative pcap path (as typed on the CLI) would be looked up inside that
+            # workdir and silently find nothing — an empty conn.log for both captures.
+            src = Path(pcap).resolve()
+            if not src.is_file():
+                print(f"ERROR: {label} capture not found: {pcap}", file=sys.stderr)
+                return 2
             wd = base / label
             wd.mkdir()
-            subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+            subprocess.run(["zeek", "-C", "-r", str(src), "detect_filtered_trace=F"],
                            cwd=str(wd), capture_output=True, text=True, check=False)
             wds[label] = wd
         print(audit(wds["real"], wds["synthetic"],

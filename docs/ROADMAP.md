@@ -12,6 +12,13 @@ EvidenceForge's logs, and a clean opt-in path into EvidenceForge itself.
 > cross-validation; and a tight `scripts/demo.sh`). The one carried-forward
 > gap: the transfer proof needs a real *malware* sample to finish.
 
+> **Update — realism, calibrated.** Ambient realism is now measured against a **real-vs-real
+> floor** (a panel of public real captures via [`scripts/baseline_panel.py`](../scripts/baseline_panel.py)),
+> not against an unreachable 0.5: the floor is ~0.998 and synthetic ambient sits ~+0.002 above it,
+> with the honest residual (within-capture heterogeneity; cloud unvalidated) called out. Attack
+> fidelity is baselined per-technique against real captures (the BZAR svcctl + `epmapper::ept_map`
+> sequence now matches real PsExec). Method: [`realism-baselining.md`](realism-baselining.md).
+
 > **Update — the interim expansion is complete.** Beyond the A–E plan, an eight-phase
 > capability expansion landed: multi-vantage capture, encrypted-DNS (DoH/DoT) + configurable
 > ALPN, LLMNR/NBT-NS/mDNS poisoning (Responder AiTM), IPv6/dual-stack, cloud environments

@@ -690,18 +690,34 @@ def build_asrep_roasting(env: Environment, start_time: float, rng, *, intensity:
 # --------------------------------------------------------------------------- #
 
 
-# PsExec-style remote service creation over \svcctl (opnums -> Zeek operation names).
-_SVCCTL_CREATE_START = ([15, 12, 19, 0],
-                        ["OpenSCManagerW", "CreateServiceW", "StartServiceW", "CloseServiceHandle"])
+# PsExec-style remote service creation over \svcctl (opnums -> Zeek operation names,
+# verified against real Zeek). The full sysinternals-PsExec service-install sequence, matched
+# to real captures (sbousseaden LM_psexec, OTRF Empire): open the SCM, create the service,
+# query it, open it, start it, query again, then close each handle. Earlier this was the bare
+# OpenSCManager->Create->Start->Close — the BZAR detection signal is the same, but real tools
+# emit the fuller sequence, so a sequence-aware hunter could tell the short form apart.
+_SVCCTL_CREATE_START = (
+    [15, 12, 6, 16, 19, 6, 0, 0, 0],
+    ["OpenSCManagerW", "CreateServiceW", "QueryServiceStatus", "OpenServiceW",
+     "StartServiceW", "QueryServiceStatus", "CloseServiceHandle", "CloseServiceHandle",
+     "CloseServiceHandle"])
 
 
 def _dcerpc_flow(flow_id: str, src: str, dst: str, sport: int, start: float, *,
                  pipe: str, interface: str, share: str, operations: list, op_names: list,
-                 src_os: str) -> Flow:
+                 src_os: str, dst_port: int = 445, transport: str = "ncacn_np") -> Flow:
     return Flow(flow_id=flow_id, transport="tcp", src_ip=src, dst_ip=dst,
-               src_port=sport, dst_port=445, start_time=start, conn_state="SF", src_os=src_os,
+               src_port=sport, dst_port=dst_port, start_time=start, conn_state="SF", src_os=src_os,
                l7=DceRpcL7(share=share, pipe=pipe, interface=interface,
-                          operations=operations, op_names=op_names))
+                          operations=operations, op_names=op_names, transport=transport))
+
+
+def _epmapper_flow(flow_id: str, src: str, dst: str, sport: int, start: float, src_os: str) -> Flow:
+    """The endpoint-mapper lookup (epmapper::ept_map over ncacn_ip_tcp/135) that precedes a real
+    DCE-RPC service call — a compromised host resolving the target's dynamic RPC endpoint."""
+    return _dcerpc_flow(flow_id, src, dst, sport, start, pipe="epmapper", interface="epmapper",
+                        share="", operations=[3], op_names=["ept_map"], src_os=src_os,
+                        dst_port=135, transport="ncacn_ip_tcp")
 
 
 def build_remote_service(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
@@ -709,19 +725,21 @@ def build_remote_service(env: Environment, start_time: float, rng, *, intensity:
     attacker, target = _hosts(env, 2)
     sp = _sports()
     ops, names = _SVCCTL_CREATE_START
-    flow = _dcerpc_flow("atk-svcctl-01", attacker, target, next(sp), start_time,
+    epm = _epmapper_flow("atk-svcctl-epm", attacker, target, next(sp), start_time,
+                         env.default_client_os)
+    flow = _dcerpc_flow("atk-svcctl-01", attacker, target, next(sp), start_time + 0.2,
                         pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
                         operations=ops, op_names=names, src_os=env.default_client_os)
     gt = [GroundTruthEntry(
         "Lateral Movement",
         "T1543.003 Create or Modify System Process / T1569.002 Service Execution",
-        ["atk-svcctl-01"],
-        f"Remote service creation on {target} over \\svcctl: "
-        f"OpenSCManagerW -> CreateServiceW -> StartServiceW (PsExec-style).",
+        ["atk-svcctl-epm", "atk-svcctl-01"],
+        f"Remote service creation on {target}: endpoint-mapper lookup (epmapper::ept_map) then "
+        f"\\svcctl OpenSCManagerW -> CreateServiceW -> StartServiceW (PsExec-style).",
         {"attacker": attacker, "target": target, "pipe": "svcctl",
          "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
          "expected_notice": "ATTACK::Execution"})]  # BZAR: T1569.002 Service Execution
-    return Intrusion([flow], gt, f"Remote service creation on {target}",
+    return Intrusion([epm, flow], gt, f"Remote service creation on {target}",
                      {"attacker": attacker, "target": target})
 
 
@@ -873,6 +891,8 @@ def build_psexec_lateral(env: Environment, start_time: float, rng, *, intensity:
                 src_port=next(sp), dst_port=445, start_time=start_time, conn_state="SF",
                 src_os=env.default_client_os,
                 l7=SmbL7(share=f"\\\\{target}\\ADMIN$", write_file="svc.exe", file_bytes=6144))
+    epm = _epmapper_flow("atk-psexec-epm", attacker, target, next(sp), start_time + 2.8,
+                         env.default_client_os)
     svc = _dcerpc_flow("atk-psexec-svc", attacker, target, next(sp), start_time + 3.0,
                        pipe="svcctl", interface="svcctl", share=f"\\\\{target}\\IPC$",
                        operations=_SVCCTL_CREATE_START[0], op_names=_SVCCTL_CREATE_START[1],
@@ -887,7 +907,7 @@ def build_psexec_lateral(env: Environment, start_time: float, rng, *, intensity:
          "dce_rpc": {"endpoint": "svcctl", "operations": ["CreateServiceW", "StartServiceW"]},
          # ADMIN$ write (score 1) + RPC exec (score 1000) to the same host -> BZAR's combined notice.
          "expected_notice": "ATTACK::Lateral_Movement_and_Execution"})]
-    return Intrusion([drop, svc], gt, f"PsExec-style lateral movement to {target}",
+    return Intrusion([drop, epm, svc], gt, f"PsExec-style lateral movement to {target}",
                      {"attacker": attacker, "target": target})
 
 

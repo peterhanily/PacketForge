@@ -59,6 +59,52 @@ def test_audit_refuses_empty_captures_instead_of_claiming_0_5(tmp_path):
         audit(a, b)
 
 
+def test_underpowered_audit_reads_as_inconclusive_not_a_pass():
+    # A short real capture (few flows) can't train the adversary; the report defaults to
+    # AUC 0.5 / MMD 0. That must surface as "inconclusive", never as "indistinguishable" —
+    # a 0.5 default is the absence of a measurement, not a passing verdict.
+    from packetforge.realism import RealismReport
+    r = RealismReport(n_real=15, n_synth=145)
+    assert r.underpowered
+    assert "inconclusive" in r.verdict.lower()
+    out = r.render()
+    assert "INCONCLUSIVE" in out and "indistinguishable" not in out
+    # a well-powered report is untouched
+    ok = RealismReport(c2st_auc=0.55, n_real=200, n_synth=200)
+    assert not ok.underpowered and "indistinguishable" in ok.verdict
+
+
+def test_cli_realism_audit_accepts_relative_paths(tmp_path, monkeypatch, capsys):
+    # Regression: the CLI ran Zeek with cwd set to a per-label temp workdir but passed the
+    # pcap path verbatim, so a *relative* path (the natural way to invoke it) resolved inside
+    # that workdir, found nothing, and both captures came back empty ("real=0, synth=0").
+    from packetforge.cli import main
+    from packetforge.compile.timeline import write_pcap
+    from packetforge.compose import compose_scenario
+    from packetforge.environments import load_environment
+    for name, env, seed in (("real.pcap", "home", 21), ("synth.pcap", "ot", 21)):
+        write_pcap(compose_scenario(load_environment(env), start_time=1700000000.0,
+                                    noise_flows=200, seed=seed, texture="realistic"),
+                   tmp_path / name)
+    monkeypatch.chdir(tmp_path)                       # relative names, exactly as a user types them
+    rc = main(["realism-audit", "--real", "real.pcap", "--synthetic", "synth.pcap"])
+    assert rc == 0, capsys.readouterr().err
+    assert "C2ST AUC" in capsys.readouterr().out
+
+
+def test_cli_realism_audit_reports_a_missing_capture_clearly(tmp_path, monkeypatch, capsys):
+    from packetforge.cli import main
+    from packetforge.compile.timeline import write_pcap
+    from packetforge.compose import compose_scenario
+    from packetforge.environments import load_environment
+    write_pcap(compose_scenario(load_environment("home"), start_time=1700000000.0,
+                                noise_flows=50, seed=1, texture="clean"), tmp_path / "synth.pcap")
+    monkeypatch.chdir(tmp_path)
+    rc = main(["realism-audit", "--real", "does-not-exist.pcap", "--synthetic", "synth.pcap"])
+    assert rc == 2
+    assert "not found" in capsys.readouterr().err
+
+
 def test_report_names_the_rich_tells(tmp_path):
     from packetforge.realism import _PKT_FEATURES, audit
     (a, ap), (ot, otp) = _zeek_of("home", 21, tmp_path, "a"), _zeek_of("ot", 21, tmp_path, "ot")

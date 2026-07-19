@@ -42,6 +42,14 @@
       "technique": "T1021.002 SMB/Windows Admin Shares / T1570 / T1569.002 Service Execution"
     },
     {
+      "flow_id": "atk-psexec-epm",
+      "src_ip": "10.10.0.40",
+      "dst_ip": "10.10.0.41",
+      "dst_port": 135,
+      "proto": "tcp",
+      "technique": ""
+    },
+    {
       "flow_id": "atk-psexec-svc",
       "src_ip": "10.10.0.40",
       "dst_ip": "10.10.0.41",

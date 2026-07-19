@@ -3,15 +3,16 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ldap
-#open	2026-07-18-02-04-25
+#open	2026-07-19-20-03-02
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
 #types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
-1700000011.055800	CbzqzYK5YoKcLURSg	10.10.0.25	1078	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000036.481065	CThZa2426RUedDo0wi	10.10.0.21	1104	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000060.815784	CWIhZz2zPg1GKHe9og	10.10.0.28	1108	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000112.269844	Csq67o4qGjmHm4XFH2	10.10.0.31	1121	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000115.271765	C6zFEE3FXcm0H9wpmh	10.10.0.20	1126	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000125.547608	CNhw6r2ErKY3iNnQ8j	10.10.0.22	1132	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000125.808717	C2u3BXZco53C431i4	10.10.0.22	1134	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000173.090783	CGu9ttewKxTcE7T0c	10.10.0.27	1198	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-#close	2026-07-18-02-04-25
+1700000005.645212	CVwOqpEp5Qpetsgli	10.10.0.25	1061	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000025.824864	C4lxQKcDnKgKgDBre	10.10.0.20	1087	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000034.386816	C1KiyZ1Ndyf6zXMkh	10.10.0.22	1100	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000115.274203	CQU3F34zVToXpGmUA8	10.10.0.22	1126	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000128.570987	CRqUqV7kOZXBSWZK7	10.10.0.23	1137	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000161.958644	CeymHD2Ezp6N6HSzEi	10.10.0.29	1173	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000171.023346	CO7Au93Qwg3TmWA9g7	10.10.0.29	1188	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000172.405019	CNfOGxp1RzzBtwf4l	10.10.0.28	1194	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000200.034614	CqcqE6AAvhNuyAu27	10.10.0.21	1215	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+#close	2026-07-19-20-03-02

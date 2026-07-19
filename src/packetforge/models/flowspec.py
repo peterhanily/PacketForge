@@ -268,6 +268,10 @@ class DceRpcL7(_L7Base):
     interface: str = "svcctl"  # well-known interface name -> UUID/version in the renderer
     operations: list[int] = Field(default_factory=list)  # DCE-RPC opnums, in call order
     op_names: list[str] = Field(default_factory=list)  # labels only; no wire effect
+    # Transport binding. "ncacn_np" (default): DCE-RPC over the SMB named pipe. "ncacn_ip_tcp":
+    # DCE-RPC directly over TCP with no SMB wrapping — e.g. the endpoint mapper (epmapper) on
+    # port 135, which real tools ept_map before the service call.
+    transport: Literal["ncacn_np", "ncacn_ip_tcp"] = "ncacn_np"
 
 
 class KerberosL7(_L7Base):

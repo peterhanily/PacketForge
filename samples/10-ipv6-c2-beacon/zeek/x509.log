@@ -3,16 +3,16 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-18-02-04-46
+#open	2026-07-19-20-03-27
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-1700000039.773915	d869d23df722dfc6a536a48aa4ba11e7ab39d37f733eb20c6ca85458fb2c0c7c	3	5AEE1086	CN=api.github.com	CN=api.github.com	1697408039.000000	1728944039.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000041.329318	83a729f104c455e34ef8af0bdcfb905df60abb360706b6a813e82e6ddbf63399	3	4D7FBF99	CN=www.example.org	CN=www.example.org	1697408041.000000	1728944041.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
-1700000044.543995	b6a0c0d9893b2b20e975c82bbed7c9268c3d6e935a5c85d49a328bcc02940d31	3	16CB4A91	CN=assets.example.co	CN=assets.example.co	1697408044.000000	1728944044.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-1700000056.990206	5a96627dd5946e8c64fe05f75f0e9aff1cf16f4c96a0923b2c07d20ef7f744b9	3	07ED53	CN=portal.example.io	CN=portal.example.io	1697408056.000000	1728944056.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-1700000061.309878	9e67f8f494f308ab23956b55c4706ea196cc0e8d358bf1b68e3dad06cc7beee8	3	77FBF350	CN=cdn.example.net	CN=cdn.example.net	1697408061.000000	1728944061.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
-1700000074.121769	ad3c0924383a8cf7b39545faf0c4b02a991a2510e0a41cd6776884bc6c6ea0ee	3	146CFD48	CN=api.github.com	CN=api.github.com	1697408074.000000	1728944074.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000114.896376	26f35a30001e7a21547b4b20005533b6f4ccc4cbcd81b628ea67c3170db62b45	3	1BD16838	CN=api.github.com	CN=api.github.com	1697408114.000000	1728944114.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000118.656127	a42f9b76eae5566f825939bd3b85ff94c0dfe6db12dc03e0bde727cf7b8b8005	3	412A8EF5	CN=portal.example.io	CN=portal.example.io	1697408118.000000	1728944118.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-1700000119.870539	8391ccc0049ff0ae03c1800858bfb4e04b65c0f3ee7b1a1080dfac2c457cd10f	3	79D7FB34	CN=cdn.example.net	CN=cdn.example.net	1697408119.000000	1728944119.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
-#close	2026-07-18-02-04-46
+1700000042.674698	a1d5a5f4aeb870264b40115c8da3dba115d60072b04cad528f794381cc290cc6	3	25B76673	CN=assets.example.co	CN=assets.example.co	1697408042.000000	1728944042.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+1700000043.071644	a9b2294b822707925d28c61853165b17ce292b3c2146ac939331dce4c5571fdc	3	735066C6	CN=api.github.com	CN=api.github.com	1697408043.000000	1728944043.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000071.793477	6f9fce5f8fe49532f7c378057af3f4519a6188a4bc86a21dc7e6274c79b0985c	3	6E994A00	CN=api.github.com	CN=api.github.com	1697408071.000000	1728944071.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000081.396415	f8c1ac4c4f553883bd189afd4126036c3de13a306b00417f1f46f94e4942d137	3	1A5D60FD	CN=www.example.org	CN=www.example.org	1697408081.000000	1728944081.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
+1700000112.189003	bafe1c2e610ce5997464ce52bf05839699155b95a3cf7ca44fcad5fe69e4cc37	3	6F680E80	CN=portal.example.io	CN=portal.example.io	1697408112.000000	1728944112.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
+1700000112.946010	21d6e44d7d823fc1d3a2ebf6ebf3ba703728853e045ccbec68d585d69290848f	3	3B5E4A08	CN=assets.example.co	CN=assets.example.co	1697408112.000000	1728944112.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+1700000123.536885	11a79736f6e2bdf86c705e3aa04bc3c1e39640868b779504b664801c9a8d1cee	3	3D4AF46B	CN=api.github.com	CN=api.github.com	1697408123.000000	1728944123.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000163.007981	814fd3c2b20160acedd4e827b84a169ef932a9f70707408f87378069328daa2b	3	4C17462D	CN=portal.example.io	CN=portal.example.io	1697408162.000000	1728944162.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
+1700000166.779022	acc67a5adb38296ebb7474510e11283ffaece374d4764a8612b21bc57a835bfc	3	59CF766B	CN=portal.example.io	CN=portal.example.io	1697408166.000000	1728944166.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
+#close	2026-07-19-20-03-27

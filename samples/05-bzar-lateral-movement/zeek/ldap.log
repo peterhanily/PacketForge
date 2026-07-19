@@ -3,15 +3,27 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ldap
-#open	2026-07-18-02-04-23
+#open	2026-07-19-20-03-00
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
 #types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
-1700000039.422433	CeQwzt2vTaFEDasKml	10.10.0.23	1029	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000069.403887	CcFHm52iET6NVYQZYc	10.10.0.23	1066	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000118.825646	COfsnM2RANTX0D9aG8	10.10.0.25	1114	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000163.516731	CmwnExhfBaMhZm3x	10.10.0.21	1165	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000164.244519	CgQUbj1ef7EomoC80c	10.10.0.25	1170	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000183.335646	CKdJsu3zBebqBhsXrl	10.10.0.23	1199	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000189.360655	C0KJi82pDKVXEdmj6b	10.10.0.27	1208	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000195.257044	CysiRm208r79cbnr69	10.10.0.27	1214	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-#close	2026-07-18-02-04-23
+1700000039.422433	CZKB8Y2JQWYKVePJo3	10.10.0.23	1029	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000055.346400	CnXr3e2rCTQwLEJ6Wh	10.10.0.31	1042	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000059.653135	C6lh7m2VVmP6drj0Vj	10.10.0.22	1050	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000066.760442	Cb9gby3hfu23KWqbX6	10.10.0.20	1057	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000070.681262	Clz3Sr36wqL5fWxN3l	10.10.0.21	1070	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000075.161277	CcBZsy2Wa7LJHnvrk	10.10.0.20	1091	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000075.889105	Cx0UrB1HiadbhwkoQe	10.10.0.24	1092	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000076.447228	CKBqM71JoQqrjz1Gcd	10.10.0.22	1094	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000077.715005	Co21UwwlK4ztcGVZ8	10.10.0.25	1100	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000079.138170	CganM24QTrIBDlwgr5	10.10.0.24	1102	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000079.786088	C0qGzWsK91iDF1Lfc	10.10.0.25	1104	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000118.560644	CKGPPU15ATRJdMyCF7	10.10.0.22	1112	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000126.614313	CQmCv23KZkOlXQmm63	10.10.0.20	1126	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000132.882039	CfQml04eFOwIiyNuF9	10.10.0.25	1142	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000135.738453	CD6QK34fGnDdF2nzE7	10.10.0.25	1152	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000157.931051	CM7hHq1QFwXtevYTGk	10.10.0.21	1153	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000163.516989	CRZIBN1PDKXOrh99K7	10.10.0.23	1165	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000168.554298	CnOs9G30HqpAn5v8Hl	10.10.0.25	1183	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000174.721794	CpQVc26QurGy1DeVh	10.10.0.26	1197	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000186.709927	C2CWR9eF7elK37o38	10.10.0.30	1204	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+#close	2026-07-19-20-03-00

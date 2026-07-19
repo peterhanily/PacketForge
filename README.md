@@ -125,16 +125,22 @@ Two different claims, kept separate on purpose:
 - **Consistency — proven.** Packets and logs derive from one event and real Zeek reproduces
   the declared fields; the round-trip is a pass/fail gate. As a **consistency / detection-CI
   harness**, that's the solid, load-bearing use case.
-- **Indistinguishable-from-real — measured, with a known gap.** `packetforge realism-audit`
-  runs a cross-validated **C2ST** (a gradient-boosted adversary) against a real reference, and
-  `realism-scorecard` versions the result. Today's verdict is **`gap`**: benign ambient traffic
-  passes *within a real-vs-real band* on flow-level features, but detection-surface behavior and
-  L7 fingerprint fidelity (e.g. TLS ClientHello shape) still separate synthetic from real. The
-  method and current numbers are in [`docs/realism-scorecard.md`](docs/realism-scorecard.md) — read
-  it before using this to argue a detection would fire on *real* malware.
+- **Indistinguishable-from-real — measured against a real-vs-real floor.** `packetforge
+  realism-audit` runs a cross-validated **C2ST** (a gradient-boosted adversary) against real
+  captures. The honest question isn't "does synth score 0.5?" — it never will, because *two
+  different real captures* already score ~0.98 (different network, era, device mix). It's
+  "is synth-vs-real worse than the real-vs-real floor?" Scored with
+  [`scripts/baseline_panel.py`](scripts/baseline_panel.py) over a panel of public real captures
+  (tcpreplay smallFlows/bigFlows, the Ultimate PCAP, IoT-23 benign): the real-vs-real floor is
+  **~0.998** across 10 pairs, and PacketForge's ambient sits at **~0.999 — about +0.002 above
+  the floor**, i.e. as separable from real as two real captures are from each other. Caveat kept
+  in view: the C2ST is *near-saturated* at this feature resolution, so the sharper remaining signal
+  is **within-capture heterogeneity** — real captures vary more across their own timespan than ours
+  do. Method, dataset panel and how to reproduce: [`docs/realism-baselining.md`](docs/realism-baselining.md).
 
-Treat the tool as a consistency/CI harness that is *becoming* a realistic-traffic generator, not
-one that claims to be there yet.
+So: a consistency/CI harness whose ambient realism now lands at the real-vs-real floor on
+flow+fingerprint features, with the honest residual (within-capture variation, and cloud — no
+real cloud pcap exists to validate against yet; see the capture kit) called out rather than hidden.
 
 ## Status
 

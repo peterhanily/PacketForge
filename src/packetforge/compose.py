@@ -145,6 +145,16 @@ def _resp_size(rng: random.Random) -> int:
     return max(0, int(rng.lognormvariate(6.0, 1.3)))     # mouse: small/medium body
 
 
+def _req_size(rng: random.Random) -> int:
+    """Client-side request volume: mostly small (request headers, cookies — a few hundred
+    bytes), a thin tail of uploads (POSTs, form/file submits). Lighter than _resp_size. Real
+    ambient has a non-trivial spread of originator bytes; a fixed ~0 makes orig_bytes a tell.
+    """
+    if rng.random() < 0.06:                              # an upload
+        return min(200_000, int(rng.paretovariate(1.1) * 8_000))
+    return max(64, int(rng.lognormvariate(6.2, 0.9)))    # ~500-byte median request
+
+
 # Approximate originator L7 bytes a bare service flow already carries (handshake / request
 # line + default headers), measured from the composer's own output. Reference-conditioning
 # grows a flow *toward* a drawn target by adding this much less legitimate client content.
@@ -273,10 +283,17 @@ def _ambient_flow(env: Environment, service: str, clients: list, fid: str,
         # profiles keep JA3 a real discriminator across the capture.
         _prof = rng.choice(["generic_browser", "generic_browser", "curl"])
         _ver = rng.choices(["TLS1.3", "TLS1.2"], weights=[4, 1])[0]
+        # A minority of requests carry an upload body (POST); most are small GETs. Both a
+        # TLS client's app-data and an HTTP request body give the originator a realistic,
+        # varied byte volume instead of a near-constant ~0 (an easy synthetic tell).
+        _post = rng.random() < 0.18
         l7 = (TlsL7(server_name=name, client_profile=_prof, version=_ver,
-                    alpn=["h2", "http/1.1"], app_data_resp_bytes=_resp_size(rng))
+                    alpn=["h2", "http/1.1"], app_data_orig_bytes=_req_size(rng),
+                    app_data_resp_bytes=_resp_size(rng))
               if service == "tls" else
-              HttpL7(host=name, uri=rng.choice(["/", "/api/v1/status", "/index.html"]),
+              HttpL7(host=name, method="POST" if _post else "GET",
+                     uri=rng.choice(["/", "/api/v1/status", "/index.html"]),
+                     request_body_len=_req_size(rng) if _post else 0,
                      status=rng.choice([200, 200, 304, 404]), response_body_len=_resp_size(rng)))
         return Flow(**common, transport="tcp", src_port=sport, dst_port=port, dst_ip=ip,
                     conn_state=cstate, l7=l7)

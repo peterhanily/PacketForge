@@ -77,6 +77,9 @@ _INTERFACES = {
     # ncacn_ip_tcp; we render the IWbemServices bind + ExecMethod opnum (the dce_rpc.log
     # signal BZAR watches) over the uniform SMB-pipe substrate. See the pack docs.
     "IWbemServices": ("9556dc99-828c-11cf-a37e-00aa003240c7", (0, 0)),
+    # MS-RPCE endpoint mapper over ncacn_ip_tcp/135 -> Zeek endpoint "epmapper". Real tools
+    # ept_map here to resolve a dynamic endpoint before the service RPC.
+    "epmapper": ("e1af8308-5d1f-11c9-91a4-08002b14a0fa", (3, 0)),
 }
 
 # Inert filler sizes (bytes) standing in for the NDR argument / return stubs. Zero bytes:
@@ -114,6 +117,16 @@ def _bind_ack_pdu(pipe: str, call_id: int) -> bytes:
     return bytes(DceRpc5(ptype=12, call_id=call_id, pfc_flags=3) / ack)
 
 
+def _bind_ack_pdu_tcp(port: int, call_id: int) -> bytes:
+    """A bind-ack for ncacn_ip_tcp: the secondary address is the TCP port, not a pipe."""
+    result = DceRpc5Result(result=0, reason=0,
+                           transfer_syntax=DceRpc5TransferSyntax(if_uuid=_NDR, if_version=2))
+    ack = DceRpc5BindAck(max_xmit_frag=4280, max_recv_frag=4280, assoc_group_id=0x1234,
+                         sec_addr=DceRpc5PortAny(port_spec=(str(port) + "\x00").encode()),
+                         results=[result])
+    return bytes(DceRpc5(ptype=12, call_id=call_id, pfc_flags=3) / ack)
+
+
 def _request_pdu(opnum: int, call_id: int) -> bytes:
     # ptype=0 (request), opnum names the operation; the stub is inert zero filler.
     return bytes(DceRpc5(ptype=0, call_id=call_id, pfc_flags=3)
@@ -141,6 +154,25 @@ def render_dcerpc(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random
     if_uuid_str, version = _INTERFACES[spec.interface]
     if_uuid = uuid.UUID(if_uuid_str)
     if_version = _ifver(version)
+
+    if spec.transport == "ncacn_ip_tcp":
+        # DCE-RPC directly over TCP (e.g. the endpoint mapper on 135): a bind -> bind-ack, then
+        # one request/response per opnum, with no SMB pipe wrapping. Zeek reads the interface and
+        # each operation into dce_rpc.log the same way; conn.log service is just "dce_rpc".
+        call_id = 1
+        msgs = [TcpMessage(True, _bind_pdu(if_uuid, if_version, call_id)),
+                TcpMessage(False, _bind_ack_pdu_tcp(resp.port, call_id))]
+        for opnum in spec.operations:
+            call_id += 1
+            msgs += [TcpMessage(True, _request_pdu(opnum, call_id)),
+                     TcpMessage(False, _response_pdu(call_id))]
+        result = build_tcp_flow(orig, resp, msgs, start_time=flow.start_time,
+                                rtt=flow.rtt, rng=rng, conn_state=flow.conn_state)
+        conn = dict(result.summary)
+        conn["service"] = "dce_rpc"
+        conn["proto"] = "tcp"
+        return RenderResult(packets=result.packets,
+                            expected={"conn": conn, "produces": "dce_rpc"})
 
     sid = rng.randint(1, 0xFFFFFFFF)
     fid = rng.randbytes(16)  # deterministic 16-byte FileId (pipe handle)

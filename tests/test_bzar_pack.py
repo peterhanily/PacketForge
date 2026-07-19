@@ -150,10 +150,11 @@ def test_dcerpc_requires_operations():
 
 
 def test_dcerpc_model_has_no_argument_fields():
-    # The model exposes protocol *shape* only: pipe/interface/opnums/labels — never a
-    # service binary, command line, task payload, or any operation argument.
+    # The model exposes protocol *shape* only: pipe/interface/opnums/labels/transport binding —
+    # never a service binary, command line, task payload, or any operation argument. `transport`
+    # selects ncacn_np vs ncacn_ip_tcp (the wire binding), not a payload.
     assert set(DceRpcL7.model_fields) == {"kind", "share", "pipe", "interface",
-                                          "operations", "op_names"}
+                                          "operations", "op_names", "transport"}
 
 
 @pytest.mark.parametrize("name", sorted(BZAR_PACK))
@@ -162,6 +163,21 @@ def test_operations_are_opnum_ints(name):
         assert f.l7.operations, f.flow_id
         assert all(isinstance(op, int) for op in f.l7.operations)
         assert all(isinstance(n, str) for n in f.l7.op_names)  # labels only
+
+
+@pytest.mark.parametrize("name", ["remote-service", "psexec-lateral"])
+def test_psexec_resolves_endpoint_via_epmapper(name):
+    # Real PsExec (sbousseaden/OTRF captures) resolves the target's dynamic RPC endpoint with
+    # epmapper::ept_map over ncacn_ip_tcp/135 before the svcctl call; the renderer reproduces it.
+    flows = _dcerpc_flows(_build(name))
+    epm = [f for f in flows if f.l7.interface == "epmapper"]
+    assert epm, f"{name}: expected an epmapper ept_map flow"
+    assert epm[0].l7.transport == "ncacn_ip_tcp" and epm[0].dst_port == 135
+    assert epm[0].l7.operations == [3]  # ept_map opnum
+    # and the svcctl flow now carries the fuller service-install sequence, not just create/start
+    svc = [f for f in flows if f.l7.interface == "svcctl"][0]
+    for opnum in (16, 6):  # OpenServiceW, QueryServiceStatus — present in real PsExec
+        assert opnum in svc.l7.operations, f"{name}: svcctl missing opnum {opnum}"
 
 
 @pytest.mark.parametrize("name", sorted(BZAR_PACK))

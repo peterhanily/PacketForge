@@ -3,19 +3,16 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-18-02-04-21
+#open	2026-07-19-20-02-57
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-1700000006.279197	42eb2f653531282bc5c100ca7584dff8179d31f29887ff153431ccc33466df9f	3	0AFC0890	CN=api.github.com	CN=api.github.com	1697408006.000000	1728944006.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000009.693399	3915ee5803783af559adaffe3b5e4335cac7d2a5e052bde45be3c0f919d31f36	3	16C5A83B	CN=portal.example.io	CN=portal.example.io	1697408009.000000	1728944009.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-1700000015.424855	cbeb345724c0748dc46eb2dffce129ed40bbaeb0e5e54ec80ad37eea0980fe6e	3	12D9C5C1	CN=api.github.com	CN=api.github.com	1697408015.000000	1728944015.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000017.689593	6b7122965dd066223b512924ab2e3c27b129d092cb2dd1bc8098090b080e543f	3	03A7B5F5	CN=portal.example.io	CN=portal.example.io	1697408017.000000	1728944017.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-1700000033.287762	42b829bf9f38345031f90f2eb2d29a4a8d6eb67c6da3c983cebf5cb4b28c0033	3	04D951A4	CN=updates.example.com	CN=updates.example.com	1697408033.000000	1728944033.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-1700000037.241670	4ca6d4a2dadee2692f420960194bc699cde95e3f9e31ed51350f000f58f2b530	3	7FCF2967	CN=updates.example.com	CN=updates.example.com	1697408037.000000	1728944037.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-1700000092.368068	3a843c00c49ce77eac9ad8cfec283a645c3d766f160f1a0c685dd51508fbf9c9	3	3652B707	CN=www.example.org	CN=www.example.org	1697408092.000000	1728944092.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
-1700000093.461485	a26d7a6aa3a21a9b6adaa0bb728d2f13bad2fd0f3321bce7d31e118113c2aaec	3	324B2181	CN=api.github.com	CN=api.github.com	1697408093.000000	1728944093.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000124.107795	b3d9c8516632a6382a7d054b110dd5279b39d046e575dd91b11073c630207e8b	3	1BD9EBA0	CN=updates.example.com	CN=updates.example.com	1697408124.000000	1728944124.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-1700000137.796365	89df1df88996f88d764f479b339257d340a00cfd84bb9afd05838fcfa5757f1a	3	015524BC	CN=api.github.com	CN=api.github.com	1697408137.000000	1728944137.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000164.638311	9738600e28019b0b2b400233c635a622d5b6a950f5f5b8434660148254f38b0b	3	3DD7FF3D	CN=www.example.org	CN=www.example.org	1697408164.000000	1728944164.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
-1700000166.508325	bd78f11e662c70de25dd48a49d67739ed129113ffd07339df274aa30e76d1796	3	75F4DEBC	CN=api.github.com	CN=api.github.com	1697408166.000000	1728944166.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-#close	2026-07-18-02-04-21
+1700000006.284228	e23fa151a8141be9769f2aaa971b1d2855c22bbaac8d23d262b7bd01b883af5e	3	0988DFE7	CN=api.github.com	CN=api.github.com	1697408006.000000	1728944006.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000008.920736	362d6dfe6541af0467a62be0b246872ed0fa7833e1fc6e2411c029df4dad179b	3	4F81C436	CN=api.github.com	CN=api.github.com	1697408008.000000	1728944008.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000013.304482	54664deb0a0d54a1c916faa7266917197dc5230ceddfaced8f342fde17872979	3	0AABFE97	CN=api.github.com	CN=api.github.com	1697408013.000000	1728944013.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000017.306502	9e9dcc9554aae072ed02869a380a097a90b9a813d4b38c9e59364a54fe774440	3	2C6E4486	CN=updates.example.com	CN=updates.example.com	1697408017.000000	1728944017.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000018.141111	fe2f243f16039916f97be757230347397129ccb1f8325dfe8d8e1718aadbd043	3	5C0C9A32	CN=updates.example.com	CN=updates.example.com	1697408018.000000	1728944018.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000083.185865	acb4b7e4fe917c6b24248a6795b04658a8a91baf1e391958f7474c8315b9d1f3	3	4F893246	CN=updates.example.com	CN=updates.example.com	1697408083.000000	1728944083.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000096.408851	435aa73fb40d43125a93210b69e168a84081356d299ebee334bde2f2f57e2c9a	3	6C427DB3	CN=assets.example.co	CN=assets.example.co	1697408096.000000	1728944096.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+1700000127.004455	0699c6e60969ea52f3787ae9dda384de7a379631bcadb6492ccdbfe4fc9f8e3f	3	70EF9F50	CN=updates.example.com	CN=updates.example.com	1697408126.000000	1728944126.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000164.322877	e5b1cc5d956db465071871580d2367ad37d99483ec82a461981242f3f547318d	3	7390C03C	CN=assets.example.co	CN=assets.example.co	1697408164.000000	1728944164.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+#close	2026-07-19-20-02-58

@@ -55,6 +55,19 @@ def test_flow_sizes_are_heavy_tailed():
     assert max(sizes) > 50_000, "no elephant flows — the full-size packet mode is missing"
 
 
+def test_ambient_clients_send_varied_originator_bytes():
+    """Real clients don't send ~0 app bytes: request headers/cookies and the odd upload give
+    the originator a spread. A near-constant orig volume is an easy synthetic tell (l_orig_bytes)."""
+    fs = compose_scenario(load_environment("home"), start_time=1700000000.0,
+                          noise_flows=300, seed=3)
+    orig = [getattr(f.l7, "app_data_orig_bytes", 0) or getattr(f.l7, "request_body_len", 0)
+            for f in fs.flows if getattr(f.l7, "kind", "") in ("tls", "http")]
+    nonzero = [b for b in orig if b > 0]
+    assert len(nonzero) >= 10, "ambient web clients send ~0 originator bytes"
+    assert max(nonzero) > 5_000, "no upload tail in originator bytes"
+    assert len(set(nonzero)) > 5, "originator bytes not varied (a constant is a tell)"
+
+
 def test_benign_false_positive_surface_is_present_and_labeled():
     """R4: the capture carries benign IDS noise, each flow labeled with its expected SID."""
     fs = compose_scenario(load_environment("office"), start_time=1700000000.0,

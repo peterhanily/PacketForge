@@ -36,6 +36,10 @@ _PKT_FEATURES = ["ia_mean", "ia_std", "ia_burst", "pkt_size_mean", "pkt_size_std
                  # L7 / fingerprint signal a JA3/JA4- or p0f-aware adversary keys on:
                  "has_tcp_ts", "tls13", "ch_n_ciphers", "ch_n_exts", "ch_has_alpn"]
 
+# Below this many flows on either side, a cross-validated C2ST can't be trained: the folds
+# are too small to fit an adversary, so the number would be an artifact, not a measurement.
+_MIN_FLOWS = 20
+
 
 def _flow_key(orig_h, orig_p, resp_h, resp_p):
     return frozenset({(orig_h, str(orig_p)), (resp_h, str(resp_p))})
@@ -170,7 +174,15 @@ class RealismReport:
     temporal_baseline_auc: float = 0.0        # within-source floor (first vs second half)
 
     @property
+    def underpowered(self) -> bool:
+        """Too few flows on one side to actually train the adversary — the C2ST didn't run."""
+        return min(self.n_real, self.n_synth) < _MIN_FLOWS
+
+    @property
     def verdict(self) -> str:
+        if self.underpowered:
+            # The 0.5 here is a default, not a measurement — never report it as a pass.
+            return f"inconclusive — too few flows to run the test (need >= {_MIN_FLOWS} per side)"
         a = self.c2st_auc
         if a < 0.6:
             return "indistinguishable (to this adversary)"
@@ -181,6 +193,16 @@ class RealismReport:
         return "trivially distinguishable"
 
     def render(self) -> str:
+        if self.underpowered:
+            # No test was run — say so plainly instead of printing a 0.500 that reads as a pass.
+            return "\n".join([
+                "Realism audit (Gate 2) — flow-feature adversary",
+                f"  INCONCLUSIVE: {self.verdict}",
+                f"  real flows: {self.n_real}, synthetic: {self.n_synth}  "
+                f"(the 0.5 / MMD 0 below are defaults, NOT a measurement)",
+                "  Capture a larger real reference (a longer, broader tcpdump — not just a few "
+                "web/DNS flows) and re-run; the synthetic side is already large enough.",
+            ])
         lines = [
             "Realism audit (Gate 2) — flow-feature adversary",
             f"  C2ST AUC: {self.c2st_auc:.3f}  ->  {self.verdict}   "
@@ -269,8 +291,8 @@ def audit(real_workdir: str | Path, synth_workdir: str | Path,
         # aren't realistically alike, there's simply nothing there. Refuse it.
         raise ValueError(f"no flows to compare (real={len(R)}, synth={len(S)}) — "
                          f"are both captures valid, non-empty pcaps?")
-    if len(R) < 20 or len(S) < 20:
-        return rep  # too few to train an adversary, but not empty — report neutral 0.5
+    if len(R) < _MIN_FLOWS or len(S) < _MIN_FLOWS:
+        return rep  # too few to train an adversary — rep.underpowered flags this honestly
 
     def c2st_auc(a, b, cv, clf=None):
         Xy = np.vstack([a, b])
