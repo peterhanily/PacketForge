@@ -25,8 +25,10 @@ def render_opaque_tcp(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Ra
     n_orig = max(spec.orig_bytes, len(lit))
     if n_orig:
         messages.append(TcpMessage(True, lit + filler_bytes(n_orig - len(lit), rng)))
-    if spec.resp_bytes:
-        messages.append(TcpMessage(False, filler_bytes(spec.resp_bytes, rng)))
+    rlit = bytes.fromhex(spec.resp_literal_hex) if spec.resp_literal_hex else b""
+    n_resp = max(spec.resp_bytes, len(rlit))
+    if n_resp:
+        messages.append(TcpMessage(False, rlit + filler_bytes(n_resp - len(rlit), rng)))
 
     result = build_tcp_flow(
         orig, resp, messages,

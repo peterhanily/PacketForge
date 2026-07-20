@@ -119,6 +119,9 @@ class OpaqueTcpL7(_L7Base):
     # Used only by the signature-conditioning engine to trip a specific content-based IDS
     # rule (e.g. an MSN `CAL ` command) with an otherwise-opaque, inert flow.
     orig_literal_hex: Optional[str] = None
+    # Same, for the responder's first segment — e.g. an RDP X.224 Connection Confirm so the
+    # client CR + server CC pair lets Zeek populate rdp.log.
+    resp_literal_hex: Optional[str] = None
 
 
 class OpaqueUdpL7(_L7Base):

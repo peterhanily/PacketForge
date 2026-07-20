@@ -4,7 +4,7 @@ What PacketForge can render today. Everything below is deterministic, Zeek-valid
 inert (fake traffic, true labels). `packetforge list-attacks` and `--list-envs` enumerate the
 live sets; this page is the guided map.
 
-## Protocols (24)
+## Protocols (25)
 
 Rendered faithfully enough that real Zeek reads the fields back, over **IPv4 or IPv6**:
 
@@ -14,6 +14,7 @@ Rendered faithfully enough that real Zeek reads the fields back, over **IPv4 or 
 | Name resolution | DNS (A/AAAA/…), **LLMNR, NBT-NS, mDNS** |
 | Active Directory | **Kerberos** (AS/TGS, real enctypes → RC4-downgrade visible), **LDAP**, **SMB2/3** (with an inert **NTLMSSP** session-setup that populates Zeek `ntlm.log` — the LLMNR-poisoning capture), **DCE-RPC** (svcctl, samr, srvsvc, winreg, atsvc, IWbemServices, **epmapper**) over SMB named pipes *or* **ncacn_ip_tcp** (raw DCE-RPC on 135 — the `ept_map` endpoint resolution real tools do first) |
 | Mail | SMTP, POP3, IMAP |
+| Remote access | **RDP** (X.224 Connection Request → `rdp.log` with the `mstshash` cookie), **WinRM/WSMan** (SOAP over HTTP to `/wsman`) |
 | Infrastructure | DHCP, NTP, SNMP, RADIUS, SSH, FTP, SIP, IRC, ICMP |
 | OT / ICS | **Modbus/TCP** |
 | Opaque shells | honest sized TCP/UDP shells for protocols without a full renderer yet |
@@ -54,7 +55,8 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
 | Initial Access / C2 | `phishing-intrusion`, `ipv6-c2`, `doh-tunnel`, `dot-tunnel` |
 | Credential Access | `kerberoasting` (TGS-REP RC4/etype23 for service SPNs), `asrep-roasting`, `brute-force`, **`dcsync`** (drsuapi DRSGetNCChanges from a non-DC host, T1003.006), **`llmnr-poisoning`** (Responder AiTM → inert NTLM capture in `ntlm.log`, T1557.001), **`imds-ssrf`** (cloud IMDS, T1552.005) |
 | Discovery | `port-scan`, `share-discovery`, `account-discovery` |
-| Lateral Movement / Execution | **`remote-service`, `scheduled-task`, `wmi-exec`, `admin-share-transfer`, `remote-registry`, `psexec-lateral`** (the BZAR pack), **`k8s-lateral`** |
+| Lateral Movement / Execution | **`remote-service`, `scheduled-task`, `wmi-exec`, `admin-share-transfer`, `remote-registry`, `psexec-lateral`** (the BZAR pack), **`winrm-lateral`** (WSMan/5985, T1021.006), **`k8s-lateral`** |
+| Credential Access (brute-force) | **`rdp-bruteforce`** (RDP username sweep in `rdp.log`, T1110.001/T1021.001) |
 | Exfiltration / Impact | `dns-exfil`, `cloud-exfil` (T1567.002), `ransomware`, `ddos-syn-flood` |
 
 The BZAR lateral-movement pack is validated against the real MITRE
@@ -70,6 +72,17 @@ The BZAR lateral-movement pack is validated against the real MITRE
 - **Detection lab** — `detect`, `coverage`, `fp-benchmark`, `sigma`, `robustness`,
   `corpus-build`/`corpus-verify`; **cross-validation** — `crossval`, `transfer-proof`; a
   visual **`report`**; and the **`eval`** realism scorecard.
+- **Detection-CI fixtures** (`detection_ci`, `packetforge suricata-verify`) — use PacketForge as a
+  unit-test fixture source for Detection-as-Code: `packetforge_fixture("psexec-lateral")` renders a
+  deterministic attack capture *and* a benign-only twin, so a pytest test asserts a rule *fires* on
+  the attack and stays *quiet* on benign. Export any fixture to the standard `suricata-verify`
+  format (`test.pcap` + `test.yaml` with a frozen golden alert set). See
+  [`detection-ci.md`](detection-ci.md).
+- **Validation trinity** (`trinity`) — score a synthetic capture on all three axes the
+  synthetic-data field uses, not one: **fidelity** (protocol conformance + C2ST vs a real-vs-real
+  floor), **utility** (TSTR — a flow→service classifier trained on the synthetic classifies *real*
+  flows nearly as well as one trained on real; the "does it transfer?" leg), and **non-leakage**
+  (distance-to-closest-record vs the reference — proves the traffic is *generated*, not replayed).
 - **Real-C2 transfer proof** — reproduce a real malware family's observable network signal in an
   inert beacon so a *real published* detection fires on it (zero malware). Four JA3 families
   (Metasploit SSL/CCS scanners, Dridex, Gootkit) whose ClientHello trips a standalone ET Open

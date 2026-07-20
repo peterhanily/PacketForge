@@ -79,6 +79,14 @@ def _build_parser() -> argparse.ArgumentParser:
     bd.add_argument("--start", type=float, default=1_700_000_000.0)
     bd.add_argument("--seed", type=int, default=0)
 
+    sv = sub.add_parser("suricata-verify",
+                        help="export an attack fixture as a suricata-verify test (test.pcap + test.yaml)")
+    sv.add_argument("--attack", required=True, help="attack name (from list-attacks)")
+    sv.add_argument("--rules", required=True, help="ruleset to freeze the golden alert set from")
+    sv.add_argument("-o", "--out", required=True, help="output directory for the suricata-verify test")
+    sv.add_argument("--env", default="office", help="environment name")
+    sv.add_argument("--seed", type=int, default=0)
+
     ev = sub.add_parser("eval", help="score a .pcap for realism (blind-panel heuristics)")
     ev.add_argument("pcap")
     ev.add_argument("--min-score", type=int, default=None, help="exit non-zero below this score")
@@ -139,6 +147,11 @@ def _build_parser() -> argparse.ArgumentParser:
                         help="Gate 2: is the synthetic capture distinguishable from a real one? (C2ST)")
     ra.add_argument("--real", required=True, help="a real reference capture (.pcap)")
     ra.add_argument("--synthetic", required=True, help="the synthetic capture to audit (.pcap)")
+
+    tr = sub.add_parser("trinity",
+                        help="the validation trinity: fidelity (C2ST) + utility (TSTR) + non-leakage (DCR)")
+    tr.add_argument("--real", required=True, help="a real reference capture (.pcap)")
+    tr.add_argument("--synthetic", required=True, help="the synthetic capture to score (.pcap)")
 
     rd = sub.add_parser("realism-detection",
                         help="do detections behave the same on synthetic as on a real reference?")
@@ -469,6 +482,28 @@ def _dispatch(args) -> int:
             comparison = compare_scorecards(baseline, card)
             print(render_comparison(comparison), file=sys.stderr)
             return 1 if regressions(comparison) else 0
+        return 0
+
+    if args.cmd == "trinity":
+        from pathlib import Path
+        if not validators_available():
+            print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
+            return 2
+        from packetforge.trinity import validation_trinity
+        rep = validation_trinity(Path(args.real).resolve(), Path(args.synthetic).resolve())
+        print(rep.render())
+        return 0
+
+    if args.cmd == "suricata-verify":
+        if not validators_available():
+            print("ERROR: need zeek + tshark on PATH", file=sys.stderr)
+            return 2
+        from packetforge.detection_ci import packetforge_fixture, write_suricata_verify
+        fx = packetforge_fixture(args.attack, env=args.env, seed=args.seed, rules=args.rules)
+        out = write_suricata_verify(fx, args.out, args.rules)
+        n = sum(fx.expected_sids.values())
+        print(f"wrote suricata-verify test {out}/ — {n} expected alert(s) across "
+              f"{len(fx.expected_sids)} signature(s)")
         return 0
 
     if args.cmd == "realism-audit":

@@ -3,6 +3,29 @@
 ## Unreleased
 
 ### Added
+- **RDP + WinRM breadth** — two of the top enterprise-risk protocols after SMB.
+  **`rdp-bruteforce`** (T1110.001/T1021.001) renders an RDP username sweep: each attempt is an inert
+  X.224 Connection Request carrying a candidate username in the `mstshash` cookie, which real Zeek
+  reads into `rdp.log` (+ a valid Connection Confirm so the CR/CC pair logs). **`winrm-lateral`**
+  (T1021.006) drives a WSMan shell as SOAP `POST /wsman` on 5985 with the `Microsoft WinRM Client`
+  User-Agent (http.log). Adds `resp_literal_hex` to the opaque renderer (a response-side literal, for
+  the RDP CC). Both are Zeek-round-trip clean and inert (no credentials, session, or command).
+- **Detection-CI surface** (`detection_ci.py`, `packetforge suricata-verify`) — PacketForge as a
+  unit-test fixture source for Detection-as-Code. `packetforge_fixture(attack)` renders a
+  deterministic attack capture *plus* a benign-only twin (same env/seed, no attack), so a pytest
+  test asserts a rule *fires* on the attack (`fx.fires(rules)`) and stays *quiet* on benign
+  (`fx.quiet_on_benign(rules)`) — the two assertions every detection needs. `write_suricata_verify`
+  / the `suricata-verify` CLI export a fixture as a standard suricata-verify test (`test.pcap` +
+  `test.yaml` with a frozen golden alert set). Usage + a GitHub Action snippet in
+  [`docs/detection-ci.md`](docs/detection-ci.md).
+- **Validation trinity** (`trinity.py`, `packetforge trinity`) — scores a synthetic capture on the
+  three axes the synthetic-data field uses instead of one scalar: **fidelity** (protocol conformance
+  + the C2ST vs a real-vs-real floor), **utility** via **TSTR** (a flow→service classifier trained on
+  the synthetic classifies *real* flows nearly as well as one trained on real — measured ~0.94 vs a
+  ~0.98 train-on-real baseline; the "does it transfer?" leg the field says to lead with), and
+  **non-leakage** via **DCR** (each synthetic flow's distance to the closest real flow, vs the
+  real-internal distance — proving the traffic is generated, not replayed). Reuses the existing
+  per-flow feature extraction; reports all three legs, never a single number.
 - **Real-C2 fingerprint transfer proof** (`c2_fingerprints.py`) — an inert beacon can now
   reproduce a *real* malware family's observable network signal so a *real published* detection
   rule fires on it, with zero malware. Vendored, cited fingerprints (from CC0 / public threat

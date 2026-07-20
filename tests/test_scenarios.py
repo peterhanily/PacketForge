@@ -61,6 +61,39 @@ def test_attack_roundtrips_clean(name):
     assert report.ok, f"{name}:\n" + report.summary()
 
 
+@pytest.mark.parametrize("name", ["rdp-bruteforce", "winrm-lateral"])
+def test_phase5_breadth_attacks_build(name):
+    assert name in list_attacks()
+    intr = build_attack(name, load_environment("office"), 1700000000.0, random.Random(1))
+    assert intr.flows and intr.ground_truth
+    assert all(f.flow_id.startswith("atk-") for f in intr.flows)
+    assert all(e.technique.startswith("T1") for e in intr.ground_truth)
+
+
+@pytest.mark.skipif(not validators_available(), reason="requires zeek + tshark on PATH")
+@pytest.mark.parametrize("name,port,log,field", [
+    ("rdp-bruteforce", 3389, "rdp.log", "administrator"),
+    ("winrm-lateral", 5985, "http.log", "Microsoft WinRM Client"),
+])
+def test_phase5_breadth_attacks_roundtrip_and_signal(name, port, log, field, tmp_path):
+    import subprocess
+
+    from packetforge.compile.timeline import write_pcap
+    from packetforge.compose import compose_scenario
+    from packetforge.validation import validate_flowset
+    env = load_environment("office")
+    intr = build_attack(name, env, 1700000200.0, random.Random(1))
+    fs = compose_scenario(env, start_time=1700000000.0, noise_flows=30, seed=2, storyline=intr.flows)
+    assert validate_flowset(fs).ok                      # Zeek round-trip green
+    # the detectable signal reaches the right Zeek log
+    pcap = tmp_path / "c.pcap"
+    write_pcap(fs, pcap)
+    wd = tmp_path / "z"
+    wd.mkdir()
+    subprocess.run(["zeek", "-C", "-r", str(pcap.resolve())], cwd=wd, capture_output=True)
+    assert field in (wd / log).read_text()
+
+
 @pytest.mark.skipif(not validators_available(), reason="requires zeek + tshark on PATH")
 def test_intrusion_roundtrips_clean():
     from packetforge.compose import compose_scenario

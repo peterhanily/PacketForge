@@ -951,6 +951,87 @@ def build_psexec_lateral(env: Environment, start_time: float, rng, *, intensity:
                      {"attacker": attacker, "target": target})
 
 
+def _rdp_cr_cc(user: str) -> tuple:
+    """RDP X.224 Connection Request (with the ``mstshash`` cookie) + Connection Confirm, hex.
+
+    The cookie carries the login username — the field ``rdp.log`` records and brute-force /
+    lateral-RDP detections key on. Inert otherwise: no credentials, no session, no user data."""
+    cookie = f"Cookie: mstshash={user}\r\n".encode()
+    negreq = bytes([0x01, 0x00, 0x08, 0x00, 0x03, 0x00, 0x00, 0x00])   # RDP_NEG_REQ, TLS|CredSSP
+    x = bytes([0xE0, 0x00, 0x00, 0x00, 0x00, 0x00]) + cookie + negreq   # CR + 6-byte hdr + variable
+    x = bytes([len(x)]) + x
+    cr = bytes([0x03, 0x00]) + (len(x) + 4).to_bytes(2, "big") + x
+    negrsp = bytes([0x02, 0x00, 0x08, 0x00, 0x01, 0x00, 0x00, 0x00])    # RDP_NEG_RSP, selected=TLS
+    y = bytes([0xD0, 0x00, 0x00, 0x12, 0x34, 0x00]) + negrsp
+    y = bytes([len(y)]) + y
+    cc = bytes([0x03, 0x00]) + (len(y) + 4).to_bytes(2, "big") + y
+    return cr.hex(), cc.hex()
+
+
+def build_rdp_bruteforce(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """RDP password brute-force / spray against an internal host — T1110.001 / T1021.001.
+
+    Each attempt is an inert RDP X.224 Connection Request carrying a candidate username in the
+    ``mstshash`` cookie (``rdp.log``), from one attacker to one target — the volume plus the
+    username sweep is the tell. No credentials or session are rendered."""
+    attacker, target = _hosts(env, 2)
+    sp = _sports()
+    users = ["administrator", "admin", "guest", "svc-backup", "helpdesk", "jsmith", "root", "test"]
+    n = max(6, int(len(users) * intensity))
+    ids, flows = [], []
+    for i in range(n):
+        cr, cc = _rdp_cr_cc(users[i % len(users)])
+        fid = f"atk-rdp-{i:02d}"
+        ids.append(fid)
+        state = "SF" if i == n - 1 else "RSTR"   # most attempts rejected; the last succeeds
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=attacker, dst_ip=target,
+                          src_port=next(sp), dst_port=3389, conn_state=state,
+                          start_time=start_time + i * (2.0 / max(0.1, intensity)),
+                          src_os=env.default_client_os,
+                          l7=OpaqueTcpL7(orig_bytes=len(bytes.fromhex(cr)),
+                                         resp_bytes=len(bytes.fromhex(cc)),
+                                         orig_literal_hex=cr, resp_literal_hex=cc, service_hint="rdp")))
+    gt = [GroundTruthEntry(
+        "Credential Access", "T1110.001 Brute Force: Password Guessing (RDP)", ids,
+        f"{attacker} made {n} RDP connection attempts to {target}, sweeping usernames "
+        f"({', '.join(users[:4])}…) — the mstshash cookies and the volume are the tell.",
+        {"attacker": attacker, "target": target,
+         "expected_signal": f"rdp.log {n} entries {attacker}->{target} with varying cookie= usernames"})]
+    return Intrusion(flows, gt, f"RDP brute-force against {target}",
+                     {"attacker": attacker, "target": target})
+
+
+def build_winrm_lateral(env: Environment, start_time: float, rng, *, intensity: float = 1.0) -> Intrusion:
+    """WinRM / WS-Management remote execution — T1021.006.
+
+    A living-off-the-land lateral channel: SOAP over HTTP to the WSMan endpoint (5985), the
+    shell *create → command → receive* lifecycle. Real Zeek logs each POST ``/wsman`` with the
+    ``Microsoft WinRM Client`` User-Agent to ``http.log``. Inert: SOAP bodies are sized filler."""
+    attacker, target = _hosts(env, 2)
+    sp = _sports()
+    ua = "Microsoft WinRM Client"
+    ct = {"Content-Type": "application/soap+xml;charset=UTF-8"}
+    steps = [(900, 700), (1400, 500), (600, 2200)]   # create shell, run command, receive output
+    ids, flows = [], []
+    for i, (req, resp) in enumerate(steps):
+        fid = f"atk-winrm-{i:02d}"
+        ids.append(fid)
+        flows.append(Flow(flow_id=fid, transport="tcp", src_ip=attacker, dst_ip=target,
+                          src_port=next(sp), dst_port=5985, conn_state="SF",
+                          start_time=start_time + i * 1.5, src_os=env.default_client_os,
+                          l7=HttpL7(method="POST", uri="/wsman", host=target, user_agent=ua,
+                                    request_headers=ct, request_body_len=req,
+                                    response_headers=ct, response_body_len=resp)))
+    gt = [GroundTruthEntry(
+        "Lateral Movement", "T1021.006 Remote Services: Windows Remote Management", ids,
+        f"{attacker} drove a WinRM shell on {target} (create → command → receive) over WSMan/5985 "
+        f"— SOAP POSTs to /wsman with the Microsoft WinRM Client User-Agent.",
+        {"attacker": attacker, "target": target,
+         "expected_signal": f"http.log POST /wsman on 5985 {attacker}->{target}, UA='{ua}'"})]
+    return Intrusion(flows, gt, f"WinRM lateral movement to {target}",
+                     {"attacker": attacker, "target": target})
+
+
 # The BZAR lateral-movement pack — the attacks added by this content pack. Kept as a
 # named set so the pack's inert-invariant and Zeek round-trip tests can iterate it.
 BZAR_PACK = {
@@ -982,6 +1063,8 @@ ATTACKS = {
     "kerberoasting": build_kerberoasting,
     "asrep-roasting": build_asrep_roasting,
     "dcsync": build_dcsync,
+    "rdp-bruteforce": build_rdp_bruteforce,
+    "winrm-lateral": build_winrm_lateral,
     **BZAR_PACK,
 }
 
