@@ -12,7 +12,7 @@ and opens cleanly in Wireshark. Regenerate the whole gallery with `scripts/make-
 | [03-ransomware-smb-theft](03-ransomware-smb-theft/) | Mass SMB document theft — ~80 files carved to `smb_files.log`, all extractable (T1486) |
 | [04-dns-tunnel-exfil](04-dns-tunnel-exfil/) | DNS tunnelling: a burst of long encoded subdomains under one parent (T1048.003) |
 | [05-bzar-lateral-movement](05-bzar-lateral-movement/) | PsExec-style remote service creation over `\svcctl` + ADMIN$ drop — the MITRE **BZAR** combined notice (T1021.002/T1569.002) |
-| [06-llmnr-poisoning](06-llmnr-poisoning/) | Responder-style LLMNR poisoning → SMB/NTLM capture — a machine-in-the-middle tactic (T1557.001) |
+| [06-llmnr-poisoning](06-llmnr-poisoning/) | Responder-style LLMNR poisoning → an inert NTLM capture real Zeek reads into `ntlm.log` (`CORP\jsmith`) — a machine-in-the-middle tactic (T1557.001) |
 | [17-dcsync-replication](17-dcsync-replication/) | **DCSync** — `drsuapi::DRSGetNCChanges` from a non-DC host, the full Empire sequence matched to a real capture (T1003.006) |
 
 ### Cloud & modern — AWS / Azure / Kubernetes, IPv6, encrypted DNS

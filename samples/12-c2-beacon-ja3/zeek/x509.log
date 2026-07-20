@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-23-55-15
+#open	2026-07-20-01-13-50
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000032.136227	9bcc6a641d402ba177a84c91a23f176c4a72ed868c7c404257a3c5211052d642	3	23AEA2A4	CN=static.cdn-telemetry.example	CN=static.cdn-telemetry.example	1697408032.000000	1728944032.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	static.cdn-telemetry.example	-	-	-	F	-	T	F
@@ -21,4 +21,4 @@
 1700000358.967407	c18225626c15788445f7e7295192659876567e81e1a48581c142fe501938a90e	3	7CF8BA93	CN=static.cdn-telemetry.example	CN=static.cdn-telemetry.example	1697408358.000000	1728944358.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	static.cdn-telemetry.example	-	-	-	F	-	T	F
 1700000390.201596	f41568e86c988bfc5b8a6f703052a9cbf39d4647501ecc2b3ba28925a5e10627	3	436C79C1	CN=updates.example.com	CN=updates.example.com	1697408390.000000	1728944390.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
 1700000583.263940	020239a553f484cb3ec3c1e80c4f6e15c55efd48805468d8640ff345cb429137	3	6513AFD6	CN=assets.example.co	CN=assets.example.co	1697408583.000000	1728944583.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-#close	2026-07-19-23-55-15
+#close	2026-07-20-01-13-50

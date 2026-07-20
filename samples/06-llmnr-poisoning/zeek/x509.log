@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-23-54-43
+#open	2026-07-20-01-13-18
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000049.700448	2c1c245a6d5df94dcc0445ac4f2d20983728a801435fc844be5680dba0cfb291	3	3E7F26DE	CN=portal.example.io	CN=portal.example.io	1697408049.000000	1728944049.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
@@ -13,4 +13,4 @@
 1700000148.784401	c981b84289a7ba548b7461c703e2652ae296975fb811aeac6a76cd923b3911bc	3	2DA85D54	CN=assets.example.co	CN=assets.example.co	1697408148.000000	1728944148.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
 1700000158.757350	47b71ad7934f933f62e1e991448f7ed40840ec7600425d7a852c934f358ff2bb	3	4BCD9518	CN=www.example.org	CN=www.example.org	1697408158.000000	1728944158.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
 1700000181.336573	235cb45e4fac8d82ada4d557bed480fe7bfaa73e8051d5b0ce3e32c7f3d28fce	3	67DB5FA8	CN=portal.example.io	CN=portal.example.io	1697408181.000000	1728944181.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-#close	2026-07-19-23-54-43
+#close	2026-07-20-01-13-18

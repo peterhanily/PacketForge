@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-23-54-29
+#open	2026-07-20-01-13-05
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000007.498992	ce5fb4289a1e7882f6c87c1940eaebd6416fff87bc82548563fa866cc3f05ee4	3	5DB7E3CD	CN=cdn.example.net	CN=cdn.example.net	1697408007.000000	1728944007.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
@@ -24,4 +24,4 @@
 1700000358.344154	f73db0b8fa4e72d3fd3897bc715109ed078e81b10c71b42da5d477c16e57c551	3	7AEE7B54	CN=cdn.telemetry-sync.example	CN=cdn.telemetry-sync.example	1697408358.000000	1728944358.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
 1700000411.760467	2b75eb91eb51bff24b7cfba1db8006a99b0c7ed08deb188305c438d5da17c90e	3	2EBAF24E	CN=cdn.telemetry-sync.example	CN=cdn.telemetry-sync.example	1697408411.000000	1728944411.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
 1700000473.006313	d914ad9d479c3e0cfaa685896d485120966ae1242b01edf07929e2331bea6c98	3	4C22A35D	CN=cdn.telemetry-sync.example	CN=cdn.telemetry-sync.example	1697408472.000000	1728944472.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
-#close	2026-07-19-23-54-29
+#close	2026-07-20-01-13-05

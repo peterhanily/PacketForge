@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-23-54-38
+#open	2026-07-20-01-13-14
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000061.809386	93f5705a471ea1dcf9d644c130d426593487f2bc59730af8450dd1b44b216ae7	3	1F98833E	CN=api.github.com	CN=api.github.com	1697408061.000000	1728944061.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
@@ -14,4 +14,4 @@
 1700000151.118876	e92be9cffbfd5e2bc13d97b6803210b8948a2280c378f64b0152b25bec7acc59	3	7F461DE5	CN=assets.example.co	CN=assets.example.co	1697408151.000000	1728944151.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
 1700000158.710746	ff9a6daf37d947926110168943df8cad24250effad66dbe3ee72875d222a3b53	3	35BAD2FA	CN=cdn.example.net	CN=cdn.example.net	1697408158.000000	1728944158.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
 1700000183.185017	fc32172ece9d16bd15e19632da2cce7ab028db53b94850c19def9f0d060cfb13	3	483D5D3F	CN=cdn.example.net	CN=cdn.example.net	1697408183.000000	1728944183.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
-#close	2026-07-19-23-54-38
+#close	2026-07-20-01-13-14

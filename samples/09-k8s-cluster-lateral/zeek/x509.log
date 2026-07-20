@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-19-23-55-05
+#open	2026-07-20-01-13-40
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000012.834955	abf11994251c57f29a63fe009459e620e5818572e63ff867a33c416f5ca9bea5	3	545E3F7E	CN=cdn.example.net	CN=cdn.example.net	1697408012.000000	1728944012.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
@@ -22,4 +22,4 @@
 1700000104.876958	4666077cc0d0e8374bf61ee8259307dd36b930ab84c3d54e2aa1982a45d7ee93	3	563C5A88	CN=cdn.example.net	CN=cdn.example.net	1697408104.000000	1728944104.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
 1700000129.935249	4dded17ea1256632740233c539bb410a89baf37cb9ca5720bbb3248ce64d7771	3	06466DE6	CN=updates.example.com	CN=updates.example.com	1697408129.000000	1728944129.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
 1700000191.794607	9468c88fda4a89ae5ef88eb5b778d7a2e88c2124dc3e1f11b1b405bb2cd059e5	3	3A125FF0	CN=updates.example.com	CN=updates.example.com	1697408191.000000	1728944191.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-#close	2026-07-19-23-55-05
+#close	2026-07-20-01-13-40

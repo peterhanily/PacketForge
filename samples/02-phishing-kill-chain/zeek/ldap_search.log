@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ldap_search
-#open	2026-07-19-23-54-29
+#open	2026-07-20-01-13-05
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	scope	deref_aliases	base_object	result_count	result	diagnostic_message	filter	attributes
 #types	time	string	addr	port	addr	port	int	string	string	string	count	string	string	string	vector[string]
-1700000565.103180	CGFq4d3cOfzR8e2MPk	10.10.0.40	40008	10.10.0.10	389	2	base	never	DC=corp,DC=local	0	success	-	(objectClass=*)	-
-1700000565.177315	CGFq4d3cOfzR8e2MPk	10.10.0.40	40008	10.10.0.10	389	3	base	never	CN=Users,DC=corp,DC=local	0	success	-	(objectClass=*)	-
-#close	2026-07-19-23-54-29
+1700000565.103180	COWXt51qMBQdhNHoUf	10.10.0.40	40008	10.10.0.10	389	2	base	never	DC=corp,DC=local	0	success	-	(objectClass=*)	-
+1700000565.177315	COWXt51qMBQdhNHoUf	10.10.0.40	40008	10.10.0.10	389	3	base	never	CN=Users,DC=corp,DC=local	0	success	-	(objectClass=*)	-
+#close	2026-07-20-01-13-05
