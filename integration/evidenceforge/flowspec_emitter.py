@@ -53,7 +53,7 @@ def event_to_flow(event) -> dict | None:
     # Carry the canonical event's duration when it has one. PacketForge renders the flow to this
     # (spacing packets so real Zeek recomputes the same conn.log duration), so the pcap agrees with
     # EF's own duration rather than diverging from it. Requires the duration to live on the canonical
-    # event (the single source of truth) — see PREPARED-PR.md, the one EF-side alignment item.
+    # event (the single source of truth) — the one EF-side alignment item.
     dur = getattr(net, "duration", None)
     if dur is not None:
         flow["duration"] = float(dur)

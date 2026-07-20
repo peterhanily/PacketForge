@@ -4,6 +4,13 @@ Deterministic, **Zeek-validated** synthetic PCAPs for threat-hunting training �
 consistent with the [EvidenceForge](https://github.com/Cisco-Talos/EvidenceForge)
 incident model.
 
+> **Temporary / experimental repository.** PacketForge was built to explore the idea in
+> **[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332)** —
+> whether realistic, consistent synthetic PCAPs are feasible alongside EvidenceForge's
+> synthetic logs. It's a proof of concept shared for discussion, and may be taken down or
+> restructured. With thanks to **David Bianco** and the **EvidenceForge** project (Cisco
+> Talos) for the canonical incident model and the #332 discussion that prompted this.
+
 The premise is a test, not a claim: render packets from the same event that produces
 the logs, then run **real Zeek** over the result and require its output to match the
 logs EvidenceForge already emits. If Zeek agrees, the capture is valid and consistent
@@ -105,7 +112,7 @@ Detection-lab commands: `detect`, `coverage`, `fp-benchmark`, `sigma`, `robustne
 cross-validation: `crossval`, `transfer-proof` (see
 [`docs/cross-validation.md`](docs/cross-validation.md)). `list-attacks` / `list-evasions`
 enumerate the library. A tour of annotated captures with ground truth lives in
-[`samples/`](samples/); per-phase design audits in [`docs/audits/`](docs/audits/).
+[`samples/`](samples/).
 
 ## How it holds up on real data
 
@@ -143,6 +150,6 @@ real cloud pcap exists to validate against yet; see the capture kit) called out 
 
 Working and growing. The full current capability map — protocols, environments, attacks, and
 capture modes — is in [`docs/capabilities.md`](docs/capabilities.md). Design and rationale in
-[`docs/DESIGN.md`](docs/DESIGN.md); roadmap and honest per-phase audits in
-[`docs/ROADMAP.md`](docs/ROADMAP.md) and [`docs/audits/`](docs/audits/). MIT-licensed, to keep
+[`docs/DESIGN.md`](docs/DESIGN.md); roadmap in
+[`docs/ROADMAP.md`](docs/ROADMAP.md). MIT-licensed, to keep
 a future merge into EvidenceForge frictionless.
