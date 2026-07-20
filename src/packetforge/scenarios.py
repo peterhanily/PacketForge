@@ -16,8 +16,8 @@ from dataclasses import dataclass, field
 
 from packetforge.environments import Environment
 from packetforge.models.flowspec import (
-    DceRpcL7, DnsL7, Flow, HttpL7, KerberosL7, LdapL7, NameQueryL7, OpaqueTcpL7, SmbL7,
-    SmtpL7, SshL7, TlsL7,
+    DceRpcL7, DnsL7, Flow, HttpL7, KerberosL7, LdapL7, NameQueryL7, NtlmAuth, OpaqueTcpL7,
+    SmbL7, SmtpL7, SshL7, TlsL7,
 )
 
 
@@ -480,21 +480,30 @@ def build_llmnr_poisoning(env: Environment, start_time: float, rng, *, intensity
         ids.append(fid)
         flows.append(Flow(flow_id=fid, transport="udp", src_ip=victim, dst_ip="224.0.0.252",
                           src_port=next(sp), dst_port=5355, start_time=start_time + i * 4.0,
-                          src_os=env.default_client_os,
+                          # a real poisoner (Responder) answers near-instantly to beat the real
+                          # host to the reply — the sub-ms unicast response is the timing tell.
+                          rtt=0.0008, src_os=env.default_client_os,
                           l7=NameQueryL7(protocol="llmnr", qname=name, poison_from=attacker)))
     smb_id = "atk-llmnr-smb"
+    # The victim authenticates to the rogue host over SMB, handing over an (inert) NTLM
+    # exchange — Zeek's ntlm.log reads back CORP\jsmith from WKS-042, the capture payoff.
+    cred = NtlmAuth(domain="CORP", user="jsmith", workstation="WKS-042",
+                    server_domain="CORP", server_host="WPAD-SRV")
     flows.append(Flow(flow_id=smb_id, transport="tcp", src_ip=victim, dst_ip=attacker,
                       src_port=next(sp), dst_port=445, conn_state="SF",
                       start_time=start_time + len(names) * 4.0 + 2.0, src_os=env.default_client_os,
-                      l7=SmbL7(share=f"\\\\{attacker}\\wpad")))
+                      l7=SmbL7(share=f"\\\\{attacker}\\wpad", ntlm=cred)))
     gt = [GroundTruthEntry(
         "Credential Access", "T1557.001 LLMNR/NBT-NS Poisoning and SMB Relay",
         ids + [smb_id],
         f"{victim} broadcast LLMNR lookups (incl. wpad); {attacker} poisoned each with its own "
-        f"IP, then {victim} authenticated to {attacker} over SMB — a Responder-style NTLM capture.",
+        f"IP, then {victim} authenticated to {attacker} over SMB — a Responder-style NTLM capture "
+        f"(ntlm.log: {cred.domain}\\{cred.user} from {cred.workstation}).",
         {"victim": victim, "attacker": attacker,
+         "captured_credential": f"{cred.domain}\\{cred.user}",
          "expected_signal": f"dns.log LLMNR answer={attacker} (a workstation) from a non-DNS host, "
-                            f"then SMB {victim}->{attacker}"})]
+                            f"then SMB {victim}->{attacker} with ntlm.log username={cred.user} "
+                            f"domainname={cred.domain} hostname={cred.workstation}"})]
     return Intrusion(flows, gt, f"LLMNR poisoning in {env.name}",
                      {"victim": victim, "attacker": attacker})
 

@@ -162,38 +162,42 @@ id — everything needed to render bytes, nothing about *why* it happened).
 
 ---
 
-## 5. Design principles
+## 5. Design principles (what a network artifact must do to earn adoption)
 
-Issue #332 and EvidenceForge's engineering values set a clear bar. Five principles
-follow from them:
+Established threat-hunting practice sets a strong prior on what a network artifact has
+to do to be worth having. Reading the design through that lens:
 
-- **High-pyramid signal (Pyramid of Pain).** An artifact's value rises with where its
-  signal sits: hashes/IPs (trivial for an adversary to change) at the bottom, **tools
-  and TTPs** at the top. A PCAP that only leaks atomic IOCs is low value, so PacketForge
-  prioritizes **high-pyramid signal**: JA3/JA4 (tooling fingerprints), C2 **beacon
-  cadence and jitter**, protocol-behavior tells — *render the behavior, not just the
-  atoms.*
-- **Cross-layer pivoting.** Data should let a hunter form and confirm a hypothesis by
-  **pivoting across layers**: spot a beacon in the logs → confirm it in the PCAP →
-  extract the JA3 → hunt that JA3 fleet-wide. That pivot only works if the layers are
-  consistent — the whole thesis.
-- **Realism that survives an analyst.** EvidenceForge's bar is realism measured by blind
-  panels; the packet layer must be *at least as internally consistent as the logs*, or
-  it is a net negative. Hence per-OS TCP fingerprints and JA3 consistent with the client
-  software — a mismatched fingerprint is a new tell the logs never had.
-- **Deterministic, reproducible engineering.** A non-deterministic ML/GAN generator does
-  not fit a seeded, canonical-event-derived engine. Deterministic and reproducible is the
-  only approach that fits.
-- **Validate against real tools; scope honestly.** #332 flagged PCAPs/malware as "likely
-  difficult." The honest scope: cleartext + handshake-visible protocols first
-  (DNS/HTTP/TLS), **opaque TCP shells** for binary protocols rather than half-dissected
-  garbage, no fake full-take capture, opt-in per storyline, and the risky code kept *out*
-  of the core until proven — which is Method C. The acceptance criterion is concrete:
-  real Zeek over the synthetic PCAP reproduces EvidenceForge's own Zeek logs.
+- **High-pyramid signal (Pyramid of Pain).** The value of an artifact rises with where
+  its signal sits: hashes/IPs (trivial for an adversary to change) at the bottom, **tools
+  and TTPs** at the top. A PCAP that only leaks atomic IOCs is low value. So PacketForge
+  prioritizes **high-pyramid signal**: JA3/JA4 (tooling fingerprint), C2 **beacon cadence
+  and jitter**, protocol-behavior tells — not just "an IP talked to an IP." A design
+  requirement, not a nice-to-have: *render the behavior, not just the atoms.*
+- **Hypothesis-driven hunting.** Data should let a hunter form and confirm a hypothesis by
+  **pivoting across layers**: spot a beacon in the logs → confirm it in the PCAP → extract
+  the JA3 → hunt that JA3 fleet-wide. That pivot only works if the layers are consistent —
+  which is the whole thesis.
+- **"Logs that don't look (as) fake."** EvidenceForge's stated bar is realism that survives
+  an experienced analyst, measured by blind panels. The packet layer must clear the same
+  bar: at least as internally consistent as the logs, or it is a net negative. This is why
+  per-OS TCP fingerprints and JA3-consistent-with-the-client-software matter — a mismatched
+  fingerprint is a new tell the logs never had.
+- **Deterministic, reproducible, no-hype engineering.** A non-deterministic ML/GAN traffic
+  generator does not fit the generation path. Deterministic, seeded, canonical-event-derived
+  is the only approach consistent with the existing engine.
+- **Validate against real tools.** EvidenceForge already validates against SOF-ELK and
+  Splunk; PCAPs should be held to **real Zeek/Suricata** — precisely the round-trip gate. The
+  acceptance criterion is "real Zeek over the synthetic PCAP reproduces EvidenceForge's own
+  Zeek logs."
+- **Protect the core; scope honestly.** Issue #332 flagged PCAPs/malware as "likely
+  difficult." The honest answer: cleartext + handshake-visible protocols first
+  (DNS/HTTP/TLS-handshake), **opaque TCP shells** for binary protocols (SMB/Kerberos/RDP)
+  rather than half-dissected garbage, no fake full-take capture, opt-in per storyline. And
+  keep the risky code *out* of the core tree until it is proven — which is Method C.
 
-Method C satisfies all five: packets become *another deterministic projection of the
-canonical event, validated against the real parser, carrying high-pyramid behavioral
-signal, scoped honestly, and introduced without destabilizing the core.*
+**Conclusion:** treat packets as *another deterministic projection of the canonical event,
+validated against the real parser, carrying high-pyramid behavioral signal, scoped honestly,
+and introduced without destabilizing the core.* Method C is the plan that does all five.
 
 ---
 
@@ -206,7 +210,7 @@ step.**
 Rationale in one line: Method C is the only option that is *simultaneously* a
 low-risk standalone experiment, a by-construction-consistent generator, insulated
 from the architecture-reset churn, and a clean path to merge — which is exactly the
-set of properties issue #332 requires of a feasible design.
+set of properties issue #332 calls for.
 
 Concretely, the merge story is a ratchet, not a leap:
 1. **PacketForge standalone** compiles hand-authored + EvidenceForge-emitted IR.
@@ -244,7 +248,7 @@ dynamics (add later via blind-panel feedback), EVTX/memory/disk images.
    DNS answers, HTTP host/uri/status, TLS version/cipher/SNI).
 4. (Optional) Suricata fires the expected alerts and no spurious malformed events.
 
-This is the PoC harness, productionized. It is also the answer to the concern raised in #332.
+This is the PoC harness, productionized. It is also the answer to the objection raised in #332.
 
 ---
 
@@ -304,7 +308,7 @@ PacketForge/
 
 > Constraint of record: **nothing is pushed to EvidenceForge and no issue comments are
 > made without the maintainer's (repo owner's) explicit approval.** PacketForge is
-> developed in its own repo; the EvidenceForge integration is sketched here first.
+> developed in its own repo; EvidenceForge PRs are drafted for review here first.
 
 ## 11. Real-data validation (the EvidenceForge round-trip)
 

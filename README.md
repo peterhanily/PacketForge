@@ -4,13 +4,6 @@ Deterministic, **Zeek-validated** synthetic PCAPs for threat-hunting training �
 consistent with the [EvidenceForge](https://github.com/Cisco-Talos/EvidenceForge)
 incident model.
 
-> **Temporary / experimental repository.** PacketForge was built to explore the idea in
-> **[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332)** —
-> whether realistic, consistent synthetic PCAPs are feasible alongside EvidenceForge's
-> synthetic logs. It's a proof of concept shared for discussion, and may be taken down or
-> restructured. With thanks to **David Bianco** and the **EvidenceForge** project (Cisco
-> Talos) for the canonical incident model and the #332 discussion that prompted this.
-
 The premise is a test, not a claim: render packets from the same event that produces
 the logs, then run **real Zeek** over the result and require its output to match the
 logs EvidenceForge already emits. If Zeek agrees, the capture is valid and consistent
@@ -61,7 +54,8 @@ the honest C2ST verdict.)
   (drsuapi `DRSGetNCChanges` from a non-DC host, matched to a real Empire capture), ransomware,
   DNS/DoH tunnelling, an inert **BZAR lateral-movement pack** (remote service creation,
   scheduled task, WMI, admin-share, discovery, PsExec co-detect), **LLMNR/NBT-NS poisoning**
-  (Responder-style AiTM), and **cloud** attacks — IMDS credential theft (the Capital One
+  (Responder-style AiTM, with an inert NTLMSSP capture Zeek reads into `ntlm.log`), and
+  **cloud** attacks — IMDS credential theft (the Capital One
   shape), cloud-storage exfil, Kubernetes cluster lateral movement. Each carries a
   `GROUND_TRUTH.md`/`.json` answer key. `packetforge list-attacks` enumerates them.
 - **Inert by construction** — malicious flows reproduce the detection *signal*, never the

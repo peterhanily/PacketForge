@@ -112,10 +112,14 @@ the analog over-alert (`alert_js` 1.0 → 0.0 on a clean reference).
 
 ## The cloud gap
 
-No public real pcap covers VPC east-west, IMDS SSRF credential theft, storage-API exfil, or a k8s
-overlay — so the cloud scenarios (`aws-imds-ssrf`, `cloud-exfil`, `k8s-lateral`) are **UNVALIDATED
-against real traffic**, honestly, until you capture your own. `scripts/cloud-capture/` is a kit to do
-that in a throwaway account; feed the result as a `--real` reference.
+Cloud is the hardest env to baseline: most cloud network data is exposed only as flow logs, never
+packets. A dedicated survey found what real cloud pcap *does* exist (a k8s cryptojacking honeypot,
+real Istio mesh, real Azure/AWS VNet captures, a real DCSync) and proved where none can — see the
+catalog in [`cloud-baselines.md`](cloud-baselines.md). `k8s-lateral`, the k8s/azure/aws substrate,
+mesh-L7, and `dcsync` have real anchors; `imds-ssrf`, `cloud-exfil` content, and `oci-vcn` structurally
+cannot (IMDS is link-local and excluded from all mirroring — which corroborates PacketForge's own
+mirror invariant) and stay **UNVALIDATED against real traffic**, validated structurally or minted
+on-host with the `scripts/cloud-capture/` kit.
 
 ## Reproduce
 

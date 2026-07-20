@@ -228,6 +228,33 @@ class NameQueryL7(_L7Base):
     poison_from: Optional[str] = None  # attacker IP that answers with a spoofed reply
 
 
+class NtlmAuth(_L7Base):
+    """An inert NTLMSSP handshake carried in the SMB2 session setup — the credential a
+    Responder-style LLMNR/NBT-NS poisoner captures off the wire (T1557.001).
+
+    When set on an :class:`SmbL7` flow, the session setup renders the real three-message
+    NTLMSSP exchange (NEGOTIATE -> CHALLENGE -> AUTHENTICATE) in place of an empty setup,
+    so Zeek's ``ntlm.log`` reads back the victim's ``domainname``/``username`` and
+    ``hostname`` (workstation) — the capture payoff of the poisoning story.
+
+    Inert by construction: the LM/NT challenge responses are fixed filler bytes, never a
+    real (offline-crackable) NTLMv2 hash. Only the identity fields and the on-wire framing
+    are real. The blob is raw NTLMSSP (the signature Zeek's NTLM analyzer keys on), not a
+    hash a defender could relay or crack.
+
+    Scope: the security blob carries raw NTLMSSP, not a GSS-API/SPNEGO envelope, so Zeek
+    reads back every identity field (username/domainname/hostname/server_nb_computer_name)
+    but leaves ``ntlm.log`` ``success`` unset — that column is populated only from a SPNEGO
+    ``gssapi_neg_result``. The captured credential (the detection payoff) is fully present.
+    """
+
+    domain: str = "CORP"          # victim's account domain (NetBIOS) -> ntlm.log domainname
+    user: str = "jdoe"            # victim's sAMAccountName -> ntlm.log username (the credential)
+    workstation: str = "WKS-01"   # victim's machine name -> ntlm.log hostname
+    server_domain: str = "CORP"   # name the rogue server claims in the CHALLENGE TargetInfo
+    server_host: str = "FILESRV"  # rogue server's NetBIOS computer name (CHALLENGE)
+
+
 class SmbL7(_L7Base):
     """An SMB2/3 session: negotiate -> session setup -> tree connect to a share.
 
@@ -236,6 +263,9 @@ class SmbL7(_L7Base):
     > SMB" and Zeek's ``smb_files.log`` can pull out. If ``write_file`` is set, the session
     CREATE/WRITE/CLOSEs it instead, sending the (inert, typed) content originator->responder
     so Zeek logs an ``SMB::FILE_WRITE`` — the lateral-tool-transfer signal (T1570).
+
+    If ``ntlm`` is set, the session setup renders a real NTLMSSP exchange so Zeek populates
+    ``ntlm.log`` with the captured ``domain``/``user`` — the LLMNR-poisoning payoff.
     """
 
     kind: Literal["smb"] = "smb"
@@ -244,6 +274,7 @@ class SmbL7(_L7Base):
     read_file: str = ""  # e.g. "payroll.xlsx"; empty = session only (no file transfer)
     write_file: str = ""  # e.g. "svc.exe"; empty = no write. A push to the share (FILE_WRITE)
     file_bytes: int = 4096  # size of the file content read/written
+    ntlm: Optional[NtlmAuth] = None  # if set, render an NTLMSSP session setup -> ntlm.log
 
 
 class DceRpcL7(_L7Base):

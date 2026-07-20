@@ -12,7 +12,7 @@ Rendered faithfully enough that real Zeek reads the fields back, over **IPv4 or 
 |---|---|
 | Web / TLS | HTTP, TLS 1.2/1.3 (controllable JA3/JA4, GREASE, configurable ALPN), **DoH / DoT** (encrypted DNS) |
 | Name resolution | DNS (A/AAAA/…), **LLMNR, NBT-NS, mDNS** |
-| Active Directory | **Kerberos** (AS/TGS, real enctypes → RC4-downgrade visible), **LDAP**, **SMB2/3**, **DCE-RPC** (svcctl, samr, srvsvc, winreg, atsvc, IWbemServices, **epmapper**) over SMB named pipes *or* **ncacn_ip_tcp** (raw DCE-RPC on 135 — the `ept_map` endpoint resolution real tools do first) |
+| Active Directory | **Kerberos** (AS/TGS, real enctypes → RC4-downgrade visible), **LDAP**, **SMB2/3** (with an inert **NTLMSSP** session-setup that populates Zeek `ntlm.log` — the LLMNR-poisoning capture), **DCE-RPC** (svcctl, samr, srvsvc, winreg, atsvc, IWbemServices, **epmapper**) over SMB named pipes *or* **ncacn_ip_tcp** (raw DCE-RPC on 135 — the `ept_map` endpoint resolution real tools do first) |
 | Mail | SMTP, POP3, IMAP |
 | Infrastructure | DHCP, NTP, SNMP, RADIUS, SSH, FTP, SIP, IRC, ICMP |
 | OT / ICS | **Modbus/TCP** |
@@ -25,7 +25,7 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
 
 - **On-prem:** `office` (corporate AD LAN), `home`, `ot` (flat ICS segment)
 - **Cloud:** `aws-vpc`, `azure-vnet`, `gcp-vpc`, `oci-vcn` — real VPC ranges, resolvers, and
-  metadata-service quirks, captured host-side
+  metadata-service quirks, captured host-side — plus a provider-agnostic `cloud` fallback
 - **Kubernetes:** `k8s` — a pod network (Flannel/Calico CNI), seen at a mirror collector
 
 ## Advanced networking & capture
@@ -48,7 +48,7 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
 | Tactic | Attacks |
 |---|---|
 | Initial Access / C2 | `phishing-intrusion`, `ipv6-c2`, `doh-tunnel`, `dot-tunnel` |
-| Credential Access | `kerberoasting` (TGS-REP RC4/etype23 for service SPNs), `asrep-roasting`, `brute-force`, **`dcsync`** (drsuapi DRSGetNCChanges from a non-DC host, T1003.006), **`llmnr-poisoning`** (Responder AiTM, T1557.001), **`imds-ssrf`** (cloud IMDS, T1552.005) |
+| Credential Access | `kerberoasting` (TGS-REP RC4/etype23 for service SPNs), `asrep-roasting`, `brute-force`, **`dcsync`** (drsuapi DRSGetNCChanges from a non-DC host, T1003.006), **`llmnr-poisoning`** (Responder AiTM → inert NTLM capture in `ntlm.log`, T1557.001), **`imds-ssrf`** (cloud IMDS, T1552.005) |
 | Discovery | `port-scan`, `share-discovery`, `account-discovery` |
 | Lateral Movement / Execution | **`remote-service`, `scheduled-task`, `wmi-exec`, `admin-share-transfer`, `remote-registry`, `psexec-lateral`** (the BZAR pack), **`k8s-lateral`** |
 | Exfiltration / Impact | `dns-exfil`, `cloud-exfil` (T1567.002), `ransomware`, `ddos-syn-flood` |
@@ -74,5 +74,5 @@ The BZAR lateral-movement pack is validated against the real MITRE
   own real cloud reference (IMDS SSRF / storage exfil / k8s overlay) to validate the cloud scenarios,
   since no public real cloud pcap exists.
 
-See [`../samples/`](../samples/) for a 16-capture tour, and [`DESIGN.md`](DESIGN.md) for the
+See [`../samples/`](../samples/) for a 17-capture tour, and [`DESIGN.md`](DESIGN.md) for the
 architecture and the consistency-by-construction validation gate.

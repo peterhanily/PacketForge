@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import random
 
+from scapy.layers import ntlm as _ntlm
 from scapy.layers.netbios import NBTSession
+from scapy.packet import Raw
 from scapy.layers.smb2 import (
     SMB2_Close_Request,
     SMB2_Close_Response,
@@ -26,13 +28,61 @@ from scapy.layers.smb2 import (
 )
 
 from packetforge.compile.tcp import Endpoint, TcpMessage, build_tcp_flow
-from packetforge.models.flowspec import Flow, SmbL7
+from packetforge.models.flowspec import Flow, NtlmAuth, SmbL7
 from packetforge.renderers.base import RenderResult
 from packetforge.renderers.file_bodies import file_for
+
+# NTLMSSP NegotiateFlags. UNICODE | OEM | REQUEST_TARGET | NTLM | ALWAYS_SIGN | ... — the
+# common client/server set; the CHALLENGE/AUTHENTICATE side adds TARGET_INFO | VERSION so
+# Zeek reads the TargetInfo AV_PAIRs and the version block.
+_NEG_FLAGS = 0xE2088297
+_AUTH_FLAGS = 0xE2888215
+# STATUS_MORE_PROCESSING_REQUIRED: the status a server returns on the CHALLENGE leg.
+_MORE_PROCESSING = 0xC0000016
+# SecurityBlob offsets from the start of the SMB2 header: header (64) + the SessionSetup
+# fixed structure (request 24, response 8). scapy leaves these at 0, which makes Zeek read
+# the NTLM buffer from the wrong base and drop username/domain — so we set them explicitly.
+_SS_REQ_BLOB_OFFSET = 88
+_SS_RESP_BLOB_OFFSET = 72
 
 
 def _nb(pkt) -> bytes:
     return bytes(NBTSession() / pkt)
+
+
+def _ntlm_blobs(spec: NtlmAuth, rng: random.Random):
+    """The three NTLMSSP messages (NEGOTIATE, CHALLENGE, AUTHENTICATE) as raw bytes.
+
+    Inert: the LM/NT responses are fixed filler, never a real crackable hash."""
+    neg = bytes(_ntlm.NTLM_NEGOTIATE(NegotiateFlags=_NEG_FLAGS))
+    chal = bytes(_ntlm.NTLM_CHALLENGE(
+        NegotiateFlags=_AUTH_FLAGS,
+        ServerChallenge=rng.randbytes(8),  # deterministic per-flow; not a real challenge
+        TargetName=spec.server_domain,
+        TargetInfo=[
+            _ntlm.AV_PAIR(AvId="MsvAvNbDomainName", Value=spec.server_domain),
+            _ntlm.AV_PAIR(AvId="MsvAvNbComputerName", Value=spec.server_host),
+            _ntlm.AV_PAIR(AvId="MsvAvEOL"),
+        ]))
+    auth = bytes(_ntlm.NTLM_AUTHENTICATE(
+        NegotiateFlags=_AUTH_FLAGS,
+        DomainName=spec.domain, UserName=spec.user, Workstation=spec.workstation,
+        LmChallengeResponse=b"\x00" * 24,      # inert filler
+        NtChallengeResponse=b"\xAA" * 24))     # inert filler — never a real NTLMv2 hash
+    return neg, chal, auth
+
+
+def _ss_req(blob: bytes):
+    return SMB2_Session_Setup_Request(SecurityBlobBufferOffset=_SS_REQ_BLOB_OFFSET,
+                                      SecurityBlobLen=len(blob)) / Raw(blob)
+
+
+def _ss_resp(blob: bytes):
+    # NB: the response's blob descriptor fields are named differently from the request's
+    # (SecurityBufferOffset/SecurityLen vs SecurityBlobBufferOffset/SecurityBlobLen). Using
+    # the wrong names leaves them 0, so Zeek/tshark see "no blob" and skip the CHALLENGE.
+    return SMB2_Session_Setup_Response(SecurityBufferOffset=_SS_RESP_BLOB_OFFSET,
+                                       SecurityLen=len(blob)) / Raw(blob)
 
 
 def render_smb(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -> RenderResult:
@@ -50,9 +100,29 @@ def render_smb(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         TcpMessage(False, _nb(SMB2_Header(Command=0, Flags=1)
                               / SMB2_Negotiate_Protocol_Response(DialectRevision=spec.dialect,
                                                                 ServerTime=ft, ServerStartTime=ft - 10**14))),
-        TcpMessage(True, _nb(SMB2_Header(Command=1) / SMB2_Session_Setup_Request())),
-        TcpMessage(False, _nb(SMB2_Header(Command=1, Flags=1, SessionId=sid)
-                              / SMB2_Session_Setup_Response())),
+    ]
+
+    if spec.ntlm:
+        # NTLMSSP session setup: NEGOTIATE -> CHALLENGE (STATUS_MORE_PROCESSING_REQUIRED,
+        # SessionId assigned) -> AUTHENTICATE -> success. Zeek reads the victim's captured
+        # domain\user and workstation off the AUTHENTICATE into ntlm.log.
+        neg, chal, auth = _ntlm_blobs(spec.ntlm, rng)
+        messages += [
+            TcpMessage(True, _nb(SMB2_Header(Command=1) / _ss_req(neg))),
+            TcpMessage(False, _nb(SMB2_Header(Command=1, Flags=1, Status=_MORE_PROCESSING,
+                                              SessionId=sid) / _ss_resp(chal))),
+            TcpMessage(True, _nb(SMB2_Header(Command=1, SessionId=sid) / _ss_req(auth))),
+            TcpMessage(False, _nb(SMB2_Header(Command=1, Flags=1, SessionId=sid)
+                                  / SMB2_Session_Setup_Response())),
+        ]
+    else:
+        messages += [
+            TcpMessage(True, _nb(SMB2_Header(Command=1) / SMB2_Session_Setup_Request())),
+            TcpMessage(False, _nb(SMB2_Header(Command=1, Flags=1, SessionId=sid)
+                                  / SMB2_Session_Setup_Response())),
+        ]
+
+    messages += [
         TcpMessage(True, _nb(SMB2_Header(Command=3, SessionId=sid)
                              / SMB2_Tree_Connect_Request(Buffer=[("Path", spec.share)]))),
         # Return the real share type: PIPE (2) for IPC$, else DISK (1) for a file share.

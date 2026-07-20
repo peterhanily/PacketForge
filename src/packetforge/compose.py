@@ -87,7 +87,8 @@ def _activity_envelope(duration: float, rng: random.Random):
 
         def f(pos01: float) -> float:
             x = max(0.0, min(1.0, pos01)) * (k - 1)
-            i = int(x); j = min(k - 1, i + 1)
+            i = int(x)
+            j = min(k - 1, i + 1)
             return pts[i] * (1 - (x - i)) + pts[j] * (x - i)
         return f
 

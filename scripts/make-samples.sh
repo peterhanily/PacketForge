@@ -83,7 +83,8 @@ readme 05-bzar-lateral-movement "PsExec-style lateral movement — the BZAR pack
 
 scenario 06-llmnr-poisoning office --volume normal --attack llmnr-poisoning --seed 4
 readme 06-llmnr-poisoning "LLMNR/NBT-NS poisoning -> NTLM (Responder-style, T1557.001)" \
-"- \`zeek/dns.log\`: LLMNR queries (incl. \`wpad\`) answered by a rogue host claiming **its own IP** — then the victim authenticates to that host over SMB. The tell is an LLMNR answer of a workstation IP from a non-DNS host, followed by SMB to it." \
+"- \`zeek/dns.log\`: LLMNR queries (incl. \`wpad\`) answered by a rogue host claiming **its own IP** — then the victim authenticates to that host over SMB. The tell is an LLMNR answer of a workstation IP from a non-DNS host, followed by SMB to it.
+- \`zeek/ntlm.log\`: the captured credential — \`username=jsmith domainname=CORP hostname=WKS-042\` handed to the rogue host. Inert by construction: the NTLMSSP framing and identity are real, but the LM/NT responses are fixed filler, never an offline-crackable hash." \
 "scripts/make-samples.sh   # a broadcast-name poisoning + SMB auth capture"
 
 # --------------------------------------------------------------------------- #

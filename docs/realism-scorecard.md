@@ -34,9 +34,9 @@ under `honest_gaps`.
 The committed baseline (reference: `smallFlows.pcap`, calibrated against three `bigFlows` windows)
 reports `verdict: gap` — carried entirely by the detection gate:
 
-- **Realism** — `verdict: pass`. `c2st_auc = 0.973` against a real-vs-real band of
-  `[0.931, 0.961]` (mean 0.942, three distinct `bigFlows` windows), with a within-source
-  `temporal_baseline_auc` of 0.663 for reference. The synthetic sits at the *upper edge* of the
+- **Realism** — `verdict: pass`. `c2st_auc = 0.974` against a real-vs-real band of
+  `[0.933, 0.963]` (mean 0.944, three distinct `bigFlows` windows), with a within-source
+  `temporal_baseline_auc` of 0.67 for reference. The synthetic sits at the *upper edge* of the
   real-vs-real band — as separable from `smallFlows` as another real enterprise capture is, within a
   noise tolerance of its top. Reference-conditioning drove the AUC from a starting 1.0 (and the
   kernel-MMD from 0.17 to 0.077) by retiring the TCP-window, byte-volume, connection-state, and
@@ -45,7 +45,7 @@ reports `verdict: gap` — carried entirely by the detection gate:
   micro-differences that separate any two real captures. Chasing `c2st_auc` below the real-vs-real
   band would mean replaying this one capture, not generating.
 - **Detection** — `alert_js = 1.0` (`verdict: gap`). The reference fires roughly 217 benign false
-  positives per hour under ET Open. The synthetic now fires **~217/hr** — the same rate, once the
+  positives per hour under ET Open. The synthetic now fires **~205/hr** — close to that rate, once the
   analog's flow durations were conditioned to the reference (dynamic-DNS, noisy-TLD, and
   external-IP-lookup noise) — so it is no longer conspicuously silent. It fires on a *different*
   signature set than this particular reference, though, so the alert distributions remain disjoint.
@@ -101,9 +101,9 @@ counts, duration, and conn_state **together**, from the same flow. Within-flow p
 drawn from a lognormal (bursty, heavy right tail, mean-preserving) so `ia_burst` matches, and each
 flow's effective segment size is set to the reference's bytes-per-packet — real captures are taken
 above NIC offload, so a large transfer is a few big segments, not dozens of MSS ones. All of it is
-retransmit-free, so validity stays byte-exact. This collapsed the benign false-positive rate onto
-the reference (**217/hr vs 217/hr**, from a duration-inflated 98), pulled MMD to 0.075, and moved
-the AUC to 0.969. What remains is genuinely fine-grained: the exact shape of small flows' timing and
+retransmit-free, so validity stays byte-exact. This brought the benign false-positive rate close to
+the reference (**~205/hr vs ~217/hr**, up from a duration-inflated 98), pulled MMD to 0.077, and moved
+the AUC to 0.974. What remains is genuinely fine-grained: the exact shape of small flows' timing and
 per-OS SYN-option layouts.
 
 ### How low can the AUC actually go?

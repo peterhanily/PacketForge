@@ -286,7 +286,8 @@ def hurst_aggvar(times: list, base_bins: int = 512) -> float:
         trimmed = counts[: (len(counts) // m) * m].reshape(-1, m).mean(axis=1)
         v = float(trimmed.var())
         if v > 0:
-            ms.append(m); vs.append(v)
+            ms.append(m)
+            vs.append(v)
         m *= 2
     if len(ms) < 3:
         return float("nan")
