@@ -3,6 +3,29 @@
 ## Unreleased
 
 ### Added
+- **Real-C2 fingerprint transfer proof** (`c2_fingerprints.py`) — an inert beacon can now
+  reproduce a *real* malware family's observable network signal so a *real published* detection
+  rule fires on it, with zero malware. Vendored, cited fingerprints (from CC0 / public threat
+  intel): four JA3 families (Metasploit SSL/CCS scanners, Dridex, Gootkit) whose ClientHello JA3
+  is MD5-verified to match a standalone ET Open `ja3.hash` rule, and four HTTP-C2 frameworks
+  (Cobalt Strike, Sliver, Mythic, Havoc) with their default URIs, User-Agents, and marker headers
+  (`X-Havoc`, Mythic `?q=`/`Server: NetDNA-cache/2.2`, Sliver's extension scheme, CS malleable
+  paths + SMB pipe names). The transfer proof runs the same real ET rule on an inert reference
+  *and* its independently-rebuilt analog and requires the same verdict (JA3 read back via
+  Suricata, which — unlike tshark — computes it for TLS 1.0/1.1). Also fixes TLS-version fidelity:
+  the ClientHello handshake version now honors the JA3's first field, so TLS-1.0/1.1 malware
+  fingerprints hash correctly (`renderers/tls.py`), and `orig_literal_hex` support on the opaque
+  renderers (shared with Phase 1). Inert by construction — reproduces the detection signal, never
+  the capability.
+- **Signature-conditioned benign surface** (`signatures.py`) — the benign false-positive surface
+  can now reproduce a real reference's *specific* alert signatures, not just their rate. The engine
+  parses the pinned ET Open ruleset and, for a target `{signature: count}` histogram, *inverts* the
+  rules the reference trips — dispatching by predicate shape (http.user_agent / http.uri → an HTTP
+  request; raw content on a port → an opaque literal prefix, via new `orig_literal_hex` on the
+  opaque renderers; reputation IP-list → an inbound touch). `packetforge realism-detection` applies
+  it automatically. Measured on `smallFlows`: **`alert_js` 1.0 → ~0.10** (5/5 signatures reproduced,
+  zero collateral). Refuses to synthesise MALWARE/CNC triggers (would poison ground truth); unmatched
+  signatures are surfaced, never silently dropped. Closes the last open realism gate.
 - **NTLM capture in LLMNR poisoning** — a new inert `NtlmAuth` capability on `SmbL7` renders a real
   NTLMSSP session-setup exchange (NEGOTIATE → CHALLENGE → AUTHENTICATE) inside SMB2, so real Zeek
   reads the captured `domain\user` and workstation back into `ntlm.log`. `build_llmnr_poisoning` now

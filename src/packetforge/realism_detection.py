@@ -111,12 +111,14 @@ def profile_reference(real_pcap: Path, workdir: Path):
 
 
 def matched_synthetic(profile, env: Environment, *, seed: int = 0,
-                      start_time: float = 1_700_000_000.0, fp_per_hour: float | None = None):
+                      start_time: float = 1_700_000_000.0, fp_per_hour: float | None = None,
+                      target_alerts: dict | None = None, rules: dict | None = None):
     """A synthetic capture matching the reference profile (mix, duration, fingerprints, and —
-    when ``fp_per_hour`` is given — its benign alert rate)."""
+    when ``fp_per_hour`` is given — its benign alert rate; when ``target_alerts``+``rules`` are
+    given — its benign alert *signature distribution*, via rule inversion)."""
     from packetforge.transfer import synthesize_analog
     return synthesize_analog(profile, env, seed=seed, start_time=start_time,
-                             fp_per_hour=fp_per_hour)
+                             fp_per_hour=fp_per_hour, target_alerts=target_alerts, rules=rules)
 
 
 def _alert_histogram(pcap: Path, rules: Path, workdir: Path) -> dict:
@@ -219,7 +221,13 @@ def detection_outcome(real_pcap: str | Path, env: Environment, rules: str | Path
     ref_hours = max(prof.duration, 1.0) / 3600.0
     ref_fp_per_hour = sum(real_hist.values()) / ref_hours if ref_hours else 0.0
 
-    analog = matched_synthetic(prof, env, seed=seed, fp_per_hour=ref_fp_per_hour)
+    # Signature-condition the analog on the reference's *specific* alerting signatures by
+    # inverting the rules it trips — so the two alert distributions share support, not just
+    # rate. Falls back to the rate-only surface if the ruleset can't be parsed.
+    from packetforge.signatures import parse_rules
+    parsed = parse_rules(rules)
+    analog = matched_synthetic(prof, env, seed=seed, fp_per_hour=ref_fp_per_hour,
+                               target_alerts=real_hist or None, rules=parsed or None)
     synth_pcap = base / "synth.pcap"
     write_pcap(analog, synth_pcap)
 

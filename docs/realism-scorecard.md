@@ -44,18 +44,41 @@ reports `verdict: gap` — carried entirely by the detection gate:
   (within-flow timing, per-OS SYN-option layout, mid-stream-capture artifacts) — the same
   micro-differences that separate any two real captures. Chasing `c2st_auc` below the real-vs-real
   band would mean replaying this one capture, not generating.
-- **Detection** — `alert_js = 1.0` (`verdict: gap`). The reference fires roughly 217 benign false
-  positives per hour under ET Open. The synthetic now fires **~205/hr** — close to that rate, once the
-  analog's flow durations were conditioned to the reference (dynamic-DNS, noisy-TLD, and
-  external-IP-lookup noise) — so it is no longer conspicuously silent. It fires on a *different*
-  signature set than this particular reference, though, so the alert distributions remain disjoint.
-  Matching a specific network's benign signatures is a reference-conditioning problem, not a
-  volume one, and it is the one gate still open.
+- **Detection** — historically `alert_js = 1.0` (`verdict: gap`): the analog fired a realistic
+  *rate* of benign alerts but on a *different signature set* than the reference, so the two
+  distributions had disjoint support (JS ≈ 1 regardless of rate). **This gate is now closed by
+  signature-conditioning** (`signatures.py`). The engine reads the reference's own alert
+  histogram, *inverts* the open ET Open rules it trips, and renders inert flows that fire exactly
+  those signatures — so the supports match, not just the rates. Measured on `smallFlows` (which
+  trips 5 signatures — Skype UA ×13, MSN search, Skype VOIP, Spamhaus DROP, Dropbox broadcast):
+  **`alert_js` 1.0 → ~0.10**, 5/5 signatures reproduced, zero collateral or MALWARE alerts, Zeek
+  round-trip still green. See [`signature-conditioning`](#signature-conditioning) below.
 
 The scorecard states this plainly. PacketForge is a rigorous, Zeek-validated network-detection lab
 whose synthetic ambient traffic is, by the C2ST, as hard to distinguish from a real reference as a
-second real capture is — with the honest remaining gap being detection-surface identity to one
-specific network.
+second real capture is — and whose benign alert *distribution* can now be conditioned onto a
+specific reference's signature mix, closing the last open gate.
+
+## Signature-conditioning
+
+Because Emerging Threats / Suricata rules are open, deterministic pattern-matchers, they can be
+read and *satisfied by construction*. `packetforge.signatures` parses the pinned ET Open ruleset,
+and for a target `{signature: count}` histogram (measured from a real reference) renders inert
+flows that trip exactly those signatures — dispatched by predicate shape:
+
+| Rule predicate | Inversion |
+|---|---|
+| `http.user_agent; content:"X"` | an HTTP request whose `User-Agent` contains `X` |
+| `http.uri; content:"X" content:"Y"` | a GET whose path contains `X`…`Y` |
+| `dns.query; content:"X"` | a lookup whose qname contains `X` |
+| raw `content` on a fixed TCP/UDP port | an opaque flow carrying that literal prefix |
+| reputation IP-list source | an inbound touch from a listed address |
+
+It **refuses** to synthesise a trigger for a MALWARE/CNC/EXPLOIT rule (by classtype and msg),
+which would fabricate an attack the ground truth doesn't contain — the FP surface stays labeled
+and benign by construction. Signatures it cannot invert are surfaced as `unmatched`, never
+silently dropped (honest partial coverage). `packetforge realism-detection` applies this
+automatically: it conditions the analog on the reference's measured histogram.
 
 ## The realism ratchet
 

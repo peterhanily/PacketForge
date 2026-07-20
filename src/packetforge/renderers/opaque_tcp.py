@@ -19,8 +19,12 @@ from packetforge.renderers.base import RenderResult, filler_bytes
 def render_opaque_tcp(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -> RenderResult:
     spec: OpaqueTcpL7 = flow.l7
     messages = []
-    if spec.orig_bytes:
-        messages.append(TcpMessage(True, filler_bytes(spec.orig_bytes, rng)))
+    # An optional literal prefix (signature-conditioning) rides at the start of the
+    # originator stream; without it, output is byte-identical to before (lit == b"").
+    lit = bytes.fromhex(spec.orig_literal_hex) if spec.orig_literal_hex else b""
+    n_orig = max(spec.orig_bytes, len(lit))
+    if n_orig:
+        messages.append(TcpMessage(True, lit + filler_bytes(n_orig - len(lit), rng)))
     if spec.resp_bytes:
         messages.append(TcpMessage(False, filler_bytes(spec.resp_bytes, rng)))
 

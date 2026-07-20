@@ -115,6 +115,10 @@ class OpaqueTcpL7(_L7Base):
     orig_bytes: int = 0
     resp_bytes: int = 0
     segments: int = 1  # how many data segments per direction
+    # Optional hex-encoded literal bytes placed at the START of the originator payload.
+    # Used only by the signature-conditioning engine to trip a specific content-based IDS
+    # rule (e.g. an MSN `CAL ` command) with an otherwise-opaque, inert flow.
+    orig_literal_hex: Optional[str] = None
 
 
 class OpaqueUdpL7(_L7Base):
@@ -124,6 +128,10 @@ class OpaqueUdpL7(_L7Base):
     service_hint: str = ""
     orig_bytes: int = 0
     resp_bytes: int = 0
+    # Optional hex-encoded literal bytes placed at the START of the originator datagram —
+    # used by the signature-conditioning engine to trip a content-based UDP rule (e.g. a
+    # Dropbox LAN-sync broadcast) with an inert flow.
+    orig_literal_hex: Optional[str] = None
 
 
 class DhcpL7(_L7Base):

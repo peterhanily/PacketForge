@@ -145,6 +145,10 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
     profile = ja3_to_profile(spec.ja3) if spec.ja3 else load_ja3_profile(spec.client_profile)
     is13 = spec.version == "TLS1.3"
     legacy = 0x0303  # legacy_version carried on the wire for both 1.2 and 1.3
+    # JA3's first field is the ClientHello handshake version. Honor it (from an explicit ja3
+    # string) so TLS-1.0/1.1 malware fingerprints — e.g. Metasploit/Dridex scanners — hash
+    # correctly; named profiles and TLS 1.3 keep 771 (0x0303), so existing output is unchanged.
+    ja3_version = 771 if is13 else int(profile.get("tls_version", 771))
 
     grease = bool(profile.get("grease"))
     cipher_list = list(profile["ciphers"])
@@ -176,7 +180,7 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         else:
             exts.append(_build_extension(t, profile, spec.server_name, grease, alpn=spec.alpn))
     client_hello = TLSClientHello(
-        version=legacy, gmt_unix_time=int(flow.start_time),
+        version=ja3_version, gmt_unix_time=int(flow.start_time),
         random_bytes=rng.randbytes(28), ciphers=cipher_list, ext=exts)
 
     default_cipher = _TLS13_CIPHERS[0] if is13 else int(profile["server_cipher"])
@@ -244,7 +248,7 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         rng=rng, conn_state=flow.conn_state)
 
     # JA3 from the actual wire lists (ja3_hash drops GREASE per RFC 8701).
-    ja3 = ja3_hash(771, cipher_list, ext_types, profile["curves"], profile["point_formats"])
+    ja3 = ja3_hash(ja3_version, cipher_list, ext_types, profile["curves"], profile["point_formats"])
     conn = dict(result.summary)
     conn["service"] = "ssl"
     conn["proto"] = "tcp"

@@ -20,18 +20,22 @@ def render_opaque_udp(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Ra
     packets = []
     t = flow.start_time
 
-    def dgram(from_orig: bool, payload: bytes, ts: float):
+    def dgram(from_orig: bool, total_len: int, ts: float, literal: bytes = b""):
         s, d = (orig, resp) if from_orig else (resp, orig)
-        p = (Ether(src=s.mac, dst=d.mac)
-             / IP(src=s.ip, dst=d.ip, id=rng.randint(0, 0xFFFF), ttl=s.ttl)
-             / UDP(sport=s.port, dport=d.port) / Raw(filler_bytes(len(payload), rng)))
+        # Preserve the original RNG draw order (IP id first, then payload filler) so opaque
+        # flows without a literal stay byte-identical.
+        ipid = rng.randint(0, 0xFFFF)
+        body = literal + filler_bytes(max(0, total_len - len(literal)), rng)
+        p = (Ether(src=s.mac, dst=d.mac) / IP(src=s.ip, dst=d.ip, id=ipid, ttl=s.ttl)
+             / UDP(sport=s.port, dport=d.port) / Raw(body))
         p.time = ts
         return p
 
-    if spec.orig_bytes:
-        packets.append(dgram(True, b"x" * spec.orig_bytes, t))
+    lit = bytes.fromhex(spec.orig_literal_hex) if spec.orig_literal_hex else b""
+    if spec.orig_bytes or lit:
+        packets.append(dgram(True, max(spec.orig_bytes, len(lit)), t, literal=lit))
     if spec.resp_bytes:
-        packets.append(dgram(False, b"x" * spec.resp_bytes, t + flow.rtt))
+        packets.append(dgram(False, spec.resp_bytes, t + flow.rtt))
 
     orig_bytes = sum(len(p[UDP].payload) for p in packets if p[IP].src == orig.ip)
     resp_bytes = sum(len(p[UDP].payload) for p in packets if p[IP].src == resp.ip)

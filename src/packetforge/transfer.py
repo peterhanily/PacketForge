@@ -95,7 +95,9 @@ def profile_pcap(pcap: str | Path, workdir: str | None = None) -> Profile:
 
 def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
                       start_time: float = 1_700_000_000.0,
-                      fp_per_hour: float | None = None) -> FlowSet:
+                      fp_per_hour: float | None = None,
+                      target_alerts: dict | None = None,
+                      rules: dict | None = None) -> FlowSet:
     """Build a FlowSet reproducing the profile's service mix in the given environment.
 
     ``fp_per_hour`` sets the benign false-positive surface rate (dyndns/IP-lookup flows that
@@ -177,10 +179,20 @@ def synthesize_analog(profile: Profile, env: Environment, *, seed: int = 0,
     # Benign false-positive surface (both paths): specific dyndns / noisy-TLD / IP-lookup flows
     # that trip ET INFO/DYN_DNS rules, giving the analog the benign alert surface real networks
     # have (the generic cloned flows carry no rule-tripping content of their own).
-    _fp_rate = _FP_PER_HOUR if fp_per_hour is None else fp_per_hour
-    for k in range(round(_fp_rate * duration / 3600.0)):
-        flows.append(_benign_fp_flow(env, clients, f"analog-fp-{k:04d}",
-                     start_time + rng.uniform(0, duration), rng, 55000 + (k % 4000), host_os))
+    if target_alerts and rules:
+        # Signature-conditioned FP surface: reproduce the reference's *specific* alert
+        # signatures (not just their rate) by inverting the rules it actually trips, so the
+        # alert distributions share support and the JS divergence can fall toward 0.
+        from packetforge.signatures import conditioned_fp_flows
+        fp, _unmatched = conditioned_fp_flows(target_alerts, env, clients, start_time=start_time,
+                                              duration=duration, rng=rng, rules=rules,
+                                              id_prefix="analog-fp")
+        flows.extend(fp)
+    else:
+        _fp_rate = _FP_PER_HOUR if fp_per_hour is None else fp_per_hour
+        for k in range(round(_fp_rate * duration / 3600.0)):
+            flows.append(_benign_fp_flow(env, clients, f"analog-fp-{k:04d}",
+                         start_time + rng.uniform(0, duration), rng, 55000 + (k % 4000), host_os))
     # SYN window/TTL are per-SYN fingerprints; a marginal draw matches them well (both paths).
     if profile.syn_windows:
         for f in flows:

@@ -78,6 +78,33 @@ def _run_suricata(pcap: Path, rules: Path, workdir: Path) -> list:
     return alerts
 
 
+def tls_ja3s(pcap: Path, rules: Path, workdir: Path) -> list:
+    """JA3 fingerprints Suricata computed off the wire — handles TLS 1.0-1.3 (tshark's
+    ``tls.handshake.ja3`` field is empty for older TLS, so it can't be used here). Returns
+    ``[{digest, ja3_full, snis, count}]``; the computation is independent of PacketForge's IR."""
+    workdir.mkdir(parents=True, exist_ok=True)
+    _run_suricata(pcap, rules, workdir)
+    eve = workdir / "eve.json"
+    seen: dict = {}
+    if eve.exists():
+        for line in eve.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            ja3 = (e.get("tls") or {}).get("ja3") or {}
+            digest = ja3.get("hash")
+            if not digest:
+                continue
+            ent = seen.setdefault(digest, {"digest": digest, "ja3_full": ja3.get("string") or "",
+                                           "count": 0, "snis": set()})
+            ent["count"] += 1
+            sni = (e.get("tls") or {}).get("sni")
+            if sni:
+                ent["snis"].add(sni)
+    return list(seen.values())
+
+
 def run_detection(pcap: str | Path, rules: str | Path, ground_truth_json: str | Path,
                   keep_dir: str | None = None) -> DetectionReport:
     if not suricata_available():

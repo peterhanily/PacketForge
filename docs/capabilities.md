@@ -42,6 +42,10 @@ capture link type (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL):
   flows. CLI: `scenario --fragment BYTES`.
 - **Capture texture** — `clean`, `realistic` (RTT jitter, retransmits, dup-ACKs), and
   `conditioned` (heavy-tailed timing, reference-matched marginals).
+- **Signature-conditioned benign surface** — invert the open ET Open ruleset to reproduce a
+  real reference's *specific* benign alert signatures (not just their rate), so the analog's
+  false-positive distribution matches the reference (`alert_js` → ~0.1). Refuses to synthesise
+  MALWARE/CNC triggers. See [`realism-scorecard.md`](realism-scorecard.md#signature-conditioning).
 
 ## Attack library (ATT&CK-mapped, inert, ground-truthed)
 
@@ -66,6 +70,13 @@ The BZAR lateral-movement pack is validated against the real MITRE
 - **Detection lab** — `detect`, `coverage`, `fp-benchmark`, `sigma`, `robustness`,
   `corpus-build`/`corpus-verify`; **cross-validation** — `crossval`, `transfer-proof`; a
   visual **`report`**; and the **`eval`** realism scorecard.
+- **Real-C2 transfer proof** — reproduce a real malware family's observable network signal in an
+  inert beacon so a *real published* detection fires on it (zero malware). Four JA3 families
+  (Metasploit SSL/CCS scanners, Dridex, Gootkit) whose ClientHello trips a standalone ET Open
+  `ja3.hash` rule, and four HTTP-C2 frameworks (Cobalt Strike, Sliver, Mythic, Havoc) rendered
+  with their default URIs / User-Agents / marker headers. The proof requires the same real rule to
+  fire on an inert reference *and* its independently-rebuilt analog. Vendored fingerprints are
+  cited facts from CC0 / public threat intel.
 - **Realism baselining** — `realism-audit` (C2ST vs a real reference) and
   [`scripts/baseline_panel.py`](../scripts/baseline_panel.py), which scores synthetic against a
   **panel of real public captures** and reports the honest real-vs-real floor. Method + current
