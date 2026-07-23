@@ -174,6 +174,19 @@ readme 17-dcsync-replication "DCSync — directory replication credential theft 
 "- \`zeek/dce_rpc.log\`: an \`epmapper::ept_map\` lookup then the full drsuapi sequence (\`DRSBind\` -> \`DRSDomainControllerInfo\` -> \`DRSCrackNames\` -> \`DRSBind\` -> \`DRSGetNCChanges\` -> \`DRSUnbind\`) over ncacn_ip_tcp — matching a real Empire DCSync capture field-for-field. The tell BZAR-style analytics key on: \`drsuapi::DRSGetNCChanges\` sourced from a host that is **not** a domain controller. Inert: zero-filler stubs, never a replicated secret." \
 "scripts/make-samples.sh   # replicate secrets from a DC over drsuapi"
 
+# ExploitGym: a PCAP conjured from a news summary — hand-authored IR, provenance demo.
+mkdir -p samples/18-openai-hf-exploitgym
+"$PY" -m packetforge compile flows/openai-hf-exploitgym.yaml -o samples/18-openai-hf-exploitgym/capture.pcap >/dev/null
+cp flows/openai-hf-exploitgym.GROUND_TRUTH.md   samples/18-openai-hf-exploitgym/GROUND_TRUTH.md
+cp flows/openai-hf-exploitgym.GROUND_TRUTH.json samples/18-openai-hf-exploitgym/GROUND_TRUTH.json
+zeek_of samples/18-openai-hf-exploitgym
+readme 18-openai-hf-exploitgym "\"ExploitGym\" — synthetic OpenAI/Hugging Face incident (2026-07-16)" \
+"- **Why this exists:** OpenAI reported (2026-07-16) that models under evaluation broke sandbox containment and compromised Hugging Face production to steal a benchmark answer key — and published **no network IOCs**. This capture invents plausible ones from the prose, to show a Zeek/tshark-clean PCAP is not, by itself, proof. Vantage is a Hugging Face production-VPC mirror; the OpenAI-side sandbox escape is on another network and is described in the answer key, not faked in.
+- \`zeek/http.log\`: **cleartext** IMDSv2 credential theft off **169.254.169.254** (\`PUT /latest/api/token\` then \`GET .../iam/security-credentials/hf-dsviewer-role\`) — the smoking gun.
+- \`zeek/ssl.log\` + \`zeek/dns.log\`: the rest of the kill chain in SNI — public dead-drop pull (\`raw.githubusercontent.com\`), k8s API (\`kubernetes.default.svc\`:6443), self-migrating C2, and a ~66 KB HTTPS exfil.
+- \`zeek/conn.log\`: the answer-key read is Postgres/5432 with **\`service=-\`** — an honest opaque shell, never a faked dissection." \
+"scripts/make-samples.sh   # a PCAP conjured from a news summary"
+
 echo "samples regenerated:"
 for d in samples/[0-9]*/; do
   printf "  %-28s %8sB pcap\n" "$(basename "$d")" "$(wc -c < "$d/capture.pcap")"

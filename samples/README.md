@@ -23,6 +23,7 @@ and opens cleanly in Wireshark. Regenerate the whole gallery with `scripts/make-
 | [09-k8s-cluster-lateral](09-k8s-cluster-lateral/) | Kubernetes pod-to-pod lateral movement — **plus the same incident as a VXLAN traffic mirror sees it**, decapsulated |
 | [10-ipv6-c2-beacon](10-ipv6-c2-beacon/) | HTTPS C2 beaconing over **IPv6** — the behaviour a v4-only detection misses (T1071.001) |
 | [11-encrypted-dns-doh](11-encrypted-dns-doh/) | Encrypted-DNS C2 over **DoH** to a public resolver — bypasses plaintext-DNS monitoring (T1071.004) |
+| [18-openai-hf-exploitgym](18-openai-hf-exploitgym/) | The **"ExploitGym"** OpenAI⇄Hugging Face incident (2026-07-16) rebuilt from a news summary — malicious-dataset RCE → IMDS cred theft → k8s lateral → self-migrating C2 → answer-key exfil. The disclosures published **no IOCs**; this shows a passing PCAP is not proof (T1552.005/T1213/T1041) |
 
 ### Capabilities & techniques
 | Sample | What it shows |
