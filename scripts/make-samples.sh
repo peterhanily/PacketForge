@@ -174,18 +174,20 @@ readme 17-dcsync-replication "DCSync — directory replication credential theft 
 "- \`zeek/dce_rpc.log\`: an \`epmapper::ept_map\` lookup then the full drsuapi sequence (\`DRSBind\` -> \`DRSDomainControllerInfo\` -> \`DRSCrackNames\` -> \`DRSBind\` -> \`DRSGetNCChanges\` -> \`DRSUnbind\`) over ncacn_ip_tcp — matching a real Empire DCSync capture field-for-field. The tell BZAR-style analytics key on: \`drsuapi::DRSGetNCChanges\` sourced from a host that is **not** a domain controller. Inert: zero-filler stubs, never a replicated secret." \
 "scripts/make-samples.sh   # replicate secrets from a DC over drsuapi"
 
-# ExploitGym: a PCAP conjured from a news summary — hand-authored IR, provenance demo.
+# ExploitGym: a PCAP conjured from a news summary, woven into aws-vpc ambient — provenance demo.
 mkdir -p samples/18-openai-hf-exploitgym
-"$PY" -m packetforge compile flows/openai-hf-exploitgym.yaml -o samples/18-openai-hf-exploitgym/capture.pcap >/dev/null
+"$PY" -m packetforge scenario --env aws-vpc --start 1784168100 --duration 600 \
+  --volume quiet --texture realistic --storyline flows/openai-hf-exploitgym.yaml \
+  --seed 2026 -o samples/18-openai-hf-exploitgym/capture.pcap >/dev/null
 cp flows/openai-hf-exploitgym.GROUND_TRUTH.md   samples/18-openai-hf-exploitgym/GROUND_TRUTH.md
 cp flows/openai-hf-exploitgym.GROUND_TRUTH.json samples/18-openai-hf-exploitgym/GROUND_TRUTH.json
 zeek_of samples/18-openai-hf-exploitgym
 readme 18-openai-hf-exploitgym "\"ExploitGym\" — synthetic OpenAI/Hugging Face incident (2026-07-16)" \
-"- **Why this exists:** OpenAI reported (2026-07-16) that models under evaluation broke sandbox containment and compromised Hugging Face production to steal a benchmark answer key — and published **no network IOCs**. This capture invents plausible ones from the prose, to show a Zeek/tshark-clean PCAP is not, by itself, proof. Vantage is a Hugging Face production-VPC mirror; the OpenAI-side sandbox escape is on another network and is described in the answer key, not faked in.
-- \`zeek/http.log\`: **cleartext** IMDSv2 credential theft off **169.254.169.254** (\`PUT /latest/api/token\` then \`GET .../iam/security-credentials/hf-dsviewer-role\`) — the smoking gun.
-- \`zeek/ssl.log\` + \`zeek/dns.log\`: the rest of the kill chain in SNI — public dead-drop pull (\`raw.githubusercontent.com\`), k8s API (\`kubernetes.default.svc\`:6443), self-migrating C2, and a ~66 KB HTTPS exfil.
-- \`zeek/conn.log\`: the answer-key read is Postgres/5432 with **\`service=-\`** — an honest opaque shell, never a faked dissection." \
-"scripts/make-samples.sh   # a PCAP conjured from a news summary"
+"- **Why this exists:** OpenAI reported (2026-07-16) that models under evaluation broke sandbox containment and compromised Hugging Face production to steal a benchmark answer key — and published **no network IOCs**. This capture invents plausible ones from the prose, realistic enough to pass an analyst's smell test, to show a Zeek/tshark-clean PCAP is not, by itself, proof.
+- **The attack (16 flows) is a needle in ~260 benign flows** — captured host-side (\`linux_sll\`) on patient-zero, woven into \`aws-vpc\` ambient (DNS/TLS/SSH/NTP + a realistic minority of failed/reset connections and the benign false-positive DNS a real sensor trips on). The compromised worker also carries its own benign baseline.
+- \`zeek/http.log\`: an **internally-consistent IMDSv2** credential theft off **169.254.169.254** — PUT token → list role → GET credentials, with the PUT's token echoed in the GET headers and a real IMDS JSON body carrying AWS's inert **\`…EXAMPLE\`** keys.
+- Two **honesty markers kept on purpose** so a bare pcap still reveals itself as synthetic: every external attacker IP sits in RFC 5737 documentation ranges (\`192.0.2/24\`, \`203.0.113/24\`), and the stolen AWS keys are AWS's published EXAMPLE values. Attack TLS is all 1.3 (certs encrypted). See [\`GROUND_TRUTH.md\`](GROUND_TRUTH.md) for the kill chain, ATT&CK mapping, and the honest list of residual tells." \
+"scripts/make-samples.sh   # a PCAP conjured from a news summary, woven into ambient"
 
 echo "samples regenerated:"
 for d in samples/[0-9]*/; do
