@@ -71,6 +71,9 @@ class TlsL7(_L7Base):
     version: Literal["TLS1.2", "TLS1.3"] = "TLS1.2"
     client_profile: str = "generic_browser"  # -> fingerprints/ja3/<profile>.yaml
     ja3: Optional[str] = None  # explicit JA3 string to reproduce (overrides client_profile)
+    # Issuer CN for the server cert (TLS 1.2, where the cert is in the clear). None -> a
+    # synthetic issuing CA, so the leaf is chained (subject != issuer), not self-signed.
+    issuer: Optional[str] = None
     server_cipher: Optional[int] = None  # override the negotiated cipher (IANA id)
     # ALPN protocols the ClientHello advertises (e.g. ["h2","http/1.1"], ["dot"], ["h3"]).
     # None -> the browser default. Zeek records the first as ssl.log `next_protocol`.

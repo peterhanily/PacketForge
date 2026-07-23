@@ -45,7 +45,7 @@ from scapy.layers.tls.keyexchange_tls13 import KeyShareEntry, TLS_Ext_KeyShare_C
 from scapy.layers.tls.record import TLSChangeCipherSpec
 
 from packetforge.compile.tcp import Endpoint, TcpMessage, build_tcp_flow
-from packetforge.fingerprints.certs import synthetic_cert_der
+from packetforge.fingerprints.certs import synthetic_ca_cert_der, synthetic_cert_der
 from packetforge.fingerprints.ja3 import is_grease, ja3_hash, ja3_to_profile
 from packetforge.fingerprints.loader import load_ja3_profile
 from packetforge.models.flowspec import Flow, TlsL7
@@ -54,6 +54,10 @@ from packetforge.renderers.base import RenderResult, filler_bytes
 # One RFC 8701 GREASE value; excluded from JA3 so the wire carries it but the
 # fingerprint doesn't change.
 _GREASE = 0x0A0A
+
+# Default issuing-CA name for TLS 1.2 leaf certs (transparently synthetic — an honest marker,
+# like the documentation IP ranges — while still chaining the leaf so subject != issuer).
+_SYNTH_CA = "PacketForge Synthetic CA"
 
 _VERSION_ZEEK = {"TLS1.2": "TLSv12", "TLS1.3": "TLSv13"}
 
@@ -214,13 +218,18 @@ def render_tls(flow: Flow, orig: Endpoint, resp: Endpoint, rng: random.Random) -
         ]
     else:
         # A real TLS 1.2 ECDHE-RSA server flight, carrying a Certificate in the clear so
-        # a hunter can extract and validate it: ServerHello, Certificate (deterministic
-        # self-signed cert with CN = SNI), ServerKeyExchange (ephemeral ECDH params +
-        # RSA signature), ServerHelloDone; then the client's EC-point ClientKeyExchange.
-        # The ECDH point and signature bytes are opaque but structurally valid.
+        # a hunter can extract and validate it: ServerHello, Certificate (a leaf with
+        # CN = SNI, chained to a synthetic issuing CA so subject != issuer — not a bare
+        # self-signed leaf), ServerKeyExchange (ephemeral ECDH params + RSA signature),
+        # ServerHelloDone; then the client's EC-point ClientKeyExchange. The ECDH point
+        # and signature bytes are opaque but structurally valid.
         serial = rng.randint(1, 0x7FFFFFFF)
-        cert_der = synthetic_cert_der(spec.server_name, serial, flow.start_time - 30 * 86400)
-        cert_rec = _msg_record(22, legacy, [TLSCertificate(certs=[(len(cert_der), cert_der)])])
+        issuer_cn = spec.issuer or _SYNTH_CA
+        leaf_der = synthetic_cert_der(spec.server_name, serial, flow.start_time - 30 * 86400,
+                                      issuer_cn=issuer_cn)
+        ca_der = synthetic_ca_cert_der(issuer_cn)
+        cert_rec = _msg_record(22, legacy, [TLSCertificate(
+            certs=[(len(leaf_der), leaf_der), (len(ca_der), ca_der)])])
         s_point = b"\x04" + rng.randbytes(64)  # uncompressed secp256r1 point (0x04 || X || Y)
         ske = TLSServerKeyExchange(
             params=ServerECDHNamedCurveParams(named_curve=23, point=s_point),

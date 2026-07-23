@@ -126,20 +126,55 @@ def _run_zeek(pcap: Path, workdir: Path) -> None:
     )
 
 
-_EXPERT_RE = re.compile(r"^(Errors|Warnings)\s*\((\d+)\)", re.MULTILINE)
+# tshark's expert summary header is "Errors (N)" / "Warns (N)" — some builds print the
+# long "Warnings". Match every spelling (the old regex only matched "Warnings", so on a
+# tshark that emits "Warns" the warning count silently read as zero). Section headers are
+# "Word (N)"; the per-message breakdown rows are "<freq> <group> <proto> <summary>".
+_EXPERT_SECTION = re.compile(r"^([A-Za-z]+)\s*\((\d+)\)\s*$")
+_EXPERT_ROW = re.compile(r"^\s*(\d+)\s+\S+\s+\S+\s+(.+?)\s*$")
+# Warnings that any real capture also carries and that are not malformations, so they are
+# excluded from the gate. It fails only on genuine problems (bad checksums, impossible
+# sequences, dissector Malformed exceptions). Errors are never excluded.
+#   - TCP RST: a realistic capture has a minority of reset connections.
+#   - Kerberos decrypt notices: tshark can't decrypt tickets without the keys — universal in
+#     any Kerberos capture (real or synthetic), not a defect in the bytes on the wire.
+_BENIGN_WARN_PATTERNS = (
+    re.compile(r"^Connection reset \(RST\)$"),
+    re.compile(r"^Missing keytype \d+ usage "),
+    re.compile(r"^Used keymap=\(null\)"),
+)
+
+
+def _benign_warn(summary: str) -> bool:
+    return any(p.match(summary) for p in _BENIGN_WARN_PATTERNS)
 
 
 def _run_tshark_expert(pcap: Path) -> tuple:
+    """Count tshark expert Errors and non-benign Warnings, reading the message breakdown."""
     out = subprocess.run(
         ["tshark", "-r", str(pcap), "-q", "-z", "expert"],
         capture_output=True, text=True, check=False,
     ).stdout
     errors = warnings = 0
-    for name, count in _EXPERT_RE.findall(out):
-        if name == "Errors":
-            errors = int(count)
-        elif name == "Warnings":
-            warnings = int(count)
+    section = None  # "errors" | "warnings" | None (Notes/Chats are informational)
+    for line in out.splitlines():
+        header = _EXPERT_SECTION.match(line)
+        if header:
+            name = header.group(1)
+            section = ("errors" if name == "Errors"
+                       else "warnings" if name in ("Warnings", "Warns")
+                       else None)
+            continue
+        if section is None:
+            continue
+        row = _EXPERT_ROW.match(line)
+        if not row:
+            continue
+        freq, summary = int(row.group(1)), row.group(2)
+        if section == "errors":
+            errors += freq
+        elif not _benign_warn(summary):
+            warnings += freq
     return errors, warnings
 
 

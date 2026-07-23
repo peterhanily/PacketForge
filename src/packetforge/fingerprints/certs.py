@@ -55,3 +55,41 @@ def synthetic_cert_der(common_name: str, serial: int, not_before_epoch: float,
         .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
     )
     return builder.sign(key, hashes.SHA256()).public_bytes(serialization.Encoding.DER)
+
+
+# A fixed, pre-dating epoch for the synthetic issuing CA, so its cert is byte-identical
+# across every flow that chains to it (one CA, not one per connection).
+_CA_NOT_BEFORE = 1_600_000_000.0  # 2020-09-13 UTC
+
+
+@lru_cache(maxsize=64)
+def synthetic_ca_cert_der(ca_cn: str) -> bytes:
+    """A deterministic DER-encoded self-signed *issuing CA* certificate named ``ca_cn``.
+
+    Shares the one committed synthetic key (fake cert, fake traffic), so a leaf whose issuer
+    is ``ca_cn`` verifies against it — the chain is structurally a real leaf+CA pair, but the
+    root is untrusted (Zeek reports 'self signed certificate in certificate chain'), like any
+    private PKI. It exists so a hunter sees a proper chain instead of a bare self-signed leaf.
+    """
+    key = _key()
+    name = x509.Name([
+        x509.NameAttribute(NameOID.COMMON_NAME, ca_cn),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "PacketForge"),
+    ])
+    nb = _naive_utc(_CA_NOT_BEFORE)
+    na = _naive_utc(_CA_NOT_BEFORE + 3650 * 86400)
+    builder = (
+        x509.CertificateBuilder()
+        .subject_name(name).issuer_name(name)
+        .public_key(key.public_key())
+        .serial_number(0x50465F4341)  # "PF_CA"
+        .not_valid_before(nb).not_valid_after(na)
+        .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
+        .add_extension(
+            x509.KeyUsage(
+                digital_signature=False, content_commitment=False, key_encipherment=False,
+                data_encipherment=False, key_agreement=False, key_cert_sign=True,
+                crl_sign=True, encipher_only=False, decipher_only=False),
+            critical=True)
+    )
+    return builder.sign(key, hashes.SHA256()).public_bytes(serialization.Encoding.DER)
