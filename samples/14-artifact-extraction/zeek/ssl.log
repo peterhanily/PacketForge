@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ssl
-#open	2026-07-20-01-13-52
+#open	2026-07-23-03-59-41
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	version	cipher	curve	server_name	resumed	last_alert	next_protocol	established	ssl_history	cert_chain_fps	client_cert_chain_fps	sni_matches_cert
 #types	time	string	addr	port	addr	port	string	string	string	string	bool	string	string	bool	string	vector[string]	vector[string]	bool
-1700000012.033040	C0uiDg3Rt7vxmZO5qi	10.10.0.30	50104	10.10.0.23	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	portal.corp.example	F	-	-	T	CsxknGIi	b90f15a5b650a79b8cff4a6e52ba7db20d99598ffb7247720c7d2ae0da36680e	(empty)	T
-#close	2026-07-20-01-13-52
+1700000012.033040	C4DUP22kDRKNIxIkuf	10.10.0.30	50104	10.10.0.23	443	TLSv12	TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256	secp256r1	portal.corp.example	F	-	-	T	CsxknGIi	b0626c7f18a1424658dcd53593eb309e37d044295427f767cabf96b316e3d371,c0c4a51bcf95a81486a5bcb053d0ec2447c5eb8d389014c182694d4ccc8348e6	(empty)	T
+#close	2026-07-23-03-59-41

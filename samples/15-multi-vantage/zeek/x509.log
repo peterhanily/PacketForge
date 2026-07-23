@@ -3,16 +3,17 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-20-01-13-59
+#open	2026-07-23-03-59-48
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-1700000049.907160	945ed5399031a93ff4c36001e412938dccebab48f6a8498470937ea58142c761	3	063320D8	CN=www.example.org	CN=www.example.org	1697408049.000000	1728944049.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
-1700000050.879998	0986a8995146cab984311f81855c15189077d11d7abfa55602cc63e12e3d8abc	3	6DC23F60	CN=portal.example.io	CN=portal.example.io	1697408050.000000	1728944050.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
-1700000051.799681	9de863756d6830628ce8cda364d08a08c9f95d27acc759baeb1f023db108afac	3	256F08B3	CN=updates.example.com	CN=updates.example.com	1697408051.000000	1728944051.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-1700000056.573866	117b5241681d7813f36dffe0cc20ec5051193af1d7e6fafefda13ea05b8e1559	3	03F98974	CN=api.github.com	CN=api.github.com	1697408056.000000	1728944056.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000057.684356	9cb3eae656e7787a0ef59380ca64a1ee57a66ab0e7460be6a41445b336570f88	3	0AAC7E70	CN=assets.example.co	CN=assets.example.co	1697408057.000000	1728944057.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-1700000082.003633	3acb2cdc39136f6dfb4fe8861d8b8cefedc56aadc9453fa0f7f1156d9b1cdca2	3	30EEEC33	CN=updates.example.com	CN=updates.example.com	1697408081.000000	1728944081.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
-1700000130.792625	fb1ba08c06ae1176e04323f4eb5209289a8af2f0a7523336462147f7edd6e2b5	3	6FAA499E	CN=api.github.com	CN=api.github.com	1697408130.000000	1728944130.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000144.477661	f7f4100ad3b75f1e0e6d639bfb77da1cd103e16adbdc29a0e5f787389a724994	3	1E3C1564	CN=api.github.com	CN=api.github.com	1697408144.000000	1728944144.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
-1700000199.032092	85bb1a7922dfe12281ed2573419a3ef6b353355449d1577226f367f629163fa4	3	6724B86D	CN=assets.example.co	CN=assets.example.co	1697408198.000000	1728944198.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-#close	2026-07-20-01-13-59
+1700000049.907160	162c3d20981021d21559d1dbe48ddc29cc381a59b2bdb90737a2c69ff6a1c9c8	3	063320D8	CN=www.example.org	CN=PacketForge Synthetic CA	1697408049.000000	1728944049.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
+1700000049.907160	c0c4a51bcf95a81486a5bcb053d0ec2447c5eb8d389014c182694d4ccc8348e6	3	50465F4341	O=PacketForge,CN=PacketForge Synthetic CA	O=PacketForge,CN=PacketForge Synthetic CA	1600000000.000000	1915360000.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0	F	F
+1700000050.879998	0501adc01ebdd2cf30f431d24aad275f08f5d6350b8a8fa394c6dff56cc78e1b	3	6DC23F60	CN=portal.example.io	CN=PacketForge Synthetic CA	1697408050.000000	1728944050.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.example.io	-	-	-	F	-	T	F
+1700000051.799681	0622a4a2f6b80c16c9982919b88d7ad8c5c13d61f3a9f2187cf5e9a532b771c2	3	256F08B3	CN=updates.example.com	CN=PacketForge Synthetic CA	1697408051.000000	1728944051.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000056.573866	fe6eb8e840ca48007428ddfafa80344d28a6e1418ca9aef685bc5ecca1fd2667	3	03F98974	CN=api.github.com	CN=PacketForge Synthetic CA	1697408056.000000	1728944056.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000057.684356	81239e7b2bcb7a19de64e1a036ef1c9d54508011e59dd7cd54e489f9ae1762d2	3	0AAC7E70	CN=assets.example.co	CN=PacketForge Synthetic CA	1697408057.000000	1728944057.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+1700000082.003633	96c075d9a086f32bf23561976d2830d1598b2dc23d5af1b10ce041d5a4f81049	3	30EEEC33	CN=updates.example.com	CN=PacketForge Synthetic CA	1697408081.000000	1728944081.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
+1700000130.792625	a7590374175e36f6508d4903a2b1c20591c27e5b4bc6d5579e2783911834612a	3	6FAA499E	CN=api.github.com	CN=PacketForge Synthetic CA	1697408130.000000	1728944130.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000144.477661	c19a2fc6f5b3abad08590cb4ff3fb013dc8cc49a15c2f174df9e48e4dcb54647	3	1E3C1564	CN=api.github.com	CN=PacketForge Synthetic CA	1697408144.000000	1728944144.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
+1700000199.032092	7f296a4cab907882baa538aeac794573004c88a5e9d0b5f801a7b3b69035b973	3	6724B86D	CN=assets.example.co	CN=PacketForge Synthetic CA	1697408198.000000	1728944198.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
+#close	2026-07-23-03-59-48

@@ -76,12 +76,16 @@ def test_tls_certificate_extractable_and_valid(tmp_path):
     # a Certificate handshake message (type 11) is present
     assert _tshark(pcap, "-Y", "tls.handshake.type == 11").strip()
     # extract the cert bytes and validate the X.509
-    hexstr = _tshark(pcap, "-Y", "tls.handshake.certificate", "-T", "fields",
-                     "-e", "tls.handshake.certificate").strip().splitlines()[0].replace(":", "")
-    der = bytes.fromhex(hexstr)
-    cert = x509.load_der_x509_certificate(der)
+    # The Certificate message carries a chain (leaf + a synthetic issuing CA); the first
+    # value is the leaf (tshark joins repeated fields with commas).
+    leaf_hex = _tshark(pcap, "-Y", "tls.handshake.certificate", "-T", "fields",
+                       "-e", "tls.handshake.certificate").strip().splitlines()[0]
+    leaf_hex = leaf_hex.split(",")[0].replace(":", "")
+    cert = x509.load_der_x509_certificate(bytes.fromhex(leaf_hex))
     cn = cert.subject.get_attributes_for_oid(x509.NameOID.COMMON_NAME)[0].value
-    assert cn == "mail.corp.example"  # cert subject matches the SNI
+    assert cn == "mail.corp.example"  # leaf subject matches the SNI
+    issuer_cn = cert.issuer.get_attributes_for_oid(x509.NameOID.COMMON_NAME)[0].value
+    assert issuer_cn != cn  # chained to an issuing CA, not a bare self-signed leaf
 
 
 @pytest.mark.skipif(not validators_available(), reason="requires tshark on PATH")

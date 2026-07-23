@@ -6,8 +6,10 @@ Two things are asserted here, both mechanically:
 
 1. **Inert by construction.** The DCE-RPC L7 model carries no operation-argument fields,
    the operations are opnum ints, and the request/response *stubs* on the wire are zero
-   filler — never a real command, service binary/path, or payload. A change that tried to
-   smuggle a functional payload into a scenario fails these tests.
+   filler — never a real command, service binary/path, or payload. (PDUs are sealed — RPC
+   packet privacy — so an inert auth trailer follows the stub; it is not stub arguments and
+   is covered by test_no_capability_strings_on_the_wire.) A change that tried to smuggle a
+   functional payload into a scenario fails these tests.
 2. **Labelled + detectable.** Every malicious flow declares its ATT&CK technique and the
    detection it should trip, and (when Zeek is present) really produces the
    ``dce_rpc.log`` endpoint + operation an analytic like BZAR keys on, with an empty
@@ -100,7 +102,16 @@ def _dce_pdu_stubs(packets):
                     raise AssertionError(
                         f"DCE-RPC frag_length {frag_len} runs past the reassembled stream")
                 if raw[i + 2] in (0, 2):
-                    yield ("request" if raw[i + 2] == 0 else "response"), raw[i + 24:i + frag_len]
+                    # Sealed PDUs (auth_length > 0) end with an 8-byte sec_trailer + the
+                    # auth value, preceded by any auth pad; strip it so only the NDR stub
+                    # is scanned. auth_pad_length is byte 2 of the sec_trailer.
+                    auth_len = int.from_bytes(raw[i + 10:i + 12], "little")
+                    if auth_len:
+                        sectrailer = i + frag_len - 8 - auth_len
+                        stub_end = sectrailer - raw[sectrailer + 2]
+                    else:
+                        stub_end = i + frag_len
+                    yield ("request" if raw[i + 2] == 0 else "response"), raw[i + 24:stub_end]
                 i += frag_len
                 continue
         i += 1

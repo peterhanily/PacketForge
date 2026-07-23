@@ -3,8 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-20-01-13-52
+#open	2026-07-23-03-59-41
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
-1700000012.072940	b90f15a5b650a79b8cff4a6e52ba7db20d99598ffb7247720c7d2ae0da36680e	3	2AD0E7E4	CN=portal.corp.example	CN=portal.corp.example	1697408012.000000	1728944012.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.corp.example	-	-	-	F	-	T	F
-#close	2026-07-20-01-13-52
+1700000012.072940	b0626c7f18a1424658dcd53593eb309e37d044295427f767cabf96b316e3d371	3	2AD0E7E4	CN=portal.corp.example	CN=PacketForge Synthetic CA	1697408012.000000	1728944012.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	portal.corp.example	-	-	-	F	-	T	F
+1700000012.072940	c0c4a51bcf95a81486a5bcb053d0ec2447c5eb8d389014c182694d4ccc8348e6	3	50465F4341	O=PacketForge,CN=PacketForge Synthetic CA	O=PacketForge,CN=PacketForge Synthetic CA	1600000000.000000	1915360000.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	-	-	-	-	T	0	F	F
+#close	2026-07-23-03-59-41

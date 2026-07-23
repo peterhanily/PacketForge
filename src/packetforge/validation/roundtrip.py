@@ -136,10 +136,13 @@ _EXPERT_ROW = re.compile(r"^\s*(\d+)\s+\S+\s+\S+\s+(.+?)\s*$")
 # excluded from the gate. It fails only on genuine problems (bad checksums, impossible
 # sequences, dissector Malformed exceptions). Errors are never excluded.
 #   - TCP RST: a realistic capture has a minority of reset connections.
+#   - TCP window full: normal flow control — a bulk transfer fills the receiver's advertised
+#     window before an ACK opens it; ubiquitous in real captures, not a malformation.
 #   - Kerberos decrypt notices: tshark can't decrypt tickets without the keys — universal in
 #     any Kerberos capture (real or synthetic), not a defect in the bytes on the wire.
 _BENIGN_WARN_PATTERNS = (
     re.compile(r"^Connection reset \(RST\)$"),
+    re.compile(r"^TCP window specified by the receiver is now completely full$"),
     re.compile(r"^Missing keytype \d+ usage "),
     re.compile(r"^Used keymap=\(null\)"),
 )

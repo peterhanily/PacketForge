@@ -11,10 +11,11 @@ That is the signal an analytic like BZAR keys on.
 Inert by construction: the request/response *stubs* — where an operation's NDR arguments
 would sit — are opaque zero filler, never real arguments. A CreateServiceW request here
 carries the interface UUID, the opnum, and zero bytes; it contains no service name, no
-binary path, and nothing that could create a service. Because the stubs are deliberately
-not valid NDR, Wireshark's application-layer operation dissector reports them as malformed
-"stub data" — that malformed-args signal *is* the inert property (see
-docs/inert-by-construction.md), and Zeek keys on the interface + opnum, which are valid.
+binary path, and nothing that could create a service. The stubs are *sealed* (RPC packet
+privacy, auth_level 6) the way real drsuapi/DCSync and lateral-movement RPC run, so a
+dissector treats them as encrypted stub data — Wireshark decodes the whole capture with no
+Malformed-Packet exception (a clean ``tshark -z expert``), and Zeek keys on the interface +
+opnum from the cleartext header, which are valid. See docs/inert-by-construction.md.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import random
 import uuid
 
 from scapy.layers.dcerpc import (
+    CommonAuthVerifier,
     DceRpc5,
     DceRpc5AbstractSyntax,
     DceRpc5Bind,
@@ -130,14 +132,28 @@ def _bind_ack_pdu_tcp(port: int, call_id: int) -> bytes:
     return bytes(DceRpc5(ptype=12, call_id=call_id, pfc_flags=3) / ack)
 
 
+def _sealed(call_id: int) -> CommonAuthVerifier:
+    """An RPC packet-privacy (sealed) auth trailer — SPNEGO/Negotiate, auth_level 6, the way
+    real Windows drsuapi/DCSync and lateral-movement RPC run. Its presence tells a dissector
+    the stub is *encrypted*, so Wireshark shows "Encrypted stub data" and does not NDR-decode
+    the inert filler (no Malformed-Packet exception), while Zeek still reads the interface and
+    opnum from the cleartext header (conn.log service stays ``dce_rpc``, no auth sub-analyzer).
+    The 16-byte auth value is opaque filler, deterministic from the call id — never a real
+    token. SPNEGO (9), not NTLM (10), so Zeek does not tag an extra ``ntlm`` service."""
+    token = b"\x01\x00\x00\x00" + call_id.to_bytes(8, "little") + call_id.to_bytes(4, "little")
+    return CommonAuthVerifier(auth_type=9, auth_level=6, auth_pad_length=0,
+                              auth_context_id=1, auth_value=token)
+
+
 def _request_pdu(opnum: int, call_id: int) -> bytes:
-    # ptype=0 (request), opnum names the operation; the stub is inert zero filler.
-    return bytes(DceRpc5(ptype=0, call_id=call_id, pfc_flags=3)
+    # ptype=0 (request), opnum names the operation; the stub is inert zero filler, sealed
+    # (auth_level 6) so it is opaque encrypted stub data, not malformed NDR.
+    return bytes(DceRpc5(ptype=0, call_id=call_id, pfc_flags=3, auth_verifier=_sealed(call_id))
                  / DceRpc5Request(opnum=opnum) / Raw(b"\x00" * _REQ_STUB))
 
 
 def _response_pdu(call_id: int) -> bytes:
-    return bytes(DceRpc5(ptype=2, call_id=call_id, pfc_flags=3)
+    return bytes(DceRpc5(ptype=2, call_id=call_id, pfc_flags=3, auth_verifier=_sealed(call_id))
                  / DceRpc5Response() / Raw(b"\x00" * _RESP_STUB))
 
 

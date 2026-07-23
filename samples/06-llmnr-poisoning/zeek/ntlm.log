@@ -3,8 +3,8 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ntlm
-#open	2026-07-20-01-13-18
+#open	2026-07-23-03-59-07
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	username	hostname	domainname	server_nb_computer_name	server_dns_computer_name	server_tree_name	success
 #types	time	string	addr	port	addr	port	string	string	string	string	string	string	bool
-1700000114.111023	C8iEBiirQXtSDMqth	10.10.0.40	40003	10.10.0.41	445	jsmith	WKS-042	CORP	WPAD-SRV	-	-	-
-#close	2026-07-20-01-13-18
+1700000114.111023	C71Y322OMZbbSP1lJ7	10.10.0.40	40003	10.10.0.41	445	jsmith	WKS-042	CORP	WPAD-SRV	-	-	-
+#close	2026-07-23-03-59-07
