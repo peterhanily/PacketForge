@@ -145,8 +145,11 @@ def _vxlan_wrap(inner: Packet, v: Vantage) -> Packet:
     outer = (Ether(src="02:00:5e:00:53:01", dst="02:00:5e:00:53:02")
              / IP(src=v.vxlan_src, dst=v.vxlan_dst)
              / UDP(sport=sport, dport=4789) / VXLAN(vni=v.vxlan_vni, flags=0x08) / Raw(inner_bytes))
-    outer.time = inner.time
-    return Ether(bytes(outer))
+    # Re-parse to normalize lengths/checksums, then stamp the capture time — setting it on
+    # `outer` before this re-parse would be lost, leaving scapy to fill wall-clock (nondeterministic).
+    wrapped = Ether(bytes(outer))
+    wrapped.time = inner.time
+    return wrapped
 
 
 def render_vantages(packets: list, vantages: list) -> dict:
