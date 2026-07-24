@@ -158,6 +158,10 @@ def build_tcp_flow(
     # Bytes counted per direction from ORIGINAL segments only (retransmits repeat
     # sequence space and must not double-count — matching Zeek's seq-based orig_bytes).
     data_bytes = {True: 0, False: 0}
+    # At most one retransmit per direction. Zeek re-arms its 'T'/'t' history letter per
+    # data burst (flight), so a second retransmit in a later burst yields 'tt' where our
+    # first-occurrence recorder keeps one 't'; capping per direction keeps history exact.
+    retransmitted = {True: False, False: False}
 
     def jit(base: float) -> float:
         """Jitter a delay by +/- jitter_frac (never negative). No rng draw when clean."""
@@ -268,7 +272,10 @@ def build_tcp_flow(
                 # Retransmission: the same segment (same seq/payload) resent after a
                 # short RTO. Zeek marks a retransmitted payload in history as 'T'/'t'
                 # (distinct from the original 'D'/'d') and does not re-count its bytes.
-                if texture.retransmit_prob and rng.random() < texture.retransmit_prob:
+                # One per direction (see ``retransmitted`` above) so the history stays exact.
+                if (texture.retransmit_prob and not retransmitted[snd]
+                        and rng.random() < texture.retransmit_prob):
+                    retransmitted[snd] = True
                     clock["t"] += jit(half * (1.0 + rng.random()))
                     emit(frame(snd, "PA", seq, peer_ack, payload=chunk), "T", snd)
                 seq += len(chunk)

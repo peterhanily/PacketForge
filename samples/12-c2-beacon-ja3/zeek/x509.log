@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-23-03-59-39
+#open	0000-00-00-00-00-00
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000032.136227	5253861f25a6655c052d9f0ec0f00fc548361159c151595ac64fe819733acf6a	3	23AEA2A4	CN=static.cdn-telemetry.example	CN=PacketForge Synthetic CA	1697408032.000000	1728944032.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	static.cdn-telemetry.example	-	-	-	F	-	T	F
@@ -22,4 +22,4 @@
 1700000358.967407	aa0dfa119344ef28cfdc47007af3b670d5e3b97fbfd29369d6e405bc7e985a8c	3	7CF8BA93	CN=static.cdn-telemetry.example	CN=PacketForge Synthetic CA	1697408358.000000	1728944358.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	static.cdn-telemetry.example	-	-	-	F	-	T	F
 1700000390.201596	c7f8803444c0bc55a3f37f2179f6fdea0396b0698342e6ea5ac7abd74877683b	3	436C79C1	CN=updates.example.com	CN=PacketForge Synthetic CA	1697408390.000000	1728944390.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	updates.example.com	-	-	-	F	-	T	F
 1700000583.263940	1842b482375a9df8e0a079c4b78af92b63e549084de97ed9e2682dd05f3969b1	3	6513AFD6	CN=assets.example.co	CN=PacketForge Synthetic CA	1697408583.000000	1728944583.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-#close	2026-07-23-03-59-39
+#close	0000-00-00-00-00-00

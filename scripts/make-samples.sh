@@ -13,11 +13,20 @@ PY="${PYTHON:-.venv/bin/python}"
 
 rm -rf samples/[0-9]*        # renumbered gallery — clear the old set first
 
-zeek_of() {  # dir [pcap] -> regenerate zeek/ from a capture (traffic logs only)
+zeek_into() {  # outdir pcap_relative_to_outdir -> deterministic, byte-reproducible zeek logs
+  local outdir=$1 pcap=$2
+  rm -rf "$outdir"; mkdir -p "$outdir"
+  # -D (deterministic): fixed random seeds, so connection uids and log ordering reproduce
+  # byte-for-byte across runs instead of churning on every regen.
+  ( cd "$outdir" && zeek -D -C -r "$pcap" detect_filtered_trace=F )
+  rm -f "$outdir/analyzer.log" "$outdir/packet_filter.log" "$outdir/reporter.log"
+  # Normalize the wall-clock log-generation stamp (the only remaining per-run difference).
+  perl -i -pe 's/^(#(?:open|close))\t.*/$1\t0000-00-00-00-00-00/' "$outdir"/*.log 2>/dev/null || true
+}
+
+zeek_of() {  # dir [pcap] -> regenerate dir/zeek from a capture (traffic logs only)
   local dir=$1 pcap=${2:-capture.pcap}
-  rm -rf "$dir/zeek"; mkdir -p "$dir/zeek"
-  ( cd "$dir/zeek" && zeek -C -r "../$pcap" detect_filtered_trace=F )
-  rm -f "$dir/zeek/analyzer.log" "$dir/zeek/packet_filter.log" "$dir/zeek/reporter.log"
+  zeek_into "$dir/zeek" "../$pcap"
 }
 
 tidy_gt() {  # <base>.GROUND_TRUTH.* -> GROUND_TRUTH.*
@@ -107,11 +116,7 @@ mkdir -p samples/09-k8s-cluster-lateral
 tidy_gt samples/09-k8s-cluster-lateral
 zeek_of samples/09-k8s-cluster-lateral
 # ship the mirror's decapsulated logs too, so the VXLAN-decap claim is proven in-artifact
-rm -rf samples/09-k8s-cluster-lateral/zeek-mirror; mkdir -p samples/09-k8s-cluster-lateral/zeek-mirror
-( cd samples/09-k8s-cluster-lateral/zeek-mirror && zeek -C -r ../capture.mirror.pcap )
-rm -f samples/09-k8s-cluster-lateral/zeek-mirror/analyzer.log \
-      samples/09-k8s-cluster-lateral/zeek-mirror/packet_filter.log \
-      samples/09-k8s-cluster-lateral/zeek-mirror/reporter.log
+zeek_into samples/09-k8s-cluster-lateral/zeek-mirror ../capture.mirror.pcap
 readme 09-k8s-cluster-lateral "Kubernetes cluster lateral movement + a VXLAN traffic mirror (T1613 / T1021)" \
 "- \`zeek/\` (direct pod-network SPAN) plus \`capture.mirror.pcap\` — what an AWS VPC Traffic Mirror / GCP Packet Mirror sees: the same flows VXLAN-encapsulated to a collector VTEP. \`zeek-mirror/\` is what Zeek derives from that mirror: a \`tunnel.log\` (\`Tunnel::VXLAN\`, port 4789) **plus the identical inner conns** — decapsulation recovers the incident. The attack: a compromised pod hits the API server (10.96.0.1) then fans out mTLS across the mesh." \
 "scripts/make-samples.sh   # k8s pod-to-pod lateral, direct + VXLAN-mirrored"
@@ -188,6 +193,27 @@ readme 18-openai-hf-exploitgym "\"ExploitGym\" — synthetic OpenAI/Hugging Face
 - \`zeek/http.log\`: an **internally-consistent IMDSv2** credential theft off **169.254.169.254** — PUT token → list role → GET credentials, with the PUT's token echoed in the GET headers and a real IMDS JSON body carrying AWS's inert **\`…EXAMPLE\`** keys.
 - Two **honesty markers kept on purpose** so a bare pcap still reveals itself as synthetic: every external attacker IP sits in RFC 5737 documentation ranges (\`192.0.2/24\`, \`203.0.113/24\`), and the stolen AWS keys are AWS's published EXAMPLE values. Attack TLS is all 1.3 (certs encrypted). See [\`GROUND_TRUTH.md\`](GROUND_TRUTH.md) for the kill chain, ATT&CK mapping, and the honest list of residual tells." \
 "scripts/make-samples.sh   # a PCAP conjured from a news summary, woven into ambient"
+
+# Gate: every generated capture must pass the zeek+tshark validation contract (DESIGN.md §7).
+# This is what keeps "18/18 green" from silently rotting — a sample that trips a weird or a
+# tshark malformation fails the build here, not months later.
+echo "validating every capture against the zeek+tshark gate ..."
+"$PY" - <<'PYGATE'
+import glob, sys
+from packetforge.validation.roundtrip import gate_pcap, validators_available
+if not validators_available():
+    print("  (skipped: zeek/tshark not on PATH)"); sys.exit(0)
+caps = sorted(glob.glob("samples/*/capture*.pcap"))
+bad = [(p, gate_pcap(p)) for p in caps]
+bad = [(p, r) for p, r in bad if not r["ok"]]
+if bad:
+    print("GATE FAILED:")
+    for p, r in bad:
+        print(f"  {p}: weird={r['zeek_weird']} reporter={r['zeek_reporter']} "
+              f"tshark_err={r['tshark_errors']} tshark_warn={r['tshark_warnings']}")
+    sys.exit(1)
+print(f"  gate: all {len(caps)} captures pass (0 weird/reporter/errors/non-benign-warns)")
+PYGATE
 
 echo "samples regenerated:"
 for d in samples/[0-9]*/; do

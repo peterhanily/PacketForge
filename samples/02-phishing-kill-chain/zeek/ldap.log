@@ -3,15 +3,15 @@
 #empty_field	(empty)
 #unset_field	-
 #path	ldap
-#open	2026-07-23-03-58-53
+#open	0000-00-00-00-00-00
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	message_id	version	opcode	result	diagnostic_message	object	argument
 #types	time	string	addr	port	addr	port	int	int	string	string	string	string	string
-1700000006.133468	CukqoW1yG28ZdRgCRl	10.10.0.30	1029	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000066.457274	CPs71I3a8W5WlhCl98	10.10.0.25	1096	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000087.918739	CczJIC48ppHioMsp56	10.10.0.21	1129	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000101.167788	CaEyo81GV48M8loROf	10.10.0.20	1148	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000140.937023	CxNQb01i64IKYhSus3	10.10.0.29	1174	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000166.603009	CwHsz83ToqdkKPODf7	10.10.0.24	1207	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000190.618078	CNOYk82H4f6Q0mDP1d	10.10.0.25	1216	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
-1700000565.038049	CGZParsceqrO6cAo	10.10.0.40	40008	10.10.0.10	389	1	3	bind simple	success	-	CN=victim,DC=corp,DC=local	REDACTED
-#close	2026-07-23-03-58-53
+1700000006.133468	C1O2lF3JKzfTRwEgg7	10.10.0.30	1029	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000066.457274	CQqlfI3v2VK26sp88i	10.10.0.25	1096	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000087.918739	CzCEsd2NVug9Mc0S5d	10.10.0.21	1129	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000101.167788	CWuH9s1DRvItbjaMuf	10.10.0.20	1148	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000140.937023	Cd6igMywxgpFaKg3f	10.10.0.29	1174	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000166.603009	CQYcto2IcubMrcR4sb	10.10.0.24	1207	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000190.618078	CLaIB32tbwOVMJIhl2	10.10.0.25	1216	10.10.0.10	389	1	3	bind simple	success	-	CN=svc,DC=corp,DC=local	REDACTED
+1700000565.038049	CILsNM2YnYF72HZ8k2	10.10.0.40	40008	10.10.0.10	389	1	3	bind simple	success	-	CN=victim,DC=corp,DC=local	REDACTED
+#close	0000-00-00-00-00-00

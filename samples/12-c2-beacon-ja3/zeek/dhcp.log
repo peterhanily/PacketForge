@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	dhcp
-#open	2026-07-23-03-59-39
+#open	0000-00-00-00-00-00
 #fields	ts	uids	client_addr	server_addr	mac	host_name	client_fqdn	domain	requested_addr	assigned_addr	lease_time	client_message	server_message	msg_types	duration
 #types	time	set[string]	addr	addr	string	string	string	string	addr	addr	interval	string	string	vector[string]	interval
-1700000301.248330	CbmoYh4dKdLykuaiBb,CCJ7Yf3PFAMjj24u74	10.10.0.29	10.10.0.1	00:50:56:60:11:ae	-	-	-	-	10.10.0.29	3600.000000	-	-	DISCOVER,OFFER,REQUEST,ACK	0.088761
-1700000308.361435	CNctFX17pHujQ69ncb,CCJ7Yf3PFAMjj24u74	10.10.0.25	10.10.0.1	00:50:56:f4:00:4d	-	-	-	-	10.10.0.25	3600.000000	-	-	DISCOVER,OFFER,REQUEST,ACK	0.080084
-#close	2026-07-23-03-59-39
+1700000301.248330	C74oGv2wwhdGgCiNn8,CW0mZc4j6COdb84je	10.10.0.29	10.10.0.1	00:50:56:60:11:ae	-	-	-	-	10.10.0.29	3600.000000	-	-	DISCOVER,OFFER,REQUEST,ACK	0.088761
+1700000308.361435	CpU7nZ3kgdSdeBAQEh,CW0mZc4j6COdb84je	10.10.0.25	10.10.0.1	00:50:56:f4:00:4d	-	-	-	-	10.10.0.25	3600.000000	-	-	DISCOVER,OFFER,REQUEST,ACK	0.080084
+#close	0000-00-00-00-00-00

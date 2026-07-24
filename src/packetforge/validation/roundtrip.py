@@ -181,6 +181,28 @@ def _run_tshark_expert(pcap: Path) -> tuple:
     return errors, warnings
 
 
+def gate_pcap(pcap) -> dict:
+    """Run the zeek+tshark validation gate against a finished capture (no flowspec needed).
+
+    Returns the counts the gate is built on; ``ok`` is True iff all are zero — Zeek produced
+    no weird/reporter and tshark's expert flagged no errors or non-benign warnings. Used to
+    enforce the contract on generated sample pcaps (the build sweep and the regression test).
+    """
+    import tempfile
+
+    pcap = Path(pcap)
+    with tempfile.TemporaryDirectory() as d:
+        _run_zeek(pcap, Path(d))
+        weird = len(_parse_zeek_log(Path(d) / "weird.log"))
+        reporter = len(_parse_zeek_log(Path(d) / "reporter.log"))
+    errors, warnings = _run_tshark_expert(pcap)
+    return {
+        "zeek_weird": weird, "zeek_reporter": reporter,
+        "tshark_errors": errors, "tshark_warnings": warnings,
+        "ok": weird == 0 and reporter == 0 and errors == 0 and warnings == 0,
+    }
+
+
 # --------------------------------------------------------------------------- #
 # Matching + diffing                                                            #
 # --------------------------------------------------------------------------- #

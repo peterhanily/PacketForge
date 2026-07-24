@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-23-03-58-53
+#open	0000-00-00-00-00-00
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000007.498992	8678425f510bbb347a8b879091b6d584b08dcdcfd1ac4acb4493c1331de12807	3	5DB7E3CD	CN=cdn.example.net	CN=PacketForge Synthetic CA	1697408007.000000	1728944007.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.example.net	-	-	-	F	-	T	F
@@ -25,4 +25,4 @@
 1700000358.344154	dbf84c3856ace1495036a0fcc10c03b0014b235e95987d2ed882a39a05380716	3	7AEE7B54	CN=cdn.telemetry-sync.example	CN=PacketForge Synthetic CA	1697408358.000000	1728944358.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
 1700000411.760467	76dffa3714c624f7ff1f8f9b1806bff6e3007f3db5ecab467807f967f8dd58b5	3	2EBAF24E	CN=cdn.telemetry-sync.example	CN=PacketForge Synthetic CA	1697408411.000000	1728944411.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
 1700000473.006313	ac8f84c44261f540e7ca91f963fe6ba38aa08d326a03bfc3a3a80b0b5066f1fc	3	4C22A35D	CN=cdn.telemetry-sync.example	CN=PacketForge Synthetic CA	1697408472.000000	1728944472.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	cdn.telemetry-sync.example	-	-	-	F	-	T	F
-#close	2026-07-23-03-58-53
+#close	0000-00-00-00-00-00

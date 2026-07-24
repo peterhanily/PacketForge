@@ -3,9 +3,9 @@
 #empty_field	(empty)
 #unset_field	-
 #path	smb_files
-#open	2026-07-23-03-59-48
+#open	0000-00-00-00-00-00
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	fuid	action	path	name	size	prev_name	times.modified	times.accessed	times.created	times.changed
 #types	time	string	addr	port	addr	port	string	enum	string	string	count	string	time	time	time	time
-1700000100.251731	CvyBe54rcf0sxOFfV7	10.10.0.40	40000	10.10.0.41	445	-	SMB::FILE_OPEN	\\\\10.10.0.41\\ADMIN$	svc.exe	6144	-	1700000100.000000	1700000100.000000	1700000100.000000	1700000100.000000
-1700000103.256124	C4rYN5s4iDdsKstjl	10.10.0.40	40002	10.10.0.41	445	-	SMB::FILE_OPEN	-	svcctl	0	-	1700000103.000000	1700000103.000000	1700000103.000000	1700000103.000000
-#close	2026-07-23-03-59-48
+1700000100.251731	CkB7gEajmNs3Pdct1	10.10.0.40	40000	10.10.0.41	445	-	SMB::FILE_OPEN	\\\\10.10.0.41\\ADMIN$	svc.exe	6144	-	1700000100.000000	1700000100.000000	1700000100.000000	1700000100.000000
+1700000103.256124	Cpz9EJ2dhvwDNMnFj6	10.10.0.40	40002	10.10.0.41	445	-	SMB::FILE_OPEN	-	svcctl	0	-	1700000103.000000	1700000103.000000	1700000103.000000	1700000103.000000
+#close	0000-00-00-00-00-00

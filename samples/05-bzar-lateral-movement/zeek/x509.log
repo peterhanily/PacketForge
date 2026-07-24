@@ -3,7 +3,7 @@
 #empty_field	(empty)
 #unset_field	-
 #path	x509
-#open	2026-07-23-03-59-05
+#open	0000-00-00-00-00-00
 #fields	ts	fingerprint	certificate.version	certificate.serial	certificate.subject	certificate.issuer	certificate.not_valid_before	certificate.not_valid_after	certificate.key_alg	certificate.sig_alg	certificate.key_type	certificate.key_length	certificate.exponent	certificate.curve	san.dns	san.uri	san.email	san.ip	basic_constraints.ca	basic_constraints.path_len	host_cert	client_cert
 #types	time	string	count	string	string	string	time	time	string	string	string	count	string	string	vector[string]	vector[string]	vector[string]	vector[addr]	bool	count	bool	bool
 1700000049.907160	162c3d20981021d21559d1dbe48ddc29cc381a59b2bdb90737a2c69ff6a1c9c8	3	063320D8	CN=www.example.org	CN=PacketForge Synthetic CA	1697408049.000000	1728944049.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	www.example.org	-	-	-	F	-	T	F
@@ -16,4 +16,4 @@
 1700000130.792625	a7590374175e36f6508d4903a2b1c20591c27e5b4bc6d5579e2783911834612a	3	6FAA499E	CN=api.github.com	CN=PacketForge Synthetic CA	1697408130.000000	1728944130.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
 1700000144.477661	c19a2fc6f5b3abad08590cb4ff3fb013dc8cc49a15c2f174df9e48e4dcb54647	3	1E3C1564	CN=api.github.com	CN=PacketForge Synthetic CA	1697408144.000000	1728944144.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	api.github.com	-	-	-	F	-	T	F
 1700000199.032092	7f296a4cab907882baa538aeac794573004c88a5e9d0b5f801a7b3b69035b973	3	6724B86D	CN=assets.example.co	CN=PacketForge Synthetic CA	1697408198.000000	1728944198.000000	rsaEncryption	sha256WithRSAEncryption	rsa	2048	65537	-	assets.example.co	-	-	-	F	-	T	F
-#close	2026-07-23-03-59-05
+#close	0000-00-00-00-00-00
