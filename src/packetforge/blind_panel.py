@@ -61,7 +61,7 @@ def _flow_cards(zeek_workdir: Path) -> dict:
 
 def _run_zeek(pcap: Path, wd: Path):
     wd.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(pcap), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True, check=False)
 
 

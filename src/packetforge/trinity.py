@@ -33,7 +33,7 @@ def _zeek_rows(pcap: Path, workdir: Path):
     from packetforge.realism import flow_feature_rows
     workdir.mkdir(parents=True, exist_ok=True)
     pcap = Path(pcap).resolve()  # cwd changes for zeek; resolve first (past bug)
-    subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(pcap), "FilteredTraceDetection::enable=F"],
                    cwd=workdir, capture_output=True, check=False)
     rows, _names, services = flow_feature_rows(workdir, pcap)
     return rows, services

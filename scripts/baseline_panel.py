@@ -33,7 +33,7 @@ _MIN = 20
 
 def _rows(pcap):
     wd = Path(tempfile.mkdtemp(prefix="pf_panel_"))
-    subprocess.run(["zeek", "-C", "-r", str(Path(pcap).resolve()), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(Path(pcap).resolve()), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True, check=False)
     rows, _, _ = flow_feature_rows(wd, pcap)
     return rows

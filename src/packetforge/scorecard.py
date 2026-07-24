@@ -269,7 +269,7 @@ def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int =
     for label, pcap in (("real", real_pcap), ("synth", synth_pcap)):
         wd = base / f"zeek_{label}"
         wd.mkdir(exist_ok=True)
-        subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+        subprocess.run(["zeek", "-C", "-r", str(pcap), "FilteredTraceDetection::enable=F"],
                        cwd=str(wd), capture_output=True, text=True, check=False)
         wds[label] = wd
     realism = audit(wds["real"], wds["synth"], real_pcap=real_pcap, synth_pcap=synth_pcap)
@@ -287,7 +287,7 @@ def run_scorecard(real_pcap, env, *, rules=None, baseline_pcap=None, seed: int =
     for i, bp in enumerate(baselines):
         bwd = base / f"zeek_baseline_{i}"
         bwd.mkdir(exist_ok=True)
-        subprocess.run(["zeek", "-C", "-r", str(bp), "detect_filtered_trace=F"],
+        subprocess.run(["zeek", "-C", "-r", str(bp), "FilteredTraceDetection::enable=F"],
                        cwd=str(bwd), capture_output=True, text=True, check=False)
         b_rows, _, _ = flow_feature_rows(bwd, Path(bp))
         aucs.append(c2st_auc_between(ref_rows, b_rows))

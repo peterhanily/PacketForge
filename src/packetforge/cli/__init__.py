@@ -531,7 +531,7 @@ def _dispatch(args) -> int:
                 return 2
             wd = base / label
             wd.mkdir()
-            subprocess.run(["zeek", "-C", "-r", str(src), "detect_filtered_trace=F"],
+            subprocess.run(["zeek", "-C", "-r", str(src), "FilteredTraceDetection::enable=F"],
                            cwd=str(wd), capture_output=True, text=True, check=False)
             wds[label] = wd
         print(audit(wds["real"], wds["synthetic"],

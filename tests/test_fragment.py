@@ -48,7 +48,7 @@ def test_zeek_reassembles_fragments_to_the_same_flow():
     fragged = fragment_packets(compile_flowset(_http_flow()).packets, fragsize=400)
     wd = Path(tempfile.mkdtemp())
     wrpcap(str(wd / "c.pcap"), fragged)
-    subprocess.run(["zeek", "-r", str(wd / "c.pcap"), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-r", str(wd / "c.pcap"), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True)
     assert not _parse_zeek_log(wd / "weird.log"), "fragmentation produced a Zeek weird"
     http = _parse_zeek_log(wd / "http.log")
@@ -67,7 +67,7 @@ def test_fragmenting_an_attack_preserves_its_detection_signal():
     fragged = fragment_packets(compile_flowset(FlowSet(flows=intr.flows)).packets, fragsize=200)
     wd = Path(tempfile.mkdtemp())
     wrpcap(str(wd / "c.pcap"), fragged)
-    subprocess.run(["zeek", "-r", str(wd / "c.pcap"), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-r", str(wd / "c.pcap"), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True)
     assert not _parse_zeek_log(wd / "weird.log")
     # the DNS-tunnel queries survive reassembly (same exfil domain visible in dns.log)

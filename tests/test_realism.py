@@ -26,7 +26,7 @@ def _zeek_of(env, seed, tmp, label):
     write_pcap(fs, pcap)
     wd = tmp / f"zeek_{label}"
     wd.mkdir()
-    subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(pcap), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True, check=False)
     return wd, pcap
 

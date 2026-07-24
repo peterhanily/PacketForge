@@ -74,7 +74,7 @@ def test_mirror_decapsulates_to_inner_conns_zeek_clean(attack, env, tmp_path):
     from scapy.utils import wrpcap
     pkts, intr = _mirror(attack, env=env)
     wrpcap(str(tmp_path / "m.pcap"), pkts)
-    subprocess.run(["zeek", "-r", str(tmp_path / "m.pcap"), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-r", str(tmp_path / "m.pcap"), "FilteredTraceDetection::enable=F"],
                    cwd=str(tmp_path), capture_output=True, text=True)
     # Zeek decapsulates VXLAN: no weird, a tunnel.log entry, and the inner conns are logged.
     assert not _parse_zeek_log(tmp_path / "weird.log"), "mirror produced a Zeek weird"

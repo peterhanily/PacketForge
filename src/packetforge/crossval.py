@@ -71,7 +71,7 @@ def _zeek(pcap: Path, wd: Path) -> dict:
     from packetforge.validation.roundtrip import _parse_zeek_log
     # -C ignores checksums: real captures routinely have NIC-offloaded (invalid) ones,
     # which Zeek otherwise discards. (Suricata gets the same treatment via -k none.)
-    subprocess.run(["zeek", "-C", "-r", str(pcap), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(pcap), "FilteredTraceDetection::enable=F"],
                    cwd=str(wd), capture_output=True, text=True, check=False)
     conn = _parse_zeek_log(wd / "conn.log")
     services: dict = {}

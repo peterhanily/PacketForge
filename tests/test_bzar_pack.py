@@ -385,7 +385,7 @@ def test_builder_trips_expected_bzar_notice(name, tmp_path):
     intr = _build(name)
     pcap = tmp_path / "c.pcap"
     write_pcap(FlowSet(flows=intr.flows), pcap)
-    subprocess.run(["zeek", "-r", str(pcap), _bzar_scripts(), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-r", str(pcap), _bzar_scripts(), "FilteredTraceDetection::enable=F"],
                    cwd=str(tmp_path), capture_output=True, text=True, check=False)
     fired = {r.get("note", "") for r in _parse_zeek_log(tmp_path / "notice.log")}
     expected = {e.iocs["expected_notice"] for e in intr.ground_truth if e.iocs.get("expected_notice")}

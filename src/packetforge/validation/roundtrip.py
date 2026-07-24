@@ -116,12 +116,15 @@ def _zeek_answers(v: str) -> set:
 # External tool runners                                                         #
 # --------------------------------------------------------------------------- #
 def _run_zeek(pcap: Path, workdir: Path) -> None:
-    # detect_filtered_trace=F silences Zeek's "looks pre-filtered" heuristic, which fires on
-    # small synthetic traces and is not a packet defect. Read the pcap by absolute path: Zeek
-    # runs with cwd=workdir (where its logs land), and the pcap may live outside workdir (the
-    # evaluator) or be given via a relative dir (bundles) — an absolute path resolves in all cases.
+    # FilteredTraceDetection::enable=F silences Zeek's "looks pre-filtered" reporter warning,
+    # which fires on a trace of only TCP control packets (a SYN flood / port scan in isolation)
+    # and is not a packet defect. NB: this is the real control — Zeek's own warning text names
+    # the legacy `detect_filtered_trace` const, but toggling that does nothing in Zeek 8.x.
+    # Read the pcap by absolute path: Zeek runs with cwd=workdir (where its logs land), and the
+    # pcap may live outside workdir (the evaluator) or be given via a relative dir (bundles) —
+    # an absolute path resolves in all cases.
     subprocess.run(
-        ["zeek", "-r", str(pcap.resolve()), "detect_filtered_trace=F"],
+        ["zeek", "-r", str(pcap.resolve()), "FilteredTraceDetection::enable=F"],
         cwd=str(workdir), capture_output=True, text=True, check=False,
     )
 

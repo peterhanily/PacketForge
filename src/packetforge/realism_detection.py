@@ -69,7 +69,7 @@ def profile_reference(real_pcap: Path, workdir: Path):
     """Real reference -> a Profile: service mix, duration, and fingerprint marginals."""
     from packetforge.transfer import Profile
     workdir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["zeek", "-C", "-r", str(real_pcap), "detect_filtered_trace=F"],
+    subprocess.run(["zeek", "-C", "-r", str(real_pcap), "FilteredTraceDetection::enable=F"],
                    cwd=str(workdir), capture_output=True, text=True, check=False)
     conn = _parse_zeek_log(workdir / "conn.log")
     counts: dict = {}

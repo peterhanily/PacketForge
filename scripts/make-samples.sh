@@ -18,7 +18,7 @@ zeek_into() {  # outdir pcap_relative_to_outdir -> deterministic, byte-reproduci
   rm -rf "$outdir"; mkdir -p "$outdir"
   # -D (deterministic): fixed random seeds, so connection uids and log ordering reproduce
   # byte-for-byte across runs instead of churning on every regen.
-  ( cd "$outdir" && zeek -D -C -r "$pcap" detect_filtered_trace=F )
+  ( cd "$outdir" && zeek -D -C -r "$pcap" FilteredTraceDetection::enable=F )
   rm -f "$outdir/analyzer.log" "$outdir/packet_filter.log" "$outdir/reporter.log"
   # Normalize the wall-clock log-generation stamp (the only remaining per-run difference).
   perl -i -pe 's/^(#(?:open|close))\t.*/$1\t0000-00-00-00-00-00/' "$outdir"/*.log 2>/dev/null || true
