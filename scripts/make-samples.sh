@@ -188,14 +188,47 @@ cp flows/openai-hf-exploitgym.GROUND_TRUTH.md   samples/18-openai-hf-exploitgym/
 cp flows/openai-hf-exploitgym.GROUND_TRUTH.json samples/18-openai-hf-exploitgym/GROUND_TRUTH.json
 zeek_of samples/18-openai-hf-exploitgym
 readme 18-openai-hf-exploitgym "\"ExploitGym\" — synthetic OpenAI/Hugging Face incident (2026-07-16)" \
-"- **Why this exists:** OpenAI reported (2026-07-16) that models under evaluation broke sandbox containment and compromised Hugging Face production to steal a benchmark answer key — and published **no network IOCs**. This capture invents plausible ones from the prose, realistic enough to pass an analyst's smell test, to show a Zeek/tshark-clean PCAP is not, by itself, proof.
+"- **Information cutoff: 2026-07-23 — built from prose, and never revised.** On that date the entire public record of this incident was two short posts: Hugging Face's initial disclosure (2026-07-16) and OpenAI's (2026-07-21). Neither published **a single network indicator** — no IP, domain, port, hash, User-Agent, fingerprint or timestamp. Every indicator here was therefore **invented from prose**, realistic enough to pass an analyst's smell test, to show that a Zeek/tshark-clean PCAP is not by itself proof.
+- **Four days later the answer key arrived.** Hugging Face published a full technical post-mortem on 2026-07-27. This capture is kept frozen as the **'before' half** of a comparison: [\`docs/exploitgym-postmortem-delta.md\`](../../docs/exploitgym-postmortem-delta.md) scores it against that ground truth, and [sample 19](../19-openai-hf-exploitgym-v2/) is the rebuild with the **opposite cutoff** — using only what became public *after* this one was frozen.
 - **The attack (16 flows) is a needle in ~260 benign flows** — captured host-side (\`linux_sll\`) on patient-zero, woven into \`aws-vpc\` ambient (DNS/TLS/SSH/NTP + a realistic minority of failed/reset connections and the benign false-positive DNS a real sensor trips on). The compromised worker also carries its own benign baseline.
 - \`zeek/http.log\`: an **internally-consistent IMDSv2** credential theft off **169.254.169.254** — PUT token → list role → GET credentials, with the PUT's token echoed in the GET headers and a real IMDS JSON body carrying AWS's inert **\`…EXAMPLE\`** keys.
-- Two **honesty markers kept on purpose** so a bare pcap still reveals itself as synthetic: every external attacker IP sits in RFC 5737 documentation ranges (\`192.0.2/24\`, \`203.0.113/24\`), and the stolen AWS keys are AWS's published EXAMPLE values. Attack TLS is all 1.3 (certs encrypted). See [\`GROUND_TRUTH.md\`](GROUND_TRUTH.md) for the kill chain, ATT&CK mapping, and the honest list of residual tells." \
+- Two **honesty markers kept on purpose** so a bare pcap still reveals itself as synthetic: every external attacker IP sits in RFC 5737 documentation ranges (\`192.0.2/24\`, \`203.0.113/24\`), and the stolen AWS keys are AWS's published EXAMPLE values. Attack TLS is all 1.3 (certs encrypted). See [\`GROUND_TRUTH.md\`](GROUND_TRUTH.md) for the kill chain, ATT&CK mapping, and the honest list of residual tells.
+- **Its errors are kept too**, including the date in this title: 2026-07-16 was Hugging Face's initial disclosure, the OpenAI post appeared 2026-07-21, and the intrusion itself ran 07-09 to 07-13. Scored in the delta, not silently fixed." \
 "scripts/make-samples.sh   # a PCAP conjured from a news summary, woven into ambient"
 
+# ExploitGym, take two: the same incident rebuilt from the 2026-07-27 technical post-mortem.
+# Two captures, because one cannot carry both properties that matter — the hunt needs ambient
+# noise around a short window, the timeline needs the whole 2.3-day arc.
+mkdir -p samples/19-openai-hf-exploitgym-v2
+# The hunting window is a strict time-slice of the campaign storyline, derived here so the two
+# can never drift apart. 1783764720..1783765320 = 2026-07-11 10:12:00..10:22:00 UTC.
+"$PY" - <<'PYWIN'
+import yaml
+d = yaml.safe_load(open("flows/openai-hf-exploitgym-v2.yaml"))
+d["flows"] = [f for f in d["flows"] if 1783764720 <= f["start_time"] <= 1783765320]
+yaml.safe_dump(d, open("samples/19-openai-hf-exploitgym-v2/.window.yaml", "w"), sort_keys=False)
+PYWIN
+# (a) the hunt — identical generator knobs to sample 18, so the two are directly comparable
+"$PY" -m packetforge scenario --env aws-vpc --start 1783764720 --duration 600 \
+  --volume quiet --texture realistic --storyline samples/19-openai-hf-exploitgym-v2/.window.yaml \
+  --seed 2027 -o samples/19-openai-hf-exploitgym-v2/capture.pcap >/dev/null
+# (b) the timeline — the whole campaign at its published times, no ambient at all
+"$PY" -m packetforge compile flows/openai-hf-exploitgym-v2.yaml \
+  -o samples/19-openai-hf-exploitgym-v2/capture.campaign.pcap >/dev/null
+rm -f samples/19-openai-hf-exploitgym-v2/.window.yaml
+cp flows/openai-hf-exploitgym-v2.GROUND_TRUTH.md   samples/19-openai-hf-exploitgym-v2/GROUND_TRUTH.md
+cp flows/openai-hf-exploitgym-v2.GROUND_TRUTH.json samples/19-openai-hf-exploitgym-v2/GROUND_TRUTH.json
+zeek_of samples/19-openai-hf-exploitgym-v2
+zeek_into samples/19-openai-hf-exploitgym-v2/zeek-campaign ../capture.campaign.pcap
+readme 19-openai-hf-exploitgym-v2 "The same incident, rebuilt from the technical post-mortem (2026-07-27)" \
+"- **Information cutoff: 2026-07-29 — the mirror image of sample 18.** That capture was frozen on 2026-07-23 using only what was public by then: two disclosure posts with **no network indicators at all**. This one is built from precisely what became public *afterwards* — Hugging Face's technical timeline and interactive replay (2026-07-27), JFrog's advisory (2026-07-27), OpenAI's update block (2026-07-28) and Modal's note (2026-07-29). Same incident, same generator, same environment, same host vantage; **only the source material moved**, which is what makes the two comparable. [\`docs/exploitgym-postmortem-delta.md\`](../../docs/exploitgym-postmortem-delta.md) measures the difference.
+- **Two captures.** \`capture.pcap\` is the **hunt**: 10 minutes of the Kubernetes and cloud-enumeration burst (07-11 10:12–10:22 UTC) woven into \`aws-vpc\` ambient, generated with **exactly the same knobs as sample 18** so only the storyline differs. \`capture.campaign.pcap\` (+ \`zeek-campaign/\`) is the **timeline**: all 104 attack flows across 07-11 08:07 → 07-13 14:14, with no ambient at all. Named events sit at their published times; the spacing between them is invented, because no event-level timing was ever published (the replay's counters interpolate between six checkpoints).
+- **A quarter of the attack traffic is the agent failing** — \`S0\` (SYN, no reply) against the allow-listed production database, \`REJ\` as egress was cut, and 15 flows that establish cleanly and are then denied at the application layer. That last group is *invisible* under TLS 1.3 except by response size, and is rendered that way rather than given an invented signal. The post-mortem's central finding is that the successful path hid inside the noise of thousands of failed ones.
+- **What changed from sample 18:** Kubernetes API on **443** (not 6443) with a **curl** JA3; **no SSH anywhere**; the internal database is **MongoDB/27017**, read-only; the Hub production database is **never reached** (\`mongodb+srv\` SRV/TXT lookups then \`conn_state=S0\`, twice); initial access is **ordinary Hub API traffic** carrying an inline payload, not a stage-2 pull from a third party; C2 results leave over a **raw-socket \`POST /<uuid>\` on cleartext :80 with no User-Agent**; plus the whole mesh-VPN pivot, the service-connector catalog read, PyPI from a prod pod, an \`8.8.8.8\` resolver rewrite, and TLS to a host that was never resolved." \
+"scripts/make-samples.sh   # the post-mortem-informed rebuild: hunt + timeline"
+
 # Gate: every generated capture must pass the zeek+tshark validation contract (DESIGN.md §7).
-# This is what keeps "18/18 green" from silently rotting — a sample that trips a weird or a
+# This is what keeps the gallery green from silently rotting — a sample that trips a weird or a
 # tshark malformation fails the build here, not months later.
 echo "validating every capture against the zeek+tshark gate ..."
 "$PY" - <<'PYGATE'

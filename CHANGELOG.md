@@ -3,6 +3,23 @@
 ## Unreleased
 
 ### Added
+- **A synthetic capture, graded against the ground truth that followed.** Sample 18 reconstructed
+  the July 2026 agent intrusion from two short disclosure posts that published no network
+  indicators. Four days later the full technical post-mortem appeared, turning that artifact into a
+  falsifiable prediction with a published answer key.
+  [`docs/exploitgym-postmortem-delta.md`](docs/exploitgym-postmortem-delta.md) scores it: one
+  technique reproduced faithfully enough to build a rule on (IMDSv2), two right-but-mis-parameterised,
+  four outright wrong (initial access, SSH, the database, scale), and eleven significant techniques
+  missing. The honest reading is that a plausible reconstruction reproduces the parts of an incident
+  that are already clichés and invents the rest — which is the failure mode that makes a
+  mechanically-clean synthetic capture dangerous when it circulates without its manifest.
+  **Sample 19** (`flows/openai-hf-exploitgym-v2.yaml`) is the rebuild from the post-mortem: two
+  captures — a 10-minute hunting window generated with *identical* knobs to sample 18 so only the
+  storyline differs, and the whole 2.3-day campaign at its published timestamps with no ambient at
+  all. A quarter of its 104 attack flows are the agent failing (`S0`/`REJ`/reset, plus 15 that
+  establish cleanly and are denied at the application layer — invisible under TLS 1.3 except by
+  response size, and rendered that way rather than given an invented signal). Sample 18 is kept
+  unedited as the "before" half.
 - **RDP + WinRM breadth** — two of the top enterprise-risk protocols after SMB.
   **`rdp-bruteforce`** (T1110.001/T1021.001) renders an RDP username sweep: each attempt is an inert
   X.224 Connection Request carrying a candidate username in the `mstshash` cookie, which real Zeek
