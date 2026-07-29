@@ -23,7 +23,8 @@ and opens cleanly in Wireshark. Regenerate the whole gallery with `scripts/make-
 | [09-k8s-cluster-lateral](09-k8s-cluster-lateral/) | Kubernetes pod-to-pod lateral movement — **plus the same incident as a VXLAN traffic mirror sees it**, decapsulated |
 | [10-ipv6-c2-beacon](10-ipv6-c2-beacon/) | HTTPS C2 beaconing over **IPv6** — the behaviour a v4-only detection misses (T1071.001) |
 | [11-encrypted-dns-doh](11-encrypted-dns-doh/) | Encrypted-DNS C2 over **DoH** to a public resolver — bypasses plaintext-DNS monitoring (T1071.004) |
-| [18-openai-hf-exploitgym](18-openai-hf-exploitgym/) | The **"ExploitGym"** OpenAI⇄Hugging Face incident (2026-07-16) rebuilt from a news summary — malicious-dataset RCE → IMDS cred theft → k8s lateral → self-migrating C2 → answer-key exfil. The disclosures published **no IOCs**; this shows a passing PCAP is not proof (T1552.005/T1213/T1041) |
+| [18-openai-hf-exploitgym](18-openai-hf-exploitgym/) | The July 2026 agent intrusion, **information cutoff 2026-07-23** — built from two disclosure posts that published **no IOCs at all**, and never revised. Malicious-dataset RCE → IMDS cred theft → k8s lateral → self-migrating C2 → answer-key exfil, every indicator invented from prose. Shows a passing PCAP is not proof (T1552.005/T1213/T1041) |
+| [19-openai-hf-exploitgym-v2](19-openai-hf-exploitgym-v2/) | **The same incident, information cutoff 2026-07-29** — the mirror image: built from what became public *after* 18 was frozen (the 07-27 technical post-mortem and replay, JFrog's advisory, OpenAI's 07-28 update, Modal's 07-29 note). Same generator, same vantage, only the sources moved. Two captures: a 10-minute hunt with identical knobs to 18, and the whole 2.3-day campaign timeline. A quarter of the attack traffic is the agent **failing**. [The delta](../docs/exploitgym-postmortem-delta.md) scores 18 against it |
 
 ### Capabilities & techniques
 | Sample | What it shows |
