@@ -4,9 +4,10 @@
 > this document originally proposed, including one deliberate deviation and one hole the work
 > opened and then closed.
 >
-> Measured outcome: **sample 18 FAIL (19 findings, 1.7% of its network facts sourced), sample 19
-> PASS (0 findings, 7 declared gaps, 2.6% sourced)**, with zero change to any rendered byte.
-> 40 warrant tests; 398 in the suite overall.
+> Measured outcome: sample 18 FAILs and sample 19 PASSes, with zero change to any rendered byte.
+> The live counts and sourced fractions are in each sample's generated `CLAIMS.md` and are
+> deliberately not copied here — a number transcribed into prose drifts from the artifact, which
+> is the CIC-IDS2017 failure this layer exists to prevent.
 
 ## 1. The problem
 
@@ -466,15 +467,10 @@ green gate says the accounting is coherent, not that the capture is right.
 
 ### What the numbers actually say
 
-| | sample 18 | sample 19 |
-|---|---|---|
-| verdict | FAIL, 19 findings | PASS, 0 findings |
-| network facts | 174 | 1,221 |
-| of which sourced | 3 (**1.7%**) | 32 (**2.6%**) |
-| declared gaps | 4 | 7 |
-| prediction score | mean log **−172.4**, 1 of 15 beat the prior | 6 registered, none resolved yet |
+Both captures are overwhelmingly authored rather than sourced, and both now say so on their face.
+The live figures are in each sample's generated `CLAIMS.md`; they are not restated here.
 
-The sourced fractions are the honest headline. Neither capture is mostly evidence, and both now
+That is the honest headline. Neither capture is mostly evidence, and both now
 say so on their face. That is the whole of what this delivers: it does not make a reconstruction
 right, it stops the artifact concealing which parts are which.
 
@@ -483,8 +479,8 @@ right, it stops the artifact concealing which parts are which.
 
 ## 13. What an adversarial audit found (2026-07-30)
 
-Five independent reviewers were told to assume this work was theatre and to attack it. All five
-returned *partly-theatre* with 38 findings between them. That was the right verdict on the tree
+Five automated adversarial review passes (LLM agents, not human reviewers) were told to assume
+this work was theatre and to attack it. All five returned *partly-theatre* with 38 findings. That was the right verdict on the tree
 they saw. What follows is what they broke, what is fixed, and what is still true.
 
 ### Attacks that worked, and are now closed

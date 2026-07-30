@@ -1,5 +1,9 @@
 name: CI
 
+# Least privilege: this workflow only reads the tree and runs tests.
+permissions:
+  contents: read
+
 # The gate isn't just unit tests — it's real Zeek + tshark over freshly rendered
 # captures, so "consistent with the logs" is checked on every change.
 on:

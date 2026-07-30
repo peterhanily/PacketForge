@@ -11,6 +11,7 @@ one of the samples has been quietly edited.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -791,3 +792,89 @@ def test_duplicate_and_double_declared_flows_fail():
     cs2 = _mini(illustrative_flows=[f.flow_id for f in flows],
                 claims=[_obs("C1", renders=[flows[0].flow_id])])
     assert any(f.code == "licensed-and-illustrative" for f in check(cs2, flows).fails)
+
+
+# --------------------------------------------------------------------------- #
+# Indicator hygiene — no real third party may be labelled attacker infra       #
+# --------------------------------------------------------------------------- #
+
+
+def test_no_allocated_address_is_published_as_an_indicator():
+    """A synthetic capture must never put a real organisation's address in an IOC file.
+
+    This shipped once: 170.130.183.204 (Eonix Corporation) was emitted as `c2_ip` in two
+    samples, and 2606:4700:8ac0::66 (Cloudflare) as the IPv6 C2. The generator drew from
+    unrestricted public space.
+    """
+    import glob
+    import ipaddress
+    import json as _json
+
+    from packetforge.scenarios import WELL_KNOWN_SERVICE_ADDRS
+
+    doc = [ipaddress.ip_network(n) for n in
+           ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24", "2001:db8::/32")]
+    offenders = []
+    for path in glob.glob(str(ROOT / "samples" / "*" / "GROUND_TRUTH.json")):
+        blob = _json.dumps(_json.load(open(path)))
+        for token in set(re.findall(r"\b(?:\d{1,3}\.){3}\d{1,3}\b|\b[0-9a-f]{1,4}(?::[0-9a-f]{0,4}){2,7}\b",
+                                    blob)):
+            try:
+                addr = ipaddress.ip_address(token)
+            except ValueError:
+                continue
+            if addr.is_private or addr.is_link_local or addr.is_multicast or addr.is_loopback:
+                continue
+            if any(addr in n for n in doc) or token in WELL_KNOWN_SERVICE_ADDRS:
+                continue
+            offenders.append(f"{Path(path).parent.name}: {token}")
+    assert not offenders, (
+        "allocated address published as an indicator: " + ", ".join(sorted(offenders))
+        + " — use RFC 5737/3849, or add it to WELL_KNOWN_SERVICE_ADDRS with a reason")
+
+
+def test_every_well_known_exception_carries_a_reason():
+    from packetforge.scenarios import WELL_KNOWN_SERVICE_ADDRS
+    for addr, why in WELL_KNOWN_SERVICE_ADDRS.items():
+        assert len(why) > 30, f"{addr} needs a real justification, not {why!r}"
+
+
+def test_no_registrable_domain_is_used_as_attacker_infrastructure():
+    """Invented C2 names must sit on RFC 2606 reserved TLDs, not squattable ones.
+
+    An unregistered second-level domain and a live platform's user-content space both shipped
+    in committed Zeek logs as command-and-control; anyone could have registered the former and
+    inherited a repository pointing at it.
+    """
+    import glob
+
+    from packetforge.scenarios import SOURCED_INCIDENT_HOSTS, WELL_KNOWN_SERVICE_DOMAINS
+
+    RESERVED = {"example", "invalid", "test", "local", "localhost", "internal", "arpa"}
+    NOT_HOSTS = {"md", "json", "yaml", "yml", "py", "sh", "log", "pcap", "pcapng", "svc",
+                 "gz", "exe", "dll", "xlsx", "pdf", "zip", "txt", "conf", "c", "h5", "ecr"}
+    allowed = set(WELL_KNOWN_SERVICE_DOMAINS) | SOURCED_INCIDENT_HOSTS
+    host_re = re.compile(r"\b(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}\b")
+
+    offenders = set()
+    for path in glob.glob(str(ROOT / "samples" / "*" / "GROUND_TRUTH.md")) + \
+            glob.glob(str(ROOT / "samples" / "*" / "RECONSTRUCTION.md")):
+        for host in host_re.findall(Path(path).read_text()):
+            labels = host.split(".")
+            if labels[-1] in RESERVED or labels[-1] in NOT_HOSTS:
+                continue
+            if host.endswith((".example.com", ".example.net", ".example.org")):
+                continue
+            if host in allowed or any(host.endswith("." + a) for a in allowed):
+                continue
+            offenders.add(f"{Path(path).parent.name}: {host}")
+    assert not offenders, (
+        "registrable / unreserved names used as infrastructure: " + ", ".join(sorted(offenders))
+        + " — move them to an RFC 2606 reserved TLD, or add them to WELL_KNOWN_SERVICE_DOMAINS "
+          "/ SOURCED_INCIDENT_HOSTS with a reason")
+
+
+def test_every_domain_exception_carries_a_reason():
+    from packetforge.scenarios import WELL_KNOWN_SERVICE_DOMAINS
+    for host, why in WELL_KNOWN_SERVICE_DOMAINS.items():
+        assert len(why) > 30, f"{host} needs a real justification, not {why!r}"

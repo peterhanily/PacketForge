@@ -6,18 +6,18 @@
 #open	0000-00-00-00-00-00
 #fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	trans_depth	method	host	uri	referrer	version	user_agent	origin	request_body_len	response_body_len	status_code	status_msg	info_code	info_msg	tags	username	password	proxied	orig_fuids	orig_filenames	orig_mime_types	resp_fuids	resp_filenames	resp_mime_types
 #types	time	string	addr	port	addr	port	count	string	string	string	string	string	string	string	count	count	count	string	count	string	set[enum]	string	string	set[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]	vector[string]
-1700000020.374008	CRmE1y3QIW6Zmd10g1	192.168.0.25	1031	13.107.42.14	80	1	GET	portal.example.io	/index.html	-	1.1	Mozilla/5.0	-	0	681	200	OK	-	-	(empty)	-	-	-	-	-	-	FMw1Hl2jenMmwfVWk2	-	text/html
-1700000062.270202	C9CiIdZW2gfbCWDRa	192.168.0.29	1053	104.16.132.229	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1192	200	OK	-	-	(empty)	-	-	-	-	-	-	Fn485i6JXP8eiHGQ6	-	text/html
-1700000072.591736	CY0ivT2pTi5f04D5le	192.168.0.20	1058	140.82.121.4	80	1	POST	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	222	324	404	Not Found	-	-	(empty)	-	-	-	F0mCeI33TnNnJGMtri	-	-	Fghk5N2YUQAxw9mrS2	-	text/html
-1700000073.389331	CW0mZc4j6COdb84je	192.168.0.20	1061	142.250.72.14	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	140565	200	OK	-	-	(empty)	-	-	-	-	-	-	FuO1iJ2zQRbKeqN8z7	-	text/html
-1700000074.210516	CpU7nZ3kgdSdeBAQEh	192.168.0.20	1064	13.107.42.14	80	1	GET	portal.example.io	/	-	1.1	Mozilla/5.0	-	0	124	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FmUHY2EJqi3cYcrJj	-	text/html
-1700000088.803170	CKeH8k1r7924Dp36Zc	192.168.0.23	1076	140.82.121.4	80	1	GET	api.github.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	199	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FgPdCs12olDQlB5aTj	-	text/html
-1700000131.737742	Cbkur42qU0IGOhhEe4	192.168.0.21	55005	140.82.121.4	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	FxOMTY1MPfrD2RWPsk	-	text/plain
-1700000140.218035	CxWdVo1N4gIxcx7uU1	192.168.0.25	1094	152.199.19.161	80	1	GET	cdn.example.net	/index.html	-	1.1	Mozilla/5.0	-	0	7470	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FD4ShF1v6MgSyKMbyb	-	text/html
-1700000177.737474	CXgRXg2OMnb6JuYWz5	192.168.0.30	1164	140.82.121.4	80	1	POST	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	368	381	200	OK	-	-	(empty)	-	-	-	Fapo1E1FuYwEtSwNc4	-	-	F5UQAz3qRUObVXYfS3	-	text/html
-1700000185.337412	CsOv5B44RLA5iGNgrj	192.168.0.26	55008	104.16.132.229	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	FNyXID2QQ6TJBcRQhg	-	text/plain
-1700000188.019401	Cxo3xy2nFU2WpRABub	192.168.0.20	1200	140.82.121.4	80	1	POST	api.github.com	/index.html	-	1.1	Mozilla/5.0	-	4797	18351	200	OK	-	-	(empty)	-	-	-	FF6VGG3lVc8JwSsEF4	-	-	Fty0Jl4KvHDXRAbIz5	-	text/html
-1700000188.483095	CdYPsg17Pdm3B6deSi	192.168.0.22	1201	104.16.132.229	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	2051	200	OK	-	-	(empty)	-	-	-	-	-	-	Fb4UxN3Qkl37eEBtZ6	-	text/html
-1700000197.637850	CYXzJQ3mfU3UZutGi3	192.168.0.27	1209	104.16.132.229	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	647	200	OK	-	-	(empty)	-	-	-	-	-	-	FU74VjgzfGBT7SgSh	-	text/html
-1700000198.782690	C2SM1GJdEckQGjX31	192.168.0.22	1215	13.107.42.14	80	1	GET	portal.example.io	/	-	1.1	Mozilla/5.0	-	0	3587	200	OK	-	-	(empty)	-	-	-	-	-	-	FbllEw368scO6hkwVe	-	text/html
+1700000020.374713	CRmE1y3QIW6Zmd10g1	192.168.0.25	1031	198.51.100.50	80	1	GET	portal.example.net	/index.html	-	1.1	Mozilla/5.0	-	0	681	200	OK	-	-	(empty)	-	-	-	-	-	-	FkPkud4d0s5GXEANDa	-	text/html
+1700000062.271514	C9CiIdZW2gfbCWDRa	192.168.0.29	1053	198.51.100.30	80	1	GET	updates.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	1192	200	OK	-	-	(empty)	-	-	-	-	-	-	FfNNO3355qpQhk9zaa	-	text/html
+1700000072.590963	CY0ivT2pTi5f04D5le	192.168.0.20	1058	198.51.100.10	80	1	POST	api.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	222	324	404	Not Found	-	-	(empty)	-	-	-	FgbC8X2uOjCmclDeIj	-	-	FO9d4q2AAgqdJRfuT8	-	text/html
+1700000073.384492	CW0mZc4j6COdb84je	192.168.0.20	1061	198.51.100.40	80	1	GET	www.example.org	/api/v1/status	-	1.1	Mozilla/5.0	-	0	140565	200	OK	-	-	(empty)	-	-	-	-	-	-	FD5IAI2XoxLz4lWrid	-	text/html
+1700000074.211359	CpU7nZ3kgdSdeBAQEh	192.168.0.20	1064	198.51.100.50	80	1	GET	portal.example.net	/	-	1.1	Mozilla/5.0	-	0	124	404	Not Found	-	-	(empty)	-	-	-	-	-	-	F6PRia4Jhe7f2CHOgj	-	text/html
+1700000088.804820	CKeH8k1r7924Dp36Zc	192.168.0.23	1076	198.51.100.10	80	1	GET	api.example.com	/api/v1/status	-	1.1	Mozilla/5.0	-	0	199	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FqmcOt3pnGHzGveNv	-	text/html
+1700000131.737283	Cbkur42qU0IGOhhEe4	192.168.0.21	55005	198.51.100.10	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	F2PmtPbwahcZgVPbh	-	text/plain
+1700000140.217499	CxWdVo1N4gIxcx7uU1	192.168.0.25	1094	198.51.100.20	80	1	GET	cdn.example.net	/index.html	-	1.1	Mozilla/5.0	-	0	7470	404	Not Found	-	-	(empty)	-	-	-	-	-	-	FHtrt21KDvKP2r7Pgb	-	text/html
+1700000177.737976	CXgRXg2OMnb6JuYWz5	192.168.0.30	1164	198.51.100.10	80	1	POST	api.example.com	/index.html	-	1.1	Mozilla/5.0	-	368	381	200	OK	-	-	(empty)	-	-	-	F13NIb3ptpkb4QkV2d	-	-	FUyUpn2APCDm8F8HIj	-	text/html
+1700000185.338253	CsOv5B44RLA5iGNgrj	192.168.0.26	55008	198.51.100.30	80	1	GET	checkip.dyndns.org	/	-	1.1	Mozilla/5.0	-	0	50	200	OK	-	-	(empty)	-	-	-	-	-	-	F51Xtv3OXpoWNrnlqk	-	text/plain
+1700000188.016982	Cxo3xy2nFU2WpRABub	192.168.0.20	1200	198.51.100.10	80	1	POST	api.example.com	/index.html	-	1.1	Mozilla/5.0	-	4797	18351	200	OK	-	-	(empty)	-	-	-	Fk0IPS3QjX2fINbDw7	-	-	FKPLVxzsYBm22L3E6	-	text/html
+1700000188.486932	CdYPsg17Pdm3B6deSi	192.168.0.22	1201	198.51.100.30	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	2051	200	OK	-	-	(empty)	-	-	-	-	-	-	F4hXig2M45M5H07SMe	-	text/html
+1700000197.630604	CYXzJQ3mfU3UZutGi3	192.168.0.27	1209	198.51.100.30	80	1	GET	updates.example.com	/	-	1.1	Mozilla/5.0	-	0	647	200	OK	-	-	(empty)	-	-	-	-	-	-	FrpVwE46a5UjTgkZxj	-	text/html
+1700000198.778962	C2SM1GJdEckQGjX31	192.168.0.22	1215	198.51.100.50	80	1	GET	portal.example.net	/	-	1.1	Mozilla/5.0	-	0	3587	200	OK	-	-	(empty)	-	-	-	-	-	-	FYWeCi13Yn1p1w54Oe	-	text/html
 #close	0000-00-00-00-00-00

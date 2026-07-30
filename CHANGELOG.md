@@ -32,16 +32,17 @@
   Three further layers ship with it. **Field-level marking**: STIX-style selectors carrying an
   ICD 203 class, a NASA-STD-7009B pedigree level and a PAV derivation verb per field, with an
   aleatoric/epistemic split so only the detail that *could* be wrong is counted, and unmarked
-  fields failing safe to `fabricated`. The census this produces is the honest headline — of
-  sample 19's **1,221 network facts, 32 appear in a cited source**; sample 18's ratio is 3 of 174.
+  fields failing safe to `fabricated`. The census this produces is the honest headline: only a small
+  single-digit percentage of either capture's network facts appear in a cited source. The live
+  figures are in each sample's generated `CLAIMS.md` and are deliberately not restated here.
   **In-band provenance**: `compile/pcapng.py` writes the warrant into per-packet pcapng comments,
   so a capture forwarded without its manifest still names the claim licensing each flow and marks
   unlicensed ones `NONE-UNLICENSED`; Zeek derives byte-identical logs from it. **Pre-registration
   and scoring**: predictions carry a probability and a pre-declared baseline, and
   `warrant --score-key` reports a baseline log score with Brier and an exact Murphy
-  reliability/resolution/uncertainty decomposition. Sample 18 scores a mean **−172.4**, beating an
-  uninformed prior on 1 of 15 — those probabilities were reconstructed after the fact and the
-  answer key says so.
+  reliability/resolution/uncertainty decomposition. Sample 18 beats an uninformed prior on none of its
+  predictions — and those probabilities were reconstructed after the fact, which the answer key
+  and the generated manifest both state.
   One hole opened and closed during the work: the accounting checks alone were gameable, and a
   storyline about nothing passed with zero findings. A reconstruction now must have at least one
   sourced field and one claim that reaches the wire, and no verdict is reported without the
