@@ -34,6 +34,9 @@ _METRICS = [
     ("gates.realism.held_out_auc", "lower_better", 0.05, "realism: held-out AUC"),
     ("gates.detection.alert_js", "lower_better", 0.05, "detection: alert-JS divergence"),
     ("gates.detection.sig_coverage", "higher_better", 0.05, "detection: signature coverage"),
+    ("gates.correspondence.unlicensed_flows", "lower_better", 0, "correspondence: unlicensed flows"),
+    ("gates.correspondence.claims_unaccounted", "lower_better", 0,
+     "correspondence: unaccounted claims"),
 ]
 
 
@@ -110,6 +113,31 @@ def _detection_gate(d) -> dict:
     }
 
 
+def _correspondence_gate(w) -> dict:
+    """Gate 4 — does the capture match the incident it claims to depict?
+
+    Only meaningful for a reconstruction: samples that depict a technique class have no
+    external referent to correspond to. A green validity gate says the bytes are
+    well-formed, not that the storyline is warranted; this is the only gate that can speak
+    to the second question, and it is the one sample 18 would have failed.
+    """
+    c = w.census
+    return {
+        "verdict": "pass" if w.ok else "fail",
+        "ok": bool(w.ok),
+        "flows": c.get("flows", 0),
+        "claims": c.get("claims", 0),
+        "claims_rendered": c.get("claims_rendered", 0),
+        "claims_unmodelled": c.get("claims_unmodelled", 0),
+        "claims_unaccounted": c.get("claims_unaccounted", 0),
+        "unlicensed_flows": c.get("flow_stance_mix", {}).get("UNLICENSED", 0),
+        "flow_stance_mix": c.get("flow_stance_mix", {}),
+        "failures": len(w.fails),
+        "warnings": len(w.warns),
+        "declared_gaps": len(w.gaps),
+    }
+
+
 def _honest_gaps(gates: dict) -> list:
     """Name every gap in plain language — the scorecard must not flatter the generator."""
     gaps = []
@@ -145,11 +173,31 @@ def _honest_gaps(gates: dict) -> list:
             f"Validity: only {vz['matched_flows']}/{vz['total_flows']} flows reproduce under "
             f"real Zeek/tshark — the capture is not yet fully faithful."
         )
+    cp = gates.get("correspondence")
+    if cp and cp["verdict"] != "pass":
+        bits = []
+        if cp["unlicensed_flows"]:
+            bits.append(f"{cp['unlicensed_flows']} flow(s) rendered with no source claim "
+                        f"licensing them")
+        if cp["claims_unaccounted"]:
+            bits.append(f"{cp['claims_unaccounted']} of {cp['claims']} source claims neither "
+                        f"rendered nor declared unmodelled")
+        gaps.append(
+            "Correspondence: " + ("; ".join(bits) if bits else
+                                  f"{cp['failures']} warrant failure(s)")
+            + " — the capture asserts more, or less, than its sources support."
+        )
     return gaps
 
 
-def build_scorecard(*, meta: dict, validity=None, realism=None, detection=None) -> dict:
-    """Fold the gate reports into one versioned dict. Any gate may be None (not run)."""
+def build_scorecard(*, meta: dict, validity=None, realism=None, detection=None,
+                    correspondence=None) -> dict:
+    """Fold the gate reports into one versioned dict. Any gate may be None (not run).
+
+    ``correspondence`` is a ``warrant.WarrantReport`` and applies only to reconstructions —
+    for a capture depicting a technique class there is no external referent, and the gate
+    is correctly absent rather than vacuously passing.
+    """
     gates: dict = {}
     if validity is not None:
         gates["validity"] = _validity_gate(validity)
@@ -157,6 +205,8 @@ def build_scorecard(*, meta: dict, validity=None, realism=None, detection=None) 
         gates["realism"] = _realism_gate(realism)
     if detection is not None:
         gates["detection"] = _detection_gate(detection)
+    if correspondence is not None:
+        gates["correspondence"] = _correspondence_gate(correspondence)
 
     verdicts = {name: g["verdict"] for name, g in gates.items()}
     if not gates:

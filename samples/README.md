@@ -1,7 +1,11 @@
 # Sample captures — a tour of what PacketForge renders
 
 Each folder holds a generated `capture.pcap`, the **real Zeek 8.2 logs** it produces (`zeek/`),
-a short README, and — for attacks — a `GROUND_TRUTH` answer key. Every capture is deterministic
+a short README, and an answer key. For executed attacks that key is `GROUND_TRUTH.*`. For the two
+reconstructions of a real incident (18 and 19) there is no ground truth — nobody ran it — so they
+ship a `RECONSTRUCTION.*` narrative plus a generated `CLAIMS.*` warranting layer saying which
+source claim licenses each flow, what is deliberately not modelled, and how much of the capture
+appears in a cited source at all (`packetforge warrant`). Every capture is deterministic
 and opens cleanly in Wireshark. Regenerate the whole gallery with `scripts/make-samples.sh`.
 
 ### Attack storylines — ATT&CK-mapped kill chains
