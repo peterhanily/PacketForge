@@ -30,8 +30,23 @@ zeeklogs/
 # ET Open ruleset (fetched, not vendored — see docs)
 detection/etopen/
 
-# Keep the committed sample captures, their Zeek logs, and ground truth
-!samples/**
+# Keep the committed sample captures, their Zeek logs and manifests — but narrowly. A blanket
+# `!samples/**` re-enabled EVERY ignored pattern inside samples/, which is the one directory
+# where a real capture would be staged: samples/real-capture.pcap, samples/.DS_Store and
+# samples/secrets.env were all trackable. Negations first, then deny rules, which win.
+!samples/**/
+!samples/**/*.pcap
+!samples/**/*.pcapng
+!samples/**/*.log
+!samples/**/*.md
+!samples/**/*.json
+samples/**/real*.pcap
+samples/**/.DS_Store
+samples/**/*.env
+samples/**/.env
+samples/**/*id_rsa*
+samples/**/*.key
+samples/**/*.pem
 
 # Real captured traffic from the local realism-probe harness — never committed
 /realcap/

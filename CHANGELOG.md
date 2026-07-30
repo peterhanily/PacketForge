@@ -3,6 +3,50 @@
 ## Unreleased
 
 ### Added
+- **Gate 4 — correspondence** (`warrant.py`, `packetforge warrant`). The three existing gates all
+  ask *is this like real traffic?*; none could ask *is this like the incident it claims to depict?*
+  A capture can be byte-perfect under Zeek, indistinguishable under a C2ST, and still be a
+  fabrication — sample 18 was all three. The new gate checks a rendered storyline against a
+  **claim set** built from named sources, in both directions: every flow must be licensed by a
+  claim (or declared illustrative), and every claim must be rendered (or declared unmodelled with
+  a reason). Plus magnitude floors measured against the artifact, a refusal to render as fact
+  anything a source explicitly left open, and citation asymmetry — an `observed` claim must cite a
+  source and a quoted span, an `assumption` must not. Units no capture can testify to (action
+  counts, cluster counts) are named as such rather than silently converted into flow counts.
+  A **declared gap suppresses its own magnitude check**, deliberately: the failure mode being
+  prevented is *silent* under-rendering, not declared under-rendering.
+  Vocabulary is adopted rather than invented — ICD 203 analytic tradecraft for claim stance, STIX
+  `confidence` 0–100 stored as the number with the words rendered from it, source SHA-256 so a
+  later edit to a cited post is detectable.
+  Measured on the two shipped reconstructions: **sample 18 fails on every class the gate has** —
+  flows with no source licensing them, claims neither rendered nor declared, violated magnitude
+  floors, and a flow asserting something its source called unresolved — every one an error the
+  technical post-mortem later confirmed, catchable from the sources that capture already had.
+  (The live counts are in the generated manifests, deliberately not copied into prose.) **Sample 19
+  passes** with 7 declared gaps. `scorecard.py` gained `gates.correspondence` with two CI
+  regression metrics and an `honest_gaps` line; `build_scorecard` accepts it and CI runs the gate
+  directly, though the `realism-scorecard` CLI does not yet pass one because it has no claim set. Mode-R samples now ship a generated
+  `CLAIMS.md`/`CLAIMS.json` beside a renamed `RECONSTRUCTION.md` — because a reconstruction of
+  someone else's incident is not ground truth, and the old filename said it was. No rendered byte
+  changes; the gallery is byte-identical.
+  Three further layers ship with it. **Field-level marking**: STIX-style selectors carrying an
+  ICD 203 class, a NASA-STD-7009B pedigree level and a PAV derivation verb per field, with an
+  aleatoric/epistemic split so only the detail that *could* be wrong is counted, and unmarked
+  fields failing safe to `fabricated`. The census this produces is the honest headline: only a small
+  single-digit percentage of either capture's network facts appear in a cited source. The live
+  figures are in each sample's generated `CLAIMS.md` and are deliberately not restated here.
+  **In-band provenance**: `compile/pcapng.py` writes the warrant into per-packet pcapng comments,
+  so a capture forwarded without its manifest still names the claim licensing each flow and marks
+  unlicensed ones `NONE-UNLICENSED`; Zeek derives byte-identical logs from it. **Pre-registration
+  and scoring**: predictions carry a probability and a pre-declared baseline, and
+  `warrant --score-key` reports a baseline log score with Brier and an exact Murphy
+  reliability/resolution/uncertainty decomposition. Sample 18 beats an uninformed prior on none of its
+  predictions — and those probabilities were reconstructed after the fact, which the answer key
+  and the generated manifest both state.
+  One hole opened and closed during the work: the accounting checks alone were gameable, and a
+  storyline about nothing passed with zero findings. A reconstruction now must have at least one
+  sourced field and one claim that reaches the wire, and no verdict is reported without the
+  sourced fraction beside it. See [`docs/warranting-plan.md`](docs/warranting-plan.md).
 - **A synthetic capture, graded against the ground truth that followed.** Sample 18 reconstructed
   the July 2026 agent intrusion from two short disclosure posts that published no network
   indicators. Four days later the full technical post-mortem appeared, turning that artifact into a

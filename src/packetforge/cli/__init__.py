@@ -209,6 +209,20 @@ def _build_parser() -> argparse.ArgumentParser:
     cv.add_argument("--baseline", default=None, help="a prior scorecard JSON to diff against")
     cv.add_argument("--save", default=None, help="write this run's scorecard JSON here")
 
+    wr = sub.add_parser("warrant",
+                        help="Gate 4: check a storyline against the claim set that licenses it")
+    wr.add_argument("--claims", required=True, help="a claim-set YAML (see warrant.py)")
+    wr.add_argument("--flows", required=True, help="the storyline FlowSpec the claims describe")
+    wr.add_argument("--manifest-md", default=None, help="write the generated CLAIMS.md here")
+    wr.add_argument("--manifest-json", default=None, help="write the generated CLAIMS.json here")
+    wr.add_argument("--pcapng", default=None, metavar="OUT",
+                    help="also render the storyline to pcapng with the warrant carried in-band "
+                         "as per-packet comments, so it survives detachment from the manifest")
+    wr.add_argument("--score-key", default=None, metavar="ANSWERS",
+                    help="score the claim set's pre-registered predictions against an answer "
+                         "key written after a later source landed")
+    wr.add_argument("--quiet", action="store_true", help="print only the verdict line")
+
     sub.add_parser("list-envs", help="list available network environments")
     sub.add_parser("list-attacks", help="list available attack scenarios")
     sub.add_parser("list-evasions", help="list available evasion modifiers")
@@ -493,6 +507,45 @@ def _dispatch(args) -> int:
         rep = validation_trinity(Path(args.real).resolve(), Path(args.synthetic).resolve())
         print(rep.render())
         return 0
+
+    if args.cmd == "warrant":
+        from packetforge.warrant import check, load_claimset, write_manifest
+        cs = load_claimset(args.claims)
+        rep = check(cs, load_flowset(args.flows).flows)
+        if not args.quiet:
+            print(f"\nGATE 4 — correspondence  ({cs.subject}, cutoff {cs.cutoff})")
+            for k, v in rep.census.items():
+                print(f"  {k:24} {v}")
+            print()
+            for level in ("FAIL", "WARN", "INFO"):
+                hits = [f for f in rep.findings if f.level == level]
+                if not hits:
+                    continue
+                print(f"  --- {level} ({len(hits)}) ---")
+                for f in hits:
+                    print(f"  [{f.code}] {f.detail}")
+                print()
+        scored = None
+        if args.score_key:
+            from packetforge.warrant import load_answer_key, score
+            scored = score(cs, load_answer_key(args.score_key))
+        if args.manifest_md:
+            write_manifest(cs, rep, args.manifest_md, args.manifest_json, score_result=scored)
+            print(f"wrote {args.manifest_md}" + (f" + {args.manifest_json}"
+                                                 if args.manifest_json else ""))
+        if scored is not None:
+            from packetforge.warrant import render_score
+            print()
+            print(render_score(scored))
+            print()
+        if args.pcapng:
+            from packetforge.warrant import write_provenance_pcapng
+            n = write_provenance_pcapng(cs, load_flowset(args.flows), rep, args.pcapng)
+            print(f"wrote {args.pcapng} — {n} packets, provenance carried in-band")
+        print(f"  VERDICT: {'PASS' if rep.ok else 'FAIL'} "
+              f"({len(rep.fails)} fail, {len(rep.warns)} warn, {len(rep.gaps)} declared gaps) "
+              f"— {rep.census.get('sourced_fraction', 0.0):.1%} of network facts are sourced")
+        return 0 if rep.ok else 1
 
     if args.cmd == "suricata-verify":
         if not validators_available():

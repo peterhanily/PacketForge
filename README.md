@@ -4,12 +4,26 @@ Deterministic, **Zeek-validated** synthetic PCAPs for threat-hunting training �
 consistent with the [EvidenceForge](https://github.com/Cisco-Talos/EvidenceForge)
 incident model.
 
-> **Temporary / experimental repository.** PacketForge was built to explore the idea in
-> **[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332)** —
-> whether realistic, consistent synthetic PCAPs are feasible alongside EvidenceForge's
-> synthetic logs. It's a proof of concept shared for discussion, and may be taken down or
-> restructured. With thanks to **David Bianco** and the **EvidenceForge** project (Cisco
-> Talos) for the canonical incident model and the #332 discussion that prompted this.
+> **Temporary / experimental repository.** PacketForge exists only because of
+> **[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332)** — it
+> was built to answer the question raised there: whether realistic, consistent synthetic PCAPs
+> are feasible alongside EvidenceForge's synthetic logs. It is a proof of concept shared for
+> that discussion, and may be taken down or restructured. With thanks to **David Bianco** and
+> the **EvidenceForge** project (Cisco Talos) for the canonical incident model and the #332
+> discussion that prompted this.
+>
+> **Independent and unaffiliated.** PacketForge is a personal project. It is **not** affiliated
+> with, endorsed by, sponsored by, or authorised by Cisco, Cisco Talos, the EvidenceForge
+> maintainers, Hugging Face, OpenAI, JFrog, Modal, Tailscale or any other organisation named
+> anywhere in this repository. Company, product and service names are used only to identify
+> what a sample depicts, and are the property of their respective owners.
+>
+> **Everything here is synthetic.** No capture in this repository was taken from a real network.
+> No address, domain, hash or timestamp in it identifies anything real, and none should be added
+> to a blocklist, a detection rule, or a threat-intelligence platform. Samples 18 and 19
+> reconstruct a real, publicly disclosed incident from its participants' own published accounts —
+> every packet in them is fabricated, and each ships a manifest saying which parts rest on a
+> cited source and which were invented. See [`SECURITY.md`](SECURITY.md).
 
 The premise is a test, not a claim: render packets from the same event that produces
 the logs, then run **real Zeek** over the result and require its output to match the

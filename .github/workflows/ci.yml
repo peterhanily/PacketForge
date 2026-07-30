@@ -1,5 +1,9 @@
 name: CI
 
+# Least privilege: this workflow only reads the tree and runs tests.
+permissions:
+  contents: read
+
 # The gate isn't just unit tests — it's real Zeek + tshark over freshly rendered
 # captures, so "consistent with the logs" is checked on every change.
 on:
@@ -44,6 +48,19 @@ jobs:
 
       - name: Lint
         run: ruff check src/ tests/
+
+      - name: Gate 4 — correspondence on the shipped reconstructions
+        run: |
+          # sample 19 must pass; sample 18 must FAIL (it is kept as the "before" artifact,
+          # and a pass would mean it had been quietly edited)
+          PYTHONPATH=src python -m packetforge warrant --quiet \
+            --claims flows/openai-hf-exploitgym-v2.claims.yaml \
+            --flows flows/openai-hf-exploitgym-v2.yaml
+          if PYTHONPATH=src python -m packetforge warrant --quiet \
+               --claims flows/openai-hf-exploitgym.claims.yaml \
+               --flows flows/openai-hf-exploitgym.yaml; then
+            echo "sample 18 unexpectedly PASSES the correspondence gate" >&2; exit 1
+          fi
 
       - name: Tests (unit + real-Zeek round-trip)
         run: PYTHONPATH=src python -m pytest -q

@@ -44,13 +44,17 @@ _TCP_PORTS = {"http": 80, "tls": 443, "ssh": 22, "ftp": 21, "smtp": 25, "smb": 4
               "kerberos": 88, "ldap": 389, "rdp": 3389, "modbus": 502, "s7": 102,
               "dnp3": 20000, "enip": 44818, "mysql": 3306, "mssql": 1433, "rpc": 135}
 
+# Benign ambient destinations. Addresses are RFC 5737 and names are RFC 2606 reserved, so
+# nothing here can be confused with a real host: earlier revisions paired live corporate
+# addresses (GitHub, Google, Fastly) with invented names, and .io/.co are registrable rather
+# than reserved.
 _EXTERNAL = [
-    ("140.82.121.4", "api.github.com"), ("152.199.19.161", "cdn.example.net"),
-    ("104.16.132.229", "updates.example.com"), ("142.250.72.14", "www.example.org"),
-    ("13.107.42.14", "portal.example.io"), ("151.101.1.140", "assets.example.co"),
+    ("198.51.100.10", "api.example.com"), ("198.51.100.20", "cdn.example.net"),
+    ("198.51.100.30", "updates.example.com"), ("198.51.100.40", "www.example.org"),
+    ("198.51.100.50", "portal.example.net"), ("198.51.100.60", "assets.example.org"),
 ]
 _DNS_NAMES = ["www.example.com", "api.example.net", "cdn.example.org", "mail.corp.local",
-              "fileserver.corp.local", "dc01.corp.local", "updates.example.io"]
+              "fileserver.corp.local", "dc01.corp.local", "updates.example.net"]
 
 
 def _seeded(env_name: str, seed: int) -> random.Random:
