@@ -203,7 +203,7 @@ import base64  # noqa: E402
 # RFC 5737 documentation ranges. Nothing here may draw from allocated space: a synthetic
 # capture that labels a real organisation's address as C2 puts that address into a
 # machine-readable IOC file, and an earlier version of this function emitted
-# 170.130.183.204 (Eonix Corporation) as `c2_ip` in two shipped samples.
+# a real hosting provider's allocated address as `c2_ip` in two shipped samples.
 _DOC_NETS = ("192.0.2", "198.51.100", "203.0.113")
 
 # The only real addresses any sample may contain, each because its IDENTITY is the finding and
