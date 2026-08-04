@@ -1,169 +1,235 @@
 # PacketForge
 
-Deterministic, **Zeek-validated** synthetic PCAPs for threat-hunting training —
-consistent with the [EvidenceForge](https://github.com/Cisco-Talos/EvidenceForge)
-incident model.
+**Synthetic packet captures with an answer key, for testing detections the way you test code.**
 
-> **Temporary / experimental repository.** PacketForge exists only because of
-> **[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332)** — it
-> was built to answer the question raised there: whether realistic, consistent synthetic PCAPs
-> are feasible alongside EvidenceForge's synthetic logs. It is a proof of concept shared for
-> that discussion, and may be taken down or restructured. With thanks to **David Bianco** and
-> the **EvidenceForge** project (Cisco Talos) for the canonical incident model and the #332
-> discussion that prompted this.
->
-> **Independent and unaffiliated.** PacketForge is a personal project. It is **not** affiliated
-> with, endorsed by, sponsored by, or authorised by Cisco, Cisco Talos, the EvidenceForge
-> maintainers, Hugging Face, OpenAI, JFrog, Modal, Tailscale or any other organisation named
-> anywhere in this repository. Company, product and service names are used only to identify
-> what a sample depicts, and are the property of their respective owners.
->
-> **Everything here is synthetic.** No capture in this repository was taken from a real network.
-> No address, domain, hash or timestamp in it identifies anything real, and none should be added
-> to a blocklist, a detection rule, or a threat-intelligence platform. Samples 18 and 19
-> reconstruct a real, publicly disclosed incident from its participants' own published accounts —
-> every packet in them is fabricated, and each ships a manifest saying which parts rest on a
-> cited source and which were invented. See [`SECURITY.md`](SECURITY.md).
+[![CI](https://github.com/peterhanily/PacketForge/actions/workflows/ci.yml/badge.svg)](https://github.com/peterhanily/PacketForge/actions/workflows/ci.yml)
 
-The premise is a test, not a claim: render packets from the same event that produces
-the logs, then run **real Zeek** over the result and require its output to match the
-logs EvidenceForge already emits. If Zeek agrees, the capture is valid and consistent
-by construction. If it doesn't, it's a bug. "Realistic" stops being a matter of taste
-and becomes a pass/fail gate.
+PacketForge renders the packets an attack would have put on the wire, weaves them into ordinary
+background traffic for a network you choose, and hands you three things: the capture, the exact
+Zeek logs it produces, and a labelled list of which flows were the attack. Same inputs, same
+bytes, every time.
 
-```
+> [!IMPORTANT]
+> Everything here is synthetic and inert. Nothing in a capture can execute, and no address or
+> domain in one points at anything real. See [`SECURITY.md`](SECURITY.md).
+
+## Make a capture
+
+```console
 $ packetforge scenario --env office --attack -o incident.pcap
 wrote incident.pcap: 214 flows (office, link=ethernet)
 wrote incident.GROUND_TRUTH.md — 5 ATT&CK stages
 
-$ packetforge eval incident.pcap
-Realism score: 100/100
-  OK parseability        30/30  zeek weird/reporter=0, tshark errors/warnings=0
-  OK timing_burstiness   25/25  inter-flow gap stdev/mean=2.89 (>=1.5 bursty)
-  OK mac_vendor          15/15  1 distinct OUI(s), locally_administered=False
-  OK byte_plausibility   15/15  0/117 service conns carry 0 bytes
-  OK ttl_plausibility    15/15  observed TTLs=[64, 128]
-
 $ zeek -r incident.pcap && ls *.log
-conn.log dns.log http.log ssl.log smtp.log ldap.log smb_mapping.log ...
+conn.log        kerberos.log       smb_mapping.log
+dhcp.log        ldap_search.log    smtp.log
+dns.log         ldap.log           ssh.log
+files.log       ntp.log            ssl.log
+http.log        packet_filter.log  x509.log
 ```
 
-`incident.pcap` opens in Wireshark; `incident.GROUND_TRUTH.md` is the answer key. (`eval`'s
-score is a heuristic floor — see [How realistic is it, really?](#how-realistic-is-it-really) for
-the honest C2ST verdict.)
+An office network going about its day, with a five-stage intrusion running through it.
+`incident.GROUND_TRUTH.md` names those five flows, the ATT&CK technique each one maps to, and the
+signal each should trip. The capture opens in Wireshark, and every log above was written by real
+Zeek reading the capture, not by PacketForge asserting anything.
 
-## What's in it
+Run it again and you get the same file, byte for byte:
 
-- **24 protocols, faithfully rendered** and Zeek-validated: DNS, HTTP, TLS 1.2/1.3
-  (controllable JA3/JA4, GREASE, configurable ALPN), **QUIC-era encrypted DNS (DoH/DoT)**,
-  SMTP, SSH, FTP, POP3, IMAP, IRC, SIP, DHCP, NTP, SNMP, RADIUS, **LDAP, SMB2/3, Kerberos,
-  DCE-RPC** (AD), **LLMNR / NBT-NS / mDNS** (name resolution), **Modbus/TCP** (OT), ICMP —
-  plus honest opaque shells for protocols without a full renderer yet. All over **IPv4 or
-  IPv6** (dual-stack).
-- **Network-tap environments** — corporate `office`, `home`, `ot`, and **cloud**:
-  `aws-vpc`, `azure-vnet`, `gcp-vpc`, `oci-vcn`, and a Kubernetes `k8s` overlay — each with a
-  real address plan, resolver, vendor MAC OUI, ambient service mix, and capture link type
-  (Ethernet SPAN/TAP vs a host `tcpdump`'s cooked Linux SLL).
-- **Multi-vantage & overlay capture** — render an incident once, then project it through the
-  sensors you actually run: an edge TAP (source-NAT + router hop), a core SPAN (802.1Q VLAN),
-  a host `tcpdump`, or a **VXLAN traffic mirror** (AWS VPC Traffic Mirroring / GCP Packet
-  Mirroring / K8s CNI overlay, which Zeek decapsulates). Answers "does my detection fire
-  *given where my sensors are*." The mirror honors the real cloud invariant that **link-local
-  169.254/16 is excluded from mirroring** — IMDS traffic appears only on an on-host vantage.
-  Plus **IP fragmentation** as a reassembly / IDS-evasion test.
-- **ATT&CK attack library** — phishing kill chains, Kerberoasting/AS-REP roasting, **DCSync**
-  (drsuapi `DRSGetNCChanges` from a non-DC host, matched to a real Empire capture), ransomware,
-  DNS/DoH tunnelling, an inert **BZAR lateral-movement pack** (remote service creation,
-  scheduled task, WMI, admin-share, discovery, PsExec co-detect), **LLMNR/NBT-NS poisoning**
-  (Responder-style AiTM, with an inert NTLMSSP capture Zeek reads into `ntlm.log`), and
-  **cloud** attacks — IMDS credential theft (the Capital One
-  shape), cloud-storage exfil, Kubernetes cluster lateral movement. Each carries a
-  `GROUND_TRUTH.md`/`.json` answer key. `packetforge list-attacks` enumerates them.
-- **Inert by construction** — malicious flows reproduce the detection *signal*, never the
-  offensive *capability* (no service binary, command, shellcode, or malware); CI-enforced.
-  See [`docs/inert-by-construction.md`](docs/inert-by-construction.md).
-- **Detection-CI bundles** (`packetforge bundle`) — the pcap ships with the exact Zeek logs it
-  produces, the ATT&CK ground truth, and a consistency manifest: grade a rule against the
-  bundle without re-deriving anything.
-- **A blind-panel evaluator** (`packetforge eval`) — a heuristic floor (parseability, timing,
-  MAC/TTL plausibility), not the realism verdict. The real question — *can a classifier tell
-  ours from real?* — is measured by the C2ST audit below, which is honest about where it can.
+```console
+$ packetforge scenario --env office --attack -o again.pcap
+$ shasum -a 256 incident.pcap again.pcap
+3a73941d159ef04d83d7c1747c724f17aa2ac25fe8f535a80b42b4e2c6f9e3ee  incident.pcap
+3a73941d159ef04d83d7c1747c724f17aa2ac25fe8f535a80b42b4e2c6f9e3ee  again.pcap
+```
 
-## Try it
+That is the property a test fixture needs and a hand-built capture cannot offer.
+
+## Gate a rule in CI
+
+A fixture renders its attack twice: once with the intrusion, and once from the same seed with no
+intrusion at all. A rule has to fire on the first and stay quiet on the second.
+
+```python
+from packetforge.detection_ci import packetforge_fixture
+
+MY_RULES = "rules/ad.rules"
+
+def test_kerberoast_rule():
+    fx = packetforge_fixture("kerberoasting", env="office", seed=7)
+    assert fx.fires(MY_RULES)            # it catches the technique
+    assert fx.quiet_on_benign(MY_RULES)  # and not the ordinary AD traffic around it
+```
+
+```console
+$ pytest tests/detections -q
+1 passed in 2.9s
+```
+
+The rendered fixture also carries the Zeek logs, so log-based rules (Sigma, Splunk, Elastic) grade
+against `conn.log` and `kerberos.log` the same way. Full walkthrough, including export to
+[`suricata-verify`](https://github.com/OISF/suricata-verify) and a GitHub Actions job:
+[`docs/detection-ci.md`](docs/detection-ci.md).
+
+## Install
 
 ```bash
-python -m venv .venv && .venv/bin/pip install scapy pydantic pyyaml cryptography
-export PYTHONPATH=src
-# a full office intrusion + answer key:
-.venv/bin/python -m packetforge scenario --env office --attack -o incident.pcap
-# score it (needs zeek + tshark on PATH):
-.venv/bin/python -m packetforge eval incident.pcap
-# a visual forensic report:
-.venv/bin/python -m packetforge report incident.pcap -o incident.html
-
-# a cloud attack — AWS instance-metadata credential theft (the Capital One shape):
-.venv/bin/python -m packetforge scenario --env aws-vpc --attack imds-ssrf -o imds.pcap
-# the same incident through three sensors (edge TAP / core SPAN / host tcpdump):
-.venv/bin/python -m packetforge scenario --env office --attack psexec-lateral --vantages -o inc.pcap
-# a self-contained detection-CI bundle: pcap + its Zeek logs + ground truth + a consistency manifest:
-.venv/bin/python -m packetforge bundle --env office --attack ransomware -o ransomware-bundle/
+pip install git+https://github.com/peterhanily/PacketForge
 ```
 
-**The whole story in one run** (~25s; needs zeek+tshark, suricata for detection):
+Python 3.9 or newer. Generating captures needs nothing else.
+
+Validating them needs tools PacketForge does not bundle, because the point is that somebody
+else's parser agrees. [Zeek](https://zeek.org) and [tshark](https://tshark.dev) run the round-trip
+gate, [Suricata](https://suricata.io) runs the detection commands, and the realism audit needs the
+`realism` extra:
 
 ```bash
-scripts/demo.sh
+pip install "packetforge[realism] @ git+https://github.com/peterhanily/PacketForge"
 ```
 
-It generates a Kerberoasting-in-benign-AD capture and walks the full arc: real Zeek
-parses it clean, a detection catches the RC4 TTP and stays silent on benign AES auth,
-the same rule measurably weakens under **domain-fronting**, an ATT&CK **coverage matrix**
-and **Sigma-over-Zeek** score it, five independent tools (Zeek/Suricata/tshark/p0f/pyja3)
-agree it's real, and it **transfers** to a real capture.
+Anything missing is skipped and reported as skipped, never faked.
 
-Detection-lab commands: `detect`, `coverage`, `fp-benchmark`, `sigma`, `robustness`,
-`corpus-build`/`corpus-verify` (see [`detection/README.md`](detection/README.md));
-cross-validation: `crossval`, `transfer-proof` (see
-[`docs/cross-validation.md`](docs/cross-validation.md)). `list-attacks` / `list-evasions`
-enumerate the library. A tour of annotated captures with ground truth lives in
-[`samples/`](samples/).
+To work on it:
 
-## How it holds up on real data
+```bash
+git clone https://github.com/peterhanily/PacketForge && cd PacketForge
+pip install -e '.[dev,realism]'
+pytest -q
+```
 
-`packetforge ef-roundtrip <evidenceforge_output>` ingests a real EvidenceForge run,
-renders a pcap, and diffs our Zeek against EF's own logs. On the branch-office
-scenario (all ~6,500 flows): clean capture, proto/service ~100%, DNS/HTTP/TLS IOC
-fields 100%, conn_state 99%, exact byte counts for analyzer-free flows —
-[`docs/DESIGN.md`](docs/DESIGN.md) §11.
+## Why the labels can be trusted
 
-## How realistic is it, really?
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/consistency-dark.svg">
+  <img alt="One incident is rendered twice: as packets, which real Zeek reads back into logs, and as the logs the same event should produce. The two sets of logs must match field for field." src="docs/img/consistency.svg" width="880">
+</picture>
 
-Two different claims, kept separate on purpose:
+Two things come out of one description of an incident: the packets, and the log rows that incident
+should produce. Neither is derived from the other, so they cannot drift apart on a port, a
+hostname or a byte count. Then Zeek reads the capture back, and its logs are compared against the
+expected rows, field by field.
 
-- **Consistency — proven.** Packets and logs derive from one event and real Zeek reproduces
-  the declared fields; the round-trip is a pass/fail gate. As a **consistency / detection-CI
-  harness**, that's the solid, load-bearing use case.
-- **Indistinguishable-from-real — measured against a real-vs-real floor.** `packetforge
-  realism-audit` runs a cross-validated **C2ST** (a gradient-boosted adversary) against real
-  captures. The honest question isn't "does synth score 0.5?" — it never will, because *two
-  different real captures* already score ~0.98 (different network, era, device mix). It's
-  "is synth-vs-real worse than the real-vs-real floor?" Scored with
-  [`scripts/baseline_panel.py`](scripts/baseline_panel.py) over a panel of public real captures
-  (tcpreplay smallFlows/bigFlows, the Ultimate PCAP, IoT-23 benign): the real-vs-real floor is
-  **~0.998** across 10 pairs, and PacketForge's ambient sits at **~0.999 — about +0.002 above
-  the floor**, i.e. as separable from real as two real captures are from each other. Caveat kept
-  in view: the C2ST is *near-saturated* at this feature resolution, so the sharper remaining signal
-  is **within-capture heterogeneity** — real captures vary more across their own timespan than ours
-  do. Method, dataset panel and how to reproduce: [`docs/realism-baselining.md`](docs/realism-baselining.md).
+Any difference is a bug rather than a matter of taste. The check runs on every commit, over
+freshly rendered captures, against real Zeek, tshark and Suricata:
 
-So: a consistency/CI harness whose ambient realism now lands at the real-vs-real floor on
-flow+fingerprint features, with the honest residual (within-capture variation, and cloud — no
-real cloud pcap exists to validate against yet; see the capture kit) called out rather than hidden.
+```console
+$ packetforge validate flows/c2_beacon.yaml
+PASS  (83 packets, 6/6 flows matched)
+  zeek weird=0 reporter=0  tshark errors=0 warnings=0
+```
 
-## Status
+## How the claims are graded
 
-Working and growing. The full current capability map — protocols, environments, attacks, and
-capture modes — is in [`docs/capabilities.md`](docs/capabilities.md). Design and rationale in
-[`docs/DESIGN.md`](docs/DESIGN.md); roadmap in
-[`docs/ROADMAP.md`](docs/ROADMAP.md). MIT-licensed, to keep
-a future merge into EvidenceForge frictionless.
+Four questions, four commands, four published answers. Three pass. The fourth fails on a capture
+that still ships.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/gates-dark.svg">
+  <img alt="Gates one to three ask whether a capture looks like real traffic: validity, realism and detection behaviour. Gate four asks whether it is faithful to the incident it claims to depict." src="docs/img/gates.svg" width="880">
+</picture>
+
+Gates 1 to 3 are all versions of one question, *is this like real traffic*, and the answers are in
+[`docs/validation.md`](docs/validation.md): captures parse clean, ambient traffic
+sits about as far from a real capture as two real captures sit from each other, and detections
+behave the same way on both sides.
+
+Gate 4 asks something the first three cannot. Two of the shipped samples reconstruct a real,
+publicly disclosed incident from its participants' own write-ups, and for those there is no ground
+truth, because nobody ran it. `packetforge warrant` checks each rendered flow against the source
+claim that licenses it, and marks every field as observed, judgement or fabricated.
+
+Sample 18 was built from two disclosure posts that published no network indicators at all. Four
+days later a full technical post-mortem landed. Scored against it, the capture got one technique
+right, two roughly right, four wrong, and missed eleven. It still ships, unchanged, and CI asserts
+that it still fails Gate 4, because that is what it is evidence for: a capture can pass every
+mechanical check and still be a fabrication.
+[`docs/exploitgym-postmortem-delta.md`](docs/exploitgym-postmortem-delta.md) is the scoring;
+[`docs/correspondence.md`](docs/correspondence.md) is how Gate 4 works.
+
+## What it renders
+
+| Surface | What ships |
+|---|---|
+| **9 environments** | `office` `home` `ot` `aws-vpc` `azure-vnet` `gcp-vpc` `oci-vcn` `cloud` `k8s`. Each fixes the address plan, resolver, vendor MAC prefixes, host OS mix, ambient service mix and capture link type. |
+| **26 attacks** | Kerberoasting, AS-REP roasting, DCSync, LLMNR poisoning, the BZAR lateral-movement pack, ransomware, DNS and DoH tunnelling, cloud metadata credential theft, Kubernetes lateral movement, and more. Each carries its ATT&CK technique and its expected signal. |
+| **23 protocols** | Rendered faithfully enough that real Zeek reads the fields back into its own logs. Across the shipped samples that is 21 distinct Zeek log types, from `conn.log` to `kerberos.log`, `dce_rpc.log`, `ntlm.log` and `modbus.log`. |
+| **4 capture modes** | The same incident seen from an edge TAP, a core SPAN, a host `tcpdump`, or a cloud traffic mirror. Plus IPv4 fragmentation, and a `realistic` texture that adds jitter, retransmits and duplicate ACKs. |
+| **5 evasions** | Domain fronting, JA3 rotation, port hopping, slow-and-low, DNS label depth. `packetforge robustness` measures what each one costs a rule. |
+
+`packetforge list-envs`, `list-attacks` and `list-evasions` print the live sets.
+[`docs/capabilities.md`](docs/capabilities.md) is the full map.
+
+## Sample captures
+
+19 scenarios in [`samples/`](samples/), each with the Zeek logs it produces and, where an attack
+was actually executed, the answer key for it. Nothing to install to read them.
+
+| Sample | What it shows |
+|---|---|
+| [01 Kerberoasting in AD](samples/01-kerberoasting-in-ad/) | RC4 service tickets hiding inside benign AES Kerberos. The downgrade is visible in `kerberos.log`. |
+| [05 BZAR lateral movement](samples/05-bzar-lateral-movement/) | PsExec-shaped service creation over `\svcctl`, matched against a real capture, and inert by construction. |
+| [09 Kubernetes cluster lateral](samples/09-k8s-cluster-lateral/) | Pod-to-pod movement, shipped both directly and as a VXLAN traffic mirror sees it. |
+| [15 Multi-vantage](samples/15-multi-vantage/) | One incident, three sensors, side by side. |
+| [18](samples/18-openai-hf-exploitgym/) and [19](samples/19-openai-hf-exploitgym-v2/) | The same real incident reconstructed twice, from sources four days apart. |
+
+## Command map
+
+| To | Use |
+|---|---|
+| Make a capture | `scenario` `compile` `bundle` `report` |
+| Check a capture | `validate` `eval` `crossval` `warrant` |
+| Grade a detection | `detect` `coverage` `fp-benchmark` `sigma` `robustness` `corpus-build` `corpus-verify` |
+| Measure realism | `realism-audit` `realism-scorecard` `realism-detection` `trinity` `blind-panel` |
+| Work with real data | `ef-roundtrip` `transfer-proof` `malware-transfer` |
+
+`scripts/demo.sh` runs one capture through most of them in under a minute.
+
+## What this is not
+
+- **It is not a source of threat intelligence.** Indicators are invented. Nothing here belongs in
+  a blocklist or an intelligence platform.
+- **Encrypted payloads are opaque.** TLS handshakes are real, down to the certificate chain, but
+  application data is sized filler. No HTTP/2 frames, no QUIC.
+- **IPv6 covers TCP.** UDP renderers and ICMP are IPv4 only.
+- **The OT environment is thin.** Modbus is rendered properly; the S7 and DNP3 ambient services
+  have no renderer yet and carry no application bytes.
+- **The cloud environments are unvalidated against real traffic.** No public cloud capture exists
+  to baseline them against, which is a gap in the evidence rather than a search that came up
+  empty. See [`docs/appendix/cloud-baselines.md`](docs/appendix/cloud-baselines.md).
+- **A large IOC ruleset will catch almost nothing here, by design.** ET Open finds close to zero
+  of these attacks because the indicators are fictional. These captures are for testing
+  behavioural detection, not IOC feeds.
+- **`packetforge eval` is a floor, not a verdict.** It checks for the absence of obvious tells.
+  The realism question is answered in [`docs/validation.md`](docs/validation.md).
+
+## Where this came from
+
+PacketForge exists because of
+[EvidenceForge issue #332](https://github.com/Cisco-Talos/EvidenceForge/issues/332), which asked
+whether realistic, consistent synthetic PCAPs were feasible alongside EvidenceForge's synthetic
+logs. It was built to answer that question, and `packetforge ef-roundtrip` still ingests a real
+EvidenceForge run and diffs its own Zeek output against EvidenceForge's logs. Thanks to David
+Bianco and the EvidenceForge project at Cisco Talos for the incident model and for the question.
+
+This is a personal project and an experiment. It is **not** affiliated with, endorsed by, or
+authorised by Cisco, Cisco Talos, the EvidenceForge maintainers, Hugging Face, OpenAI, JFrog,
+Modal, Tailscale, or any other organisation named anywhere in this repository. Company and product
+names identify what a sample depicts and belong to their owners.
+
+Every capture here is synthetic. Samples 18 and 19 reconstruct a real, publicly disclosed incident
+from its participants' own accounts; every packet in them is fabricated, and each ships a manifest
+saying which parts rest on a cited source and which were invented. If you represent an
+organisation named in one and think it is unfair or should not exist, the contact address is in
+[`SECURITY.md`](SECURITY.md).
+
+## Documentation
+
+[`docs/README.md`](docs/README.md) is the map. The short version:
+[concepts](docs/concepts.md) for the vocabulary,
+[capabilities](docs/capabilities.md) for what it renders,
+[detection CI](docs/detection-ci.md) for putting it in a pipeline,
+[validation](docs/validation.md) and [correspondence](docs/correspondence.md) for how the claims
+are checked, [inert by construction](docs/inert-by-construction.md) for why it is safe to run, and
+[DESIGN](docs/DESIGN.md) for how it is built.
+
+MIT licensed, to keep a future merge into EvidenceForge frictionless.

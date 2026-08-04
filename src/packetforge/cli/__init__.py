@@ -40,7 +40,7 @@ def _build_parser() -> argparse.ArgumentParser:
     e.add_argument("--keep-dir", default=None)
 
     s = sub.add_parser("scenario", help="compose environment ambient noise (+ storyline) to a pcap")
-    s.add_argument("--env", required=True, help="environment name (see --list-envs)")
+    s.add_argument("--env", required=True, help="environment name (see the list-envs subcommand)")
     s.add_argument("-o", "--out", required=True)
     s.add_argument("--flows", type=int, default=150, help="number of ambient noise flows")
     s.add_argument("--volume", choices=["quiet", "normal", "busy", "saturated"], default=None,

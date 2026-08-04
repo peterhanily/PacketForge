@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 248" width="880" height="248" role="img" aria-labelledby="figtitle figdesc">
+  <title id="figtitle">How the consistency check works</title>
+  <desc id="figdesc">One incident is rendered twice: as packets and as logs. Real Zeek reads the packets back into logs, and the two sets of logs are compared field by field.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 7 4 L 0 7 z" fill="#3D444D"/>
+    </marker>
+  </defs>
+  <rect x="8" y="50" width="130" height="152" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="73" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#E6EDF3" text-anchor="middle">one</text>
+  <text x="73" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="14" font-weight="600" fill="#E6EDF3" text-anchor="middle">incident</text>
+  <text x="73" y="158" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">flows.yaml</text>
+  <path d="M 138 74 H 171" fill="none" stroke="#3D444D" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M 138 178 H 171" fill="none" stroke="#3D444D" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <rect x="178" y="50" width="148" height="48" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="252.0" y="73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12.5" font-weight="400" fill="#E6EDF3" text-anchor="middle">render</text>
+  <text x="252.0" y="90" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">packetforge</text>
+  <path d="M 326 74 H 451" fill="none" stroke="#3D444D" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <text x="392" y="63" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11" font-weight="400" fill="#9198A1" text-anchor="middle">capture.pcap</text>
+  <rect x="458" y="50" width="138" height="48" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="527.0" y="73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12.5" font-weight="400" fill="#E6EDF3" text-anchor="middle">real Zeek</text>
+  <text x="527.0" y="90" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">zeek -r</text>
+  <path d="M 596 74 H 633" fill="none" stroke="#3D444D" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <rect x="640" y="50" width="196" height="48" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="738.0" y="73" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12.5" font-weight="400" fill="#E6EDF3" text-anchor="middle">conn.log  dns.log</text>
+  <text x="738.0" y="90" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">http.log  ssl.log</text>
+  <rect x="178" y="154" width="148" height="48" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="252.0" y="177" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12.5" font-weight="400" fill="#E6EDF3" text-anchor="middle">emit</text>
+  <text x="252.0" y="194" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">EvidenceForge</text>
+  <path d="M 326 178 H 633" fill="none" stroke="#3D444D" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <text x="483" y="167" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="11" font-weight="400" fill="#9198A1" text-anchor="middle">no packets involved</text>
+  <rect x="640" y="154" width="196" height="48" rx="3" fill="#0D1117" stroke="#E6EDF3" stroke-width="1.25"/>
+  <text x="738.0" y="177" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12.5" font-weight="400" fill="#E6EDF3" text-anchor="middle">conn.log  dns.log</text>
+  <text x="738.0" y="194" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="middle">http.log  ssl.log</text>
+  <path d="M 672 104 V 148" fill="none" stroke="#D29922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 667 110 L 672 102 L 677 110" fill="none" stroke="#D29922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 667 142 L 672 150 L 677 142" fill="none" stroke="#D29922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="692" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" font-weight="400" fill="#D29922" text-anchor="start">identical,</text>
+  <text x="692" y="134" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="12" font-weight="400" fill="#D29922" text-anchor="start">field for field</text>
+  <text x="692" y="150" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="start">or the build fails</text>
+  <text x="178" y="37" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="start" letter-spacing="0.06em">WHAT WAS ON THE WIRE</text>
+  <text x="178" y="225" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10.5" font-weight="400" fill="#9198A1" text-anchor="start" letter-spacing="0.06em">WHAT THE SENSORS LOGGED</text>
+</svg>

@@ -1,107 +1,88 @@
-# PacketForge Roadmap — toward exceptional
+# Roadmap
 
-**North star:** the tool a threat hunter would actually train on — broad protocol
-coverage, realism that survives an expert eye *and* a blind LLM panel, coherent
-ATT&CK-mapped incidents shipped with ground truth, all provably consistent with
-EvidenceForge's logs, and a clean opt-in path into EvidenceForge itself.
+What PacketForge does today, what is planned next, and what it will not do. The capability
+detail is in [capabilities.md](capabilities.md), and the measured state of each gate is in
+[validation.md](validation.md).
 
-> **Status — the phase A–E hardening plan is complete**
-> (faithful Kerberos + AD roasting attacks; realistic-mess texture and
-> evasion-robustness measurement; a detection lab v2 with coverage matrix,
-> FP benchmark and Sigma-over-Zeek; a transfer proof with multi-tool
-> cross-validation; and a tight `scripts/demo.sh`). The one carried-forward
-> gap: the transfer proof needs a real *malware* sample to finish.
+## Shipped
 
-> **Update — realism, calibrated.** Ambient realism is now measured against a **real-vs-real
-> floor** (a panel of public real captures via [`scripts/baseline_panel.py`](../scripts/baseline_panel.py)),
-> not against an unreachable 0.5: the floor is ~0.998 and synthetic ambient sits ~+0.002 above it,
-> with the honest residual (within-capture heterogeneity; cloud unvalidated) called out. Attack
-> fidelity is baselined per-technique against real captures — the BZAR svcctl + `epmapper::ept_map`
-> sequence now matches real PsExec, and `dcsync` reproduces a real Empire `DRSGetNCChanges` sequence
-> field-for-field. Method: [`realism-baselining.md`](realism-baselining.md).
+- A deterministic compiler from a canonical Flow IR to a `.pcap`. The same input produces byte-identical output, with no LLM calls and no unseeded randomness in the generation path.
+- 23 protocols have a protocol-specific renderer, counting the name-query module as its three wire protocols (LLMNR, NBT-NS and mDNS), plus opaque TCP and UDP shells for binary protocols that have no renderer. Real Zeek writes 21 distinct log types across the shipped samples.
+- 26 attacks, 9 environments, 5 evasion modifiers and 6 inert malware-shaped families, enumerated by the `list-attacks`, `list-envs`, `list-evasions` and `list-families` subcommands.
+- Four gates: the real-Zeek and `tshark -z expert` round trip, a cross-validated gradient-boosted C2ST against a real-vs-real floor, detection behaviour under Suricata and Sigma, and correspondence between a reconstruction and the sources it was built from. See [concepts.md](concepts.md), [validation.md](validation.md) and [correspondence.md](correspondence.md).
+- Capture-shape transforms: multi-vantage projection through an edge TAP, a core SPAN and a host tcpdump, VXLAN mirroring for cloud and container overlays, and IPv4 fragmentation.
+- A detection-CI surface: deterministic fixtures with benign twins, suricata-verify export, and self-contained bundles. See [detection-ci.md](detection-ci.md).
+- 19 sample folders holding 26 capture files, each shipped with the Zeek logs it produces and an answer key. See [the gallery](../samples/).
+- An EvidenceForge ingest round trip, which renders EvidenceForge's own logs back to packets and diffs real Zeek's output against the originals.
 
-> **Update — the interim expansion is complete.** Beyond the A–E plan, an eight-phase
-> capability expansion landed: multi-vantage capture, encrypted-DNS (DoH/DoT) + configurable
-> ALPN, LLMNR/NBT-NS/mDNS poisoning (Responder AiTM, with an inert NTLM capture in `ntlm.log`),
-> IPv6/dual-stack, cloud environments
-> (AWS/Azure/GCP/OCI) with IMDS/exfil attacks, VXLAN traffic mirroring + a Kubernetes overlay,
-> IP fragmentation, and self-contained detection-CI bundles. The current capability map is in
-> [`capabilities.md`](capabilities.md).
+## Next
 
-## Done (phases 0–2)
-Deterministic IR compiler + real-Zeek round-trip gate; 14 faithful protocols;
-network-tap environments (office/home/cloud/ot, Ethernet vs Linux-SLL); concurrent
-scenario composer; EvidenceForge log-ingest round-trip (all ~6.5k flows, clean,
-~100% on IOC fields); realism basics (JA3, GREASE, TCP timestamps, TLS 1.2/1.3).
+Ordered by how often the gap costs a user something, not by effort.
 
----
+### QUIC and HTTP/3
 
-## Phase 3 — Protocol breadth ("everything a hunter meets")
-One repeatable pattern per protocol: IR model + renderer + one Zeek-validated test.
-Acceptance: the right Zeek analyzer log appears, zero malformed/weird. Ordered by
-hunt value:
+There is no QUIC and no HTTP/3. A TLS flow can advertise `h2` in its ALPN, but the application data is
+sized opaque filler, so there is no HTTP/2 framing either. A detection keyed on QUIC initial
+packets or on HTTP/2 frame types has nothing to fire on. QUIC comes first, because a growing
+share of real egress is UDP/443 and a capture without it looks dated at a glance.
 
-- **3a — Active Directory / Windows (do first — where intrusions live):**
-  Kerberos (AS-REQ/TGS-REQ), LDAP (bind/search), SMB2/3 (negotiate/session/tree),
-  MSRPC/DCE-RPC, NetBIOS-NS, RDP, WinRM.
-- **3b — Common & legacy services:** Telnet, TFTP, POP3/IMAP, SIP/RTP (VoIP), IRC,
-  MQTT, Redis, MySQL/MSSQL/PostgreSQL.
-- **3c — Modern / encrypted:** QUIC, DoH, DoT, HTTP/2, WireGuard, IPsec/IKE.
-- **3d — OT/ICS:** S7comm, DNP3, EtherNet/IP, BACnet (Modbus done).
-- **3e — LAN discovery:** ARP, mDNS, LLMNR, SSDP, DHCPv6, ICMPv6/NDP.
+### IPv6 beyond TCP
 
-## Phase 4 — Deep realism (survive the expert eye)
-- **Fingerprint fidelity:** p0f-exact TCP option ordering per OS; a real JA3/JA4
-  library (Chrome/Firefox/Edge/curl/python/Go + known malware families).
-- **TCP dynamics:** retransmits, dup-acks, window scaling, out-of-order, realistic
-  RTT/jitter, MSS clamping.
-- **Timing:** diurnal/bursty ambient (Hawkes-like); C2 beacon cadence + jitter
-  profiles.
-- **TLS depth:** realistic certificate chains (CN/SAN/issuer), session resumption,
-  ALPN; optional SSLKEYLOGFILE so a training TLS session can be decrypted on purpose.
-- **Payload realism:** file transfers with real magic bytes + hashes; realistic
-  HTTP bodies.
-- **Blind-panel evaluation:** an LLM/heuristic "does this look synthetic?" panel
-  (mirrors EvidenceForge's approach) plus a multi-tool cross-check
-  (Zeek + Suricata + tshark expert + p0f + a JA3 tool + RITA). *Acceptance: the panel
-  can't reliably separate ours from real captures; Suricata fires the expected alerts
-  and no spurious malformed events.*
+IPv6 support covers TCP only. Every UDP renderer and the ICMP renderer hardcode IPv4, so an
+IPv6 scenario carries no DNS, no DHCP, no NTP and no ICMPv6. Closing this means threading an
+address family through the UDP renderers and adding an ICMPv6 renderer with Neighbor
+Discovery.
 
-## Phase 5 — Scenarios & attack realism (the training value)
-- **ATT&CK-mapped storylines:** recon → initial access → C2 → discovery → lateral
-  movement → collection → exfil, each with the correct protocol footprint and
-  high-pyramid signal (tool fingerprints, C2 behavior, not just atomic IOCs).
-- **Scenario library:** ready-made, tunable incidents — APT beaconing, ransomware,
-  data exfil, insider, OT attack.
-- **Ground truth per capture:** a `GROUND_TRUTH` doc listing malicious flows, IOCs,
-  ATT&CK IDs, and hunt hints — so every pcap is training-ready.
-- **Scale & coherence:** multi-host, multi-segment, concurrent; the storyline
-  derivable from the same scenario EvidenceForge uses, so logs and packets agree.
+### A larger client fingerprint library
 
-## Phase 6 — Quality, eval & the polished demo
-- **Built-in quality score:** parseability / plausibility / consistency / timing —
-  mirroring EvidenceForge's 4-pillar eval, so users know how good a capture is.
-- **CI:** GitHub Actions running the Zeek/Suricata round-trip on every change.
-- **The demo repo:** strong README; a gallery of downloadable example captures
-  (`.pcap` + Zeek logs + ground truth + Wireshark screenshots); a 60-second
-  quickstart; `pip`/`uv` install; clean docs.
+Two TLS client profiles ship: a generic browser and curl. JA3 (an MD5 over the ClientHello's
+numeric fields) and JA4 (its successor, which also fingerprints the server side and non-TLS
+protocols) are both computed from the bytes actually on the wire, so the limit is the library
+rather than the machinery. Chrome, Firefox, Edge, Go and Python clients, each derived from a
+real ClientHello, would make the fingerprint a discriminator instead of a constant.
 
-## Phase 7 — EvidenceForge integration (endgame, gated on approval)
-- A **tiny additive `FlowSpecEmitter`** in EvidenceForge: canonical event → flow IR.
-  This closes the one real gap (exact payload volumetrics) that log-reconstruction
-  can't.
-- PacketForge wired as an **opt-in `pcap` artifact family** behind the existing
-  `artifacts.mode`, gated by the Zeek round-trip in CI.
-- Draft PR prepared **locally for review — never pushed without sign-off.**
+### S7 and DNP3 renderers
 
----
+The `ot` environment's ambient mix names `s7` and `dnp3`, but neither has a renderer, so both
+fall through to opaque TCP with zero application bytes. An OT capture is thinner than the
+environment profile implies. Modbus already has a renderer and is the pattern to copy.
 
-## Recommended sequence
-**3a (AD pack) → 5 (scenarios + ground truth) → 4 (realism + blind panel) →
-6 (eval + demo repo) → 7 (integration).** Interleave: cut a first polished demo repo
-(6) the moment 3a + 5 produce one compelling, coherent intrusion — don't wait for
-completeness.
+### Overlapping-fragment insertion
 
-## "Exceptional" means, concretely
-Broad coverage · survives a blind panel · coherent ATT&CK incidents with ground truth
-· one-command usability · provably log-consistent · clean opt-in EvidenceForge path.
+`scenario --fragment` splits an oversized IPv4 packet at a byte boundary, and Zeek reassembles
+it to the same flows. The evasion that separates one sensor from another is the overlapping
+fragment, where two fragments disagree and the reassembly policy decides what each sensor
+sees. That is a distinct transform, and it raises a distinct ground-truth question: the answer
+key has to say which reading is the true one.
+
+### Tunnelling
+
+GRE, IPsec and WireGuard each carry traffic a sensor may or may not be able to see inside.
+VXLAN encapsulation is already in the vantage engine, so the machinery for wrapping and
+declaring an outer layer exists.
+
+### A real cloud reference capture
+
+The realism gate scores against real public captures, and none of them are cloud. The four
+provider environments (`aws-vpc`, `azure-vnet`, `gcp-vpc`, `oci-vcn`) and the `k8s` overlay
+are therefore unvalidated: their protocol conformance is checked, but nothing establishes that
+their traffic mix resembles a real VPC. `scripts/cloud-capture/` takes a reference in a
+throwaway account. Method and current status are in
+[appendix/cloud-baselines.md](appendix/cloud-baselines.md).
+
+### EvidenceForge integration
+
+Not started, and blocked on the maintainer's approval. The design is a small additive
+`FlowSpecEmitter` inside EvidenceForge that turns a canonical event into Flow IR, with
+PacketForge wired in as an opt-in pcap artifact family gated by the Zeek round trip in CI.
+That closes the one gap log reconstruction cannot close: exact payload volumetrics. A local seam
+test already proves the consistency guarantee against duck-typed canonical events, so no
+EvidenceForge dependency is needed to develop it. Nothing is pushed, proposed or commented
+there without explicit approval.
+
+## Out of scope
+
+- **Full-take payload realism for binary protocols.** A protocol without a renderer is an opaque TCP or UDP shell carrying sized filler. The shell reproduces the flow's shape, never its content, and the manifest says which flows are shells.
+- **Offensive capability.** An attack scenario reproduces the observable signal a detection keys on and never the technique. DCE-RPC stubs are opnum-only (the operation number without its arguments), transferred files are codeless, and credential material is fixed filler. See [inert-by-construction.md](inert-by-construction.md).
+- **Non-determinism.** A generator that cannot reproduce its own output cannot serve as a test fixture, so nothing enters the generation path that is not seeded.
+- **Any claim that a capture is real.** `packetforge crossval` establishes that independent tools parse a capture without complaint and agree on its fingerprints. That is not a verdict that the traffic is real. Every sample ships labelled synthetic, and nothing here belongs in a blocklist.
