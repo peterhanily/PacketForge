@@ -1,4 +1,4 @@
-# PacketForge — project context for coding agents
+# PacketForge: project context for coding agents
 
 ## What this is
 A companion to [EvidenceForge](https://github.com/Cisco-Talos/EvidenceForge) that
@@ -16,11 +16,15 @@ canonical incident model. Proposed in EvidenceForge issue #332. Read
 - **Consistency is the product.** Packets derive from the canonical event / Flow IR,
   never from re-parsing lossy logs. Every change must keep the Zeek round-trip green.
 
-## Validation gate (see DESIGN.md §7)
+## Validation gates (see [`docs/concepts.md`](docs/concepts.md) for all four)
 A change to the generator is not done until, on the affected flows:
 `zeek -r out.pcap` emits no `weird.log`/`reporter.log`; `tshark -z expert` shows zero
 errors/warnings; and Zeek's conn/dns/http/ssl logs match EvidenceForge's own emitter
-output field-for-field.
+output field-for-field. That is Gate 1. Gates 2 and 3 (realism, detection behaviour) are
+documented in [`docs/validation.md`](docs/validation.md). A change touching a Mode-R
+reconstruction must also keep Gate 4 green: `packetforge warrant`, see
+[`docs/correspondence.md`](docs/correspondence.md). CI asserts that sample 19 passes Gate 4
+and that sample 18 still fails it.
 
 ## Design values (borrowed from EvidenceForge; honor them)
 Canonical single source of truth · renderer-per-protocol · data-driven fingerprint

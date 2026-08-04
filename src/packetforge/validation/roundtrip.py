@@ -29,7 +29,7 @@ from packetforge.models.flowspec import FlowSet
 from scapy.utils import wrpcap
 
 # Zeek conn.log fields we hold the packets accountable for (duration is excluded —
-# Zeek derives it its own way; see docs/feasibility-evidence.md).
+# Zeek derives it its own way; see docs/appendix/feasibility-evidence.md).
 _CONN_FIELDS = ("service", "conn_state", "history", "orig_bytes", "resp_bytes",
                 "orig_pkts", "resp_pkts")
 _INT_CONN_FIELDS = {"orig_bytes", "resp_bytes", "orig_pkts", "resp_pkts"}

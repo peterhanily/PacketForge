@@ -1,35 +1,39 @@
-# EvidenceForge integration (DRAFT — local only, nothing upstreamed)
+# EvidenceForge integration
 
-This shows how PacketForge would integrate with EvidenceForge, prepared **locally**. Nothing here has been
-pushed to EvidenceForge, and no PR has been opened. It shows exactly how PacketForge
-would plug into EvidenceForge, and proves the fit against EvidenceForge's real code.
+A draft of how PacketForge would plug into EvidenceForge, prepared here and reviewed here. Nothing
+in this directory has been pushed to EvidenceForge and no pull request has been opened. It is the
+review artifact, not a change.
 
-## The idea (recap)
+## The idea
 
-The log-reconstruction path (`packetforge ef-roundtrip`) already works today without
-touching EvidenceForge, but it can't recover exact payload volumetrics — the logs
-don't carry the bytes. The clean fix is a tiny, additive emitter that serializes the
-**canonical `SecurityEvent`** to the PacketForge Flow IR. From the event we have the
-exact bytes, so the pcap matches EvidenceForge's own numbers.
+`packetforge ef-roundtrip` already works without touching EvidenceForge: it reads a finished
+EvidenceForge run, renders packets, and diffs real Zeek's output against EvidenceForge's own logs.
+What that path cannot recover is exact payload volumetrics, because the logs do not carry the
+bytes.
 
-## What's here
+The fix is a small additive emitter that serialises the canonical `SecurityEvent` to the
+PacketForge Flow IR. The event carries the exact bytes, so a capture rendered from it matches
+EvidenceForge's own numbers rather than approximating them.
 
-- **`flowspec_emitter.py`** — the proposed emitter. `event_to_flow(event)` maps a
-  `SecurityEvent` (NetworkContext + DnsContext/HttpContext/SslContext) to a Flow-IR
-  dict; `FlowSpecEmitter` is the EvidenceForge-shaped wrapper that writes `flows.jsonl`.
-  Dependency-free and duck-typed, so it drops into EvidenceForge without importing
-  PacketForge.
-- **`prove_local.py`** — a bridge that runs the emitter against EvidenceForge's **real**
-  model classes and emits a FlowSet, proving the mapping fits EF's data model.
+## What is here
 
-## Proof it works (reproduce locally)
+- **`flowspec_emitter.py`.** The proposed emitter. `event_to_flow(event)` maps a `SecurityEvent`,
+  with its network, DNS, HTTP and SSL contexts, to a Flow IR dictionary. `FlowSpecEmitter` is the
+  EvidenceForge-shaped wrapper that writes `flows.jsonl`. It is dependency-free and duck-typed, so
+  it drops into EvidenceForge without importing PacketForge.
+- **`prove_local.py`.** A bridge that runs the emitter against EvidenceForge's real model classes
+  and emits a FlowSet, which shows the mapping fits the data model rather than a stand-in for it.
+
+## Reproducing the proof
 
 ```bash
-EF=/path/to/EvidenceForge          # a local clone with `uv sync` done
-# 1) EvidenceForge's own venv maps real canonical events -> a FlowSet:
+EF=/path/to/EvidenceForge          # a local clone with `uv sync` already run
+
+# 1. EvidenceForge's own venv maps real canonical events to a FlowSet:
 (cd "$EF" && PYTHONPATH=src .venv/bin/python \
    /path/to/PacketForge/integration/evidenceforge/prove_local.py /tmp/ef_flows.json)
-# 2) PacketForge compiles it and Zeek validates:
+
+# 2. PacketForge compiles that FlowSet and real Zeek validates the result:
 cd /path/to/PacketForge
 PYTHONPATH=src .venv/bin/python -c "import json; \
   from packetforge.models.flowspec import FlowSet; \
@@ -37,25 +41,27 @@ PYTHONPATH=src .venv/bin/python -c "import json; \
   print(validate_flowset(FlowSet.model_validate(json.load(open('/tmp/ef_flows.json')))).ok)"
 ```
 
-Result observed here: the emitter maps EF's `SecurityEvent`/`NetworkContext`/
-`DnsContext`/`HttpContext`/`SslContext` cleanly; the compiled pcap is **clean under
-real Zeek** (0 weird/tshark errors); and an analyzer-free opaque flow reproduces the
-canonical event's bytes **exactly** (1234/5678 → 1234/5678) — the volumetric fidelity
-the log path can't reach.
+Observed locally: the emitter maps `SecurityEvent` and its four contexts cleanly, the compiled
+capture is clean under real Zeek (zero weird entries, zero tshark errors), and an analyzer-free
+opaque flow reproduces the canonical event's byte counts exactly, 1234 and 5678 in and out. That
+last part is the fidelity the log-reconstruction path cannot reach.
 
-## Where it plugs into EvidenceForge (the two additive changes)
+The same guarantee is covered by `tests/test_ef_integration.py`, which runs against duck-typed
+canonical events, so it needs no EvidenceForge checkout.
 
-1. **A new emitter** at `src/evidenceforge/generation/emitters/flowspec.py`, registered
-   in `EvidenceForge`'s `_init_emitters()` alongside the Zeek emitters, gated on
-   `environment.artifacts.mode` (exactly how email artifacts are gated). It writes
-   `flows.jsonl` into the output bundle.
-2. **A `pcap` artifact family**: after generation, if `artifacts.mode` selects it,
-   compile `flows.jsonl` with PacketForge into `artifacts/pcap/<sensor>.pcap` and add a
-   `pcap` section to `ARTIFACTS_MANIFEST.json` — mirroring the email artifact family.
+## Where it would plug in
 
-Both are additive: they compute nothing new for the existing log outputs and cannot
-regress them. The precise diff is kept locally.
+Two additive changes, neither of which computes anything new for the existing log outputs, so
+neither can regress them.
+
+1. **A new emitter** at `src/evidenceforge/generation/emitters/flowspec.py`, registered in
+   `_init_emitters()` alongside the Zeek emitters and gated on `environment.artifacts.mode`, which
+   is how email artifacts are already gated. It writes `flows.jsonl` into the output bundle.
+2. **A `pcap` artifact family.** After generation, if `artifacts.mode` selects it, compile
+   `flows.jsonl` with PacketForge into `artifacts/pcap/<sensor>.pcap` and add a `pcap` section to
+   `ARTIFACTS_MANIFEST.json`, mirroring the email artifact family.
 
 ## Constraint of record
-Nothing in here is pushed to EvidenceForge or opened as a PR without the maintainer's
-(and the contributor's) explicit approval. This directory is the review artifact.
+
+Nothing here is pushed to EvidenceForge, proposed as a pull request, or raised on its issue
+tracker without the repository owner's explicit approval.
